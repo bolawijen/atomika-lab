@@ -131,7 +131,7 @@ export class Amylase extends Enzyme {
    * Lazily initializes RDKit and precomputes the ideal substrate fingerprint.
    * Called on first use during digest() to avoid blocking construction.
    */
-  private async #ensureRDKitInitialized(): Promise<void> {
+  async #ensureRDKitInitialized(): Promise<void> {
     if (this.rdkitInitializing) return;
     if (this.rdkit) return;
 
