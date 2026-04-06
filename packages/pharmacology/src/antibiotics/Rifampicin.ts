@@ -1,20 +1,20 @@
 import { BaseDrug } from "@atomika-lab/pharmacology";
-import { Bacteria } from "@atomika-lab/biology";
+import { Bacteria, Polymerase } from "@atomika-lab/biology";
 import { ELEMENTS, Atom } from "@atomika-lab/core";
 import { Enzyme } from "@atomika-lab/biochem";
 
 /**
- * Enzyme that can undergo irreversible structural unfolding.
+ * Enzyme with an active site that can bind ligands.
  */
-interface DenaturableEnzyme extends Enzyme {
-  isDenatured: boolean;
+interface LigandBindableEnzyme extends Enzyme {
+  bindLigand(ligand: object, affinity: number): void;
 }
 
 /**
- * Type guard for enzymes that support denaturation.
+ * Type guard for enzymes that support active site ligand binding.
  */
-function isDenaturable(enzyme: Enzyme): enzyme is DenaturableEnzyme {
-  return "isDenatured" in enzyme;
+function isLigandBindable(enzyme: Enzyme): enzyme is LigandBindableEnzyme {
+  return "bindLigand" in enzyme;
 }
 
 /**
@@ -24,6 +24,10 @@ function isDenaturable(enzyme: Enzyme): enzyme is DenaturableEnzyme {
  *
  * Chemical formula: C₄₃H₅₈N₄O₁₂
  * Molecular weight: 822.94 Da
+ *
+ * Mechanism: Reversible binding to the RNA polymerase active site,
+ * sterically blocking the RNA exit channel. The enzyme remains
+ * structurally intact but catalytically inhibited.
  */
 export class Rifampicin extends BaseDrug {
   readonly targetAffinity = 0.5; // nM (high affinity for bacterial RNAP)
@@ -44,19 +48,17 @@ export class Rifampicin extends BaseDrug {
   }
 
   /**
-   * Attacks the bacterial cell by inhibiting RNA polymerase.
-   * Reduces bacterial viability proportional to drug concentration
-   * and binding affinity.
+   * Inhibits bacterial RNA polymerase by binding to its active site,
+   * blocking the RNA exit channel. The enzyme remains structurally
+   * intact but transcriptionally inactive.
    */
   attack(target: Bacteria): void {
     const enzymes = target.getEnzymes();
 
     for (const enzyme of enzymes) {
-      if (isDenaturable(enzyme) && !enzyme.isDenatured) {
-        // High-affinity binding effectively blocks the active site
-        if (Math.random() < this.targetAffinity / (this.targetAffinity + 1)) {
-          enzyme.isDenatured = true;
-        }
+      if (isLigandBindable(enzyme)) {
+        // Reversible active site binding — enzyme remains structurally intact
+        enzyme.bindLigand(this, this.targetAffinity);
       }
     }
 
