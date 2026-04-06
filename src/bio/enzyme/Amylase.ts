@@ -11,8 +11,8 @@ import { HydrolysisMechanism, HydrolysisResult } from "./HydrolysisMechanism";
 import { ELEMENTS } from "../../Element";
 import { StructuralFingerprint } from "../../core/StructuralFingerprint";
 import { Chirality } from "../../core/Chirality";
-import { RDKitEngine } from "../RDKitEngine";
 import { LawsOfPhysics } from "../../core/LawsOfPhysics";
+import { AffinityModeler } from "../AffinityModeler";
 
 /**
  * SMARTS pattern for α-1,4-glycosidic linkage — the target of α-amylase.
@@ -112,9 +112,7 @@ export class Amylase extends Enzyme {
 
   private readonly kinetics = new KineticsSimulator();
   private readonly mechanism = new HydrolysisMechanism();
-  private rdkit: RDKitEngine | null = null;
-  private idealSubstrateFp: StructuralFingerprint | null = null;
-  private rdkitInitializing = false;
+  private readonly affinity = new AffinityModeler();
 
   constructor(protein: ProteinChain) {
     super(protein.sequence);
@@ -125,33 +123,6 @@ export class Amylase extends Enzyme {
       Chirality.D,                     // chirality code
       4,                               // chain length preference
     ]);
-  }
-
-  /**
-   * Lazily initializes RDKit and precomputes the ideal substrate fingerprint.
-   * Called on first use during digest() to avoid blocking construction.
-   */
-  async #ensureRDKitInitialized(): Promise<void> {
-    if (this.rdkitInitializing) return;
-    if (this.rdkit) return;
-
-    this.rdkitInitializing = true;
-    try {
-      this.rdkit = await RDKitEngine.getInstance();
-
-      // Compute Morgan fingerprint for ideal substrate (D-glucose polymer)
-      const glucoseMol = this.rdkit.createMolecule(D_GLUCOSE_SMILES);
-      if (glucoseMol) {
-        const fp = this.rdkit.getMorganFingerprint(glucoseMol, 2);
-        this.idealSubstrateFp = new StructuralFingerprint([0], fp);
-        glucoseMol.delete();
-      }
-    } catch {
-      // RDKit initialization failed — fall back to hash-based fingerprints
-      this.rdkit = null;
-    } finally {
-      this.rdkitInitializing = false;
-    }
   }
 
   /**
@@ -171,8 +142,8 @@ export class Amylase extends Enzyme {
       return this.#reportInertState();
     }
 
-    // Trigger lazy RDKit initialization (non-blocking — fallback used if not ready)
-    this.#ensureRDKitInitialized();
+    // Trigger lazy affinity model initialization (non-blocking — fallback used if not ready)
+    this.affinity.ensureInitialized();
 
     const initialBondCount = validatedSubstrate.cleavableBondCount;
 
@@ -312,98 +283,38 @@ export class Amylase extends Enzyme {
    * "lock-and-key" fit between the substrate and the enzyme's active site,
    * modified by steric hindrance from branch points.
    *
-   * When RDKit is available, uses Morgan fingerprint Tanimoto similarity
-   * for chemically accurate affinity calculation. Otherwise falls back
-   * to a simple hash-based distance.
+   * Delegates fingerprint computation and similarity calculation to the
+   * AffinityModeler service. Falls back to hash-based structural hash
+   * if the molecular recognition engine is unavailable.
    *
    * A perfect match yields the base Km; poorer fits increase Km (lower affinity).
    * Branch points near the chain ends further increase Km due to steric crowding.
    */
   #calculateDynamicKm(substrate: Polysaccharide): number {
-    let fit: number;
-
-    // Use RDKit Morgan fingerprint if available
-    if (this.idealSubstrateFp && this.rdkit) {
-      // Create substrate SMILES from monomer count (approximation)
-      // For a glucose polymer: O[C@@H]1O[C@H](CO)[C@@H](O)[C@H](O)[C@H]1O repeated
-      const substrateSmiles = this.#polymerSmiles(substrate.count);
-      const substrateMol = this.rdkit.createMolecule(substrateSmiles);
-      if (substrateMol) {
-        try {
-          const substrateFp = this.rdkit.getMorganFingerprint(substrateMol, 2);
-          const substrateFingerprint = new StructuralFingerprint([0], substrateFp);
-          fit = this.idealSubstrateFp.compatibilityWith(substrateFingerprint, this.rdkit);
-          substrateMol.delete();
-        } catch {
-          fit = this.#fallbackFit(substrate);
-        }
-      } else {
-        fit = this.#fallbackFit(substrate);
-      }
-    } else {
-      fit = this.#fallbackFit(substrate);
-    }
-
-    // Steric hindrance factor: branch points reduce enzyme accessibility
-    // Each branch point increases Km by ~20% due to crowding
-    const stericFactor = 1 + substrate.branchCount * 0.2;
-
-    // Poor fit increases Km (lower affinity): Km = BASE_KM / fit × stericFactor
-    return (this.BASE_KM / Math.max(fit, 0.01)) * stericFactor;
-  }
-
-  /**
-   * Generates an approximate SMILES for a glucose polymer of given unit count.
-   */
-  #polymerSmiles(unitCount: number): string {
-    // Simplified linear α-1,4 glucan SMILES
-    const unit = "[C@@H]1[C@H]([C@@H]([C@H](O[C@H]1CO)O)O)O";
-    if (unitCount === 1) return `C(${unit})O`;
-    let smiles = "O";
-    for (let i = 0; i < unitCount; i++) {
-      smiles += unit;
-    }
-    return smiles + "O";
-  }
-
-  /**
-   * Fallback fit calculation using simple structural features.
-   */
-  #fallbackFit(substrate: Polysaccharide): number {
     const substrateFingerprint = new StructuralFingerprint([
       substrate.bondType,
       Chirality.D,
       Math.min(substrate.count, 10),
     ]);
-    return this.activeSiteFingerprint.compatibilityWith(substrateFingerprint, this.rdkit || undefined);
+
+    return this.affinity.calculateEffectiveKm(
+      this.BASE_KM,
+      this.activeSiteFingerprint,
+      substrateFingerprint,
+      substrate.branchCount,
+    );
   }
 
   // ── Validation & State ───────────────────────────────────────────
 
   /**
    * Validates substrate specificity: the substrate must be a polysaccharide
-   * with α-1,4-glycosidic bonds, sufficient chain length, and correct chirality.
-   *
-   * When RDKit is available, uses stereochemical detection to verify
-   * that the substrate has the correct D-chirality at the anomeric carbon.
+   * with α-1,4-glycosidic bonds and sufficient chain length.
    */
   #validateSubstrateSpecificity(substrate: Saccharide): Polysaccharide | null {
     if (!(substrate instanceof Polysaccharide)) return null;
     if (substrate.bondType !== GlycosidicBondType.ALPHA_1_4) return null;
     if (substrate.count < 2) return null;
-
-    // RDKit chirality verification
-    if (this.rdkit) {
-      const smiles = this.#polymerSmiles(substrate.count);
-      const mol = this.rdkit.createMolecule(smiles);
-      if (mol) {
-        const chiralCenters = this.rdkit.countChiralCenters(mol);
-        mol.delete();
-        // Natural D-glucose polymers have chiral centers; L-isomers would differ
-        if (chiralCenters === 0) return null; // No chirality = wrong isomer
-      }
-    }
-
     return substrate;
   }
 
