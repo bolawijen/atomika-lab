@@ -1,11 +1,13 @@
 import { PhysicalConstants } from "./PhysicalConstants";
 
 /**
- * Encapsulates the fundamental laws of physics as reusable calculations.
+ * Fundamental physical laws governing chemical systems.
  *
- * Reaction and simulation classes should call these methods instead of
- * writing raw Math.pow/Math.exp expressions, keeping the scientific intent
- * readable and the arithmetic implementation centralized.
+ * Provides calculations for thermodynamics (Arrhenius kinetics, Gibbs free energy,
+ * Nernst electrochemical potential), gas behavior (ideal and real gas equations),
+ * plasma physics (Saha ionization, Lorentz force), radiation (Stefan-Boltzmann,
+ * Wien's displacement), phase transitions (Clausius-Clapeyron), and thermal
+ * energy transfer during chemical reactions.
  */
 export const LawsOfPhysics = {
   // ── Thermodynamics ──────────────────────────────────────────────
