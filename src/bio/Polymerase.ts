@@ -8,6 +8,7 @@ import { ReactionMixture } from "../core/ReactionMixture";
 import { ReactionResult, KineticSnapshot } from "../core/ReactionResult";
 import { ReactionVessel, EnzymeKinetics } from "../core/ReactionVessel";
 import { LawsOfPhysics } from "../core/LawsOfPhysics";
+import { Molecule } from "../Molecule";
 
 /**
  * RNA Polymerase (EC 2.7.7.6).
@@ -16,6 +17,13 @@ import { LawsOfPhysics } from "../core/LawsOfPhysics";
  * RNA chain by adding ribonucleotides in the 5'→3' direction.
  */
 export class Polymerase extends Enzyme {
+  /**
+   * The active site where nucleotide addition occurs.
+   * When occupied by a high-affinity ligand (e.g., Rifampicin),
+   * substrate entry is blocked and transcription halts.
+   */
+  private activeSiteOccupant: Molecule | null = null;
+
   /**
    * Transcription error rate — probability of nucleotide substitution per base.
    * Natural RNA polymerase error rates are approximately 1 × 10⁻⁶.
@@ -69,6 +77,11 @@ export class Polymerase extends Enzyme {
    * @returns ReactionResult containing the synthesized RNA and kinetic history.
    */
   digest(substrate: Saccharide, environment: Environment = PHYSIOLOGICAL_CONDITIONS): ReactionResult {
+    // Active site occupied — transcription blocked
+    if (this.activeSiteOccupant) {
+      return this.#emptyResult();
+    }
+
     const dnaTemplate = this.#validateSubstrate(substrate);
     if (!dnaTemplate) {
       return this.#emptyResult();
@@ -182,5 +195,32 @@ export class Polymerase extends Enzyme {
     const mixture = new ReactionMixture();
     mixture.add([substrate]);
     return new ReactionResult(mixture, 0, substrate.molecularMass, !this.isDenatured);
+  }
+
+  /**
+   * Binds a ligand (drug molecule) to the active site, blocking substrate entry.
+   *
+   * @param ligand The molecule binding to the active site.
+   * @param affinity Binding affinity (lower = stronger binding, nM).
+   */
+  bindLigand(ligand: Molecule, affinity: number): void {
+    // High-affinity ligands (low nM) effectively occupy the active site
+    if (affinity < 10) {
+      this.activeSiteOccupant = ligand;
+    }
+  }
+
+  /**
+   * Releases the current active site occupant, restoring catalytic activity.
+   */
+  releaseActiveSite(): void {
+    this.activeSiteOccupant = null;
+  }
+
+  /**
+   * Whether the active site is currently occupied.
+   */
+  isActiveSiteOccupied(): boolean {
+    return this.activeSiteOccupant !== null;
   }
 }
