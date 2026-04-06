@@ -83,6 +83,18 @@ export abstract class Molecule {
     }
     return mass;
   }
+
+  /**
+   * Total number of atoms in the molecule.
+   * Sums all stoichiometric counts from the atomic composition.
+   */
+  get atomCount(): number {
+    let total = 0;
+    for (const [, count] of this.atomicComposition) {
+      total += count;
+    }
+    return total;
+  }
 }
 
 /**

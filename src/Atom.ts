@@ -65,7 +65,8 @@ export class Atom {
     this.vanDerWaalsRadius = props.vanDerWaalsRadius;
   }
 
-  getNeutrons(): number {
+  /** Number of neutrons, derived from mass minus proton count. */
+  get neutronCount(): number {
     return Math.round(this.mass - this.protonCount);
   }
 }

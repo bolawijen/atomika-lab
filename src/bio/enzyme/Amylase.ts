@@ -358,14 +358,14 @@ export class Amylase extends Enzyme {
   }
 
   /**
-   * Generates an approximate SMILES for a glucose polymer of given length.
+   * Generates an approximate SMILES for a glucose polymer of given unit count.
    */
-  #polymerSmiles(length: number): string {
+  #polymerSmiles(unitCount: number): string {
     // Simplified linear α-1,4 glucan SMILES
     const unit = "[C@@H]1[C@H]([C@@H]([C@H](O[C@H]1CO)O)O)O";
-    if (length === 1) return `C(${unit})O`;
+    if (unitCount === 1) return `C(${unit})O`;
     let smiles = "O";
-    for (let i = 0; i < length; i++) {
+    for (let i = 0; i < unitCount; i++) {
       smiles += unit;
     }
     return smiles + "O";
