@@ -27,8 +27,8 @@ export class ProteinChain extends Molecule {
   }
 
   /**
-   * Atomic composition derived from the sum of all amino acid residues,
-   * minus (n − 1) H₂O molecules lost during peptide bond condensation.
+   * Atomic composition of the polypeptide, accounting for water molecules
+   * released during peptide bond formation.
    */
   get atomicComposition(): ReadonlyMap<Atom, number> {
     const composition = new Map<Atom, number>();
