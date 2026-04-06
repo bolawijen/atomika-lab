@@ -21,16 +21,17 @@ const ELEMENTARY_CHARGE = 1.602e-19;
 const ELECTRON_MASS = 9.109e-31;
 
 /**
- * Calculates the degree of ionization using the Saha Ionization Equation.
+ * Degree of ionization from the Saha Ionization Equation.
  *
  * nᵢ·nₑ / nₙ = (2πmₑkT/h²)^(3/2) · (2Zᵢ/Zₙ) · exp(-Eᵢ/kT)
  *
- * Returns the fraction of atoms that are ionized at the given temperature.
+ * The ionization fraction represents the proportion of atoms that have
+ * lost an electron at thermal equilibrium.
  *
  * @param atom The element being ionized.
  * @param temperatureK Temperature in Kelvin.
  * @param electronDensity Free electron density (m⁻³).
- * @returns Ionization fraction (0–1).
+ * Ionization fraction (0–1).
  */
 export function calculateSahaIonization(
   atom: Atom,

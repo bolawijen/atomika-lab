@@ -9,15 +9,16 @@ const FARADAY = 96485;
 const GAS_CONSTANT = 8.314;
 
 /**
- * Calculates the Gibbs Free Energy change for a redox reaction.
+ * Gibbs Free Energy change for a redox reaction.
  *
  * ΔG = -nFE°
  *
- * A negative ΔG indicates a spontaneous reaction under standard conditions.
+ * A negative ΔG indicates a thermodynamically favorable reaction that
+ * proceeds without external energy input.
  *
  * @param electronsTransferred Number of electrons transferred (n).
  * @param standardPotential Standard cell potential E° in volts (E°cathode - E°anode).
- * @returns Gibbs Free Energy change in kJ/mol.
+ * Gibbs Free Energy change (kJ/mol).
  */
 export function calculateGibbsFreeEnergy(electronsTransferred: number, standardPotential: number): number {
   return -(electronsTransferred * FARADAY * standardPotential) / 1000;

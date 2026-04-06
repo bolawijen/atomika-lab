@@ -28,15 +28,14 @@ export class StructuralFingerprint {
   }
 
   /**
-   * Computes the structural compatibility score between this fingerprint
-   * and another (e.g., enzyme active site vs. substrate).
+   * Degree of structural similarity between two molecular fingerprints.
    *
-   * Returns a value between 0 (no fit) and 1 (perfect lock-and-key match).
-   * Uses Tanimoto similarity when Morgan fingerprints are available
-   * and an RDKit engine is provided.
+   * A score of 1 indicates identical structural features; 0 indicates
+   * no shared features. Based on exponential decay of hash distance.
    *
    * @param other The fingerprint to compare against.
    * @param rdkit Optional RDKit engine for Tanimoto similarity calculation.
+   * Similarity score reflecting molecular fit (0–1).
    */
   compatibilityWith(other: StructuralFingerprint, rdkit?: RDKitEngine): number {
     // Use RDKit Morgan fingerprint Tanimoto similarity if available
