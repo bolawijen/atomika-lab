@@ -9,9 +9,10 @@ import { Molecule } from "@atomika-lab/core";
  */
 export abstract class Enzyme extends ProteinChain {
   /**
-   * Catalytic action of the enzyme on its specific substrate.
+   * Catalytic transformation of the substrate into reaction products.
+   *
    * @param substrate The molecule(s) that the enzyme acts upon.
-   * @returns The product(s) of the enzymatic reaction.
+   * Products formed by the enzymatic transformation.
    */
   abstract digest(substrate: Saccharide): Saccharide[] | Saccharide;
 
