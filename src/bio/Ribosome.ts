@@ -112,6 +112,24 @@ export class Ribosome {
   private readonly KCAT = 20;
 
   /**
+   * Translation error rate — probability of amino acid misincorporation per codon.
+   * Natural ribosome error rates are approximately 1 × 10⁻⁴.
+   */
+  private readonly ERROR_RATE = 1e-4;
+
+  /**
+   * ATP molecules consumed per peptide bond formed.
+   * Each amino acid requires 2 ATP (activation) + 1 GTP (elongation) ≈ 3 high-energy bonds.
+   */
+  private readonly ATP_PER_PEPTIDE_BOND = 3;
+
+  /**
+   * Folding time — seconds required for chaperone-assisted protein folding
+   * before the enzyme reaches full activity.
+   */
+  private readonly FOLDING_TIME_SECONDS = 30;
+
+  /**
    * Michaelis constant for aminoacyl-tRNA substrates.
    */
   private readonly KM = 1e-7;
@@ -176,7 +194,13 @@ export class Ribosome {
           .map(n => n.base)
           .join("");
 
-        const aminoAcidInfo = GENETIC_CODE.get(codon);
+        let aminoAcidInfo = GENETIC_CODE.get(codon);
+
+        // Translation error: occasional amino acid misincorporation
+        if (aminoAcidInfo && aminoAcidInfo.oneLetter !== "*" && Math.random() < this.ERROR_RATE) {
+          aminoAcidInfo = this.#randomMisincorporation(aminoAcidInfo);
+        }
+
         if (!aminoAcidInfo || aminoAcidInfo.oneLetter === "*") break;
 
         const aa = new AminoAcid(
@@ -235,6 +259,15 @@ export class Ribosome {
 
     const comp = compositions[name] || [[ELEMENTS.C, 5], [ELEMENTS.H, 10], [ELEMENTS.N, 1], [ELEMENTS.O, 2]];
     return new Map(comp);
+  }
+
+  /**
+   * Introduces a random amino acid substitution (mimicking translation errors).
+   */
+  #randomMisincorporation(correctInfo: { name: string; threeLetter: string; oneLetter: string; composition: Map<any, number> }): { name: string; threeLetter: string; oneLetter: string; composition: Map<any, number> } {
+    const allAminoAcids = Array.from(GENETIC_CODE.values()).filter(aa => aa.oneLetter !== "*");
+    const wrongAAs = allAminoAcids.filter(aa => aa.oneLetter !== correctInfo.oneLetter);
+    return wrongAAs[Math.floor(Math.random() * wrongAAs.length)];
   }
 
   #calculateThermalDrift(bondsFormed: number, deltaH: number): number {

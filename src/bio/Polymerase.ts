@@ -16,6 +16,12 @@ import { ReactionVessel, EnzymeKinetics } from "../core/ReactionVessel";
  */
 export class Polymerase extends Enzyme {
   /**
+   * Transcription error rate — probability of nucleotide substitution per base.
+   * Natural RNA polymerase error rates are approximately 1 × 10⁻⁶.
+   */
+  private readonly ERROR_RATE = 1e-6;
+
+  /**
    * Catalytic rate constant — nucleotides added per second.
    */
   private readonly KCAT = 50;
@@ -100,7 +106,13 @@ export class Polymerase extends Enzyme {
       const toAdd = Math.min(nucleotidesThisStep, dnaTemplate.count - nucleotidesAdded);
       for (let i = 0; i < toAdd; i++) {
         const templateBase = dnaTemplate.sequence[nucleotidesAdded].base;
-        const complementaryBase = this.#getComplementaryRNA(templateBase);
+        let complementaryBase = this.#getComplementaryRNA(templateBase);
+
+        // Transcription error: occasional nucleotide substitution
+        if (Math.random() < this.ERROR_RATE) {
+          complementaryBase = this.#randomSubstitution(complementaryBase);
+        }
+
         rnaChain.push(new Nucleotide(complementaryBase, NucleicAcidType.RNA));
         nucleotidesAdded++;
       }
@@ -139,6 +151,20 @@ export class Polymerase extends Enzyme {
       case NitrogenousBase.GUANINE: return NitrogenousBase.CYTOSINE;
       default: return NitrogenousBase.ADENINE;
     }
+  }
+
+  /**
+   * Introduces a random nucleotide substitution (mimicking transcription errors).
+   */
+  #randomSubstitution(correctBase: NitrogenousBase): NitrogenousBase {
+    const bases = [
+      NitrogenousBase.ADENINE,
+      NitrogenousBase.URACIL,
+      NitrogenousBase.CYTOSINE,
+      NitrogenousBase.GUANINE,
+    ];
+    const wrongBases = bases.filter(b => b !== correctBase);
+    return wrongBases[Math.floor(Math.random() * wrongBases.length)];
   }
 
   #calculateThermalDrift(bondsFormed: number, deltaH: number): number {
