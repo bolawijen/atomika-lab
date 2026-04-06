@@ -24,6 +24,12 @@ export interface AtomProps {
    * E.g., Hydrogen: 13.6 eV, Carbon: 11.3 eV, Iron: 7.9 eV.
    */
   ionizationEnergy?: number;
+  /**
+   * Van der Waals radius (Ångströms).
+   * Defines the effective spatial extent of the atom for steric calculations.
+   * E.g., Hydrogen: 1.20 Å, Carbon: 1.70 Å, Oxygen: 1.52 Å.
+   */
+  vanDerWaalsRadius?: number;
 }
 
 /**
@@ -43,6 +49,8 @@ export class Atom {
   readonly coordinationNumbers?: number[];
   /** First ionization energy in electron volts (eV). */
   readonly ionizationEnergy?: number;
+  /** Van der Waals radius (Ångströms). */
+  readonly vanDerWaalsRadius?: number;
 
   constructor(props: AtomProps) {
     this.name = props.name;
@@ -54,6 +62,7 @@ export class Atom {
     this.oxidationStates = props.oxidationStates;
     this.coordinationNumbers = props.coordinationNumbers;
     this.ionizationEnergy = props.ionizationEnergy;
+    this.vanDerWaalsRadius = props.vanDerWaalsRadius;
   }
 
   getNeutrons(): number {

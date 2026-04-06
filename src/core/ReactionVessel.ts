@@ -5,6 +5,7 @@ import { ReactionMixture } from "./ReactionMixture";
 import { KineticSnapshot } from "./ReactionResult";
 import { Environment } from "./Environment";
 import { Atom } from "../Atom";
+import { PhysicalConstants } from "./PhysicalConstants";
 
 /**
  * Thrown when atomic mass balance is violated during a simulation step.
@@ -332,5 +333,49 @@ export class ReactionVessel {
 
     // If the next reaction occurs within our time interval, count it
     return timeToNextReaction < timeInterval ? 1 : 0;
+  }
+
+  /**
+   * Calculates the molecular crowding factor based on van der Waals volumes
+   * of all molecules in the mixture relative to the vessel volume.
+   *
+   * Returns a scaling factor (0–1) that reduces reaction rates when
+   * the mixture is densely packed. At low density, the factor is ~1.0;
+   * as the occupied volume fraction approaches 0.5 (close packing),
+   * the factor drops toward zero.
+   *
+   * Uses the approximation: crowdingFactor = 1 - (occupiedVolume / vesselVolume)²
+   * where occupiedVolume is estimated from van der Waals radii of all atoms.
+   */
+  calculateCrowdingFactor(mixture: Saccharide[]): number {
+    const occupiedVolume = this.#estimateOccupiedVolume(mixture);
+    const vesselVolume = this.volumeInLiters * 1e27; // Convert L to Å³ (1 L = 1e27 Å³)
+
+    if (vesselVolume <= 0) return 0;
+
+    const volumeFraction = occupiedVolume / vesselVolume;
+    // Quadratic decay: crowding becomes severe as volume fraction increases
+    return Math.max(0, 1 - volumeFraction * volumeFraction);
+  }
+
+  /**
+   * Estimates the total volume occupied by all molecules in the mixture
+   * based on the van der Waals radii of their constituent atoms.
+   *
+   * Volume of a sphere: V = (4/3)πr³
+   */
+  #estimateOccupiedVolume(mixture: Saccharide[]): number {
+    let totalVolume = 0;
+
+    for (const molecule of mixture) {
+      for (const [atom, count] of molecule.atomicComposition) {
+        if (atom.vanDerWaalsRadius) {
+          const atomVolume = (4 / 3) * Math.PI * Math.pow(atom.vanDerWaalsRadius, 3);
+          totalVolume += atomVolume * count;
+        }
+      }
+    }
+
+    return totalVolume;
   }
 }
