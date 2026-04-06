@@ -15,9 +15,6 @@ import { LawsOfPhysics } from "@atomika-lab/core";
  *
  * α-Glucosidase (EC 3.2.1.20) is an exohydrolase that cleaves the terminal
  * α-1,4-glycosidic bond of maltose, releasing two glucose monomers.
- *
- * This enzyme uses the same ReactionVessel for kinetic calculations
- * as Amylase, demonstrating API consistency across enzymes.
  */
 export class Maltase extends Enzyme {
   /**
