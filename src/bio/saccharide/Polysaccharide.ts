@@ -2,11 +2,12 @@ import { Saccharide } from "./Saccharide";
 import { Monosaccharide } from "./Monosaccharide";
 import { ELEMENTS } from "../../Element";
 import { Atom } from "../../Atom";
-import { GlycosidicBondType } from "./GlycosidicBondType";
+import { GlycosidicBondType, GlycosidicBond } from "./GlycosidicBondType";
 
 /**
  * A polysaccharide (complex carbohydrate).
  * Polymers made of many monosaccharide units linked by glycosidic bonds.
+ * Supports both linear chains (α-1,4) and branched structures (α-1,6 branch points).
  */
 export abstract class Polysaccharide extends Saccharide {
   /**
@@ -21,6 +22,18 @@ export abstract class Polysaccharide extends Saccharide {
    * Determines which enzymes can hydrolyze the chain.
    */
   abstract readonly bondType: GlycosidicBondType;
+
+  /**
+   * Branch points in the polysaccharide structure.
+   * Each entry records an α-1,6 linkage connecting a branch to the main chain.
+   * Linear polysaccharides (e.g., amylose) have an empty array.
+   */
+  readonly branchPoints: ReadonlyArray<GlycosidicBond>;
+
+  constructor(branchPoints: GlycosidicBond[] = []) {
+    super();
+    this.branchPoints = Object.freeze(branchPoints);
+  }
 
   /**
    * Cached atomic composition, computed once on first access.
@@ -41,6 +54,13 @@ export abstract class Polysaccharide extends Saccharide {
    */
   get cleavableBondCount(): number {
     return Math.max(0, this.monomers.length - 1);
+  }
+
+  /**
+   * Counts the number of α-1,6 branch points in this polysaccharide.
+   */
+  get branchCount(): number {
+    return this.branchPoints.filter(b => b.type === GlycosidicBondType.ALPHA_1_6).length;
   }
 
   /**

@@ -1,7 +1,9 @@
 import { Atom } from "./src/Atom";
 import { ELEMENTS } from "./src/Element";
 import { Amylose } from "./src/bio/saccharide/Amylose";
+import { Amylopectin } from "./src/bio/saccharide/Amylopectin";
 import { Amylase } from "./src/bio/enzyme/Amylase";
+import { Isoamylase } from "./src/bio/enzyme/Isoamylase";
 import { Maltase } from "./src/bio/enzyme/Maltase";
 import { AminoAcid } from "./src/bio/AminoAcid";
 import { ProteinChain } from "./src/bio/ProteinChain";
@@ -198,3 +200,36 @@ if (mrna) {
     console.log(`Protein formula: ${protein.molecularFormula} (${protein.molecularMass.toFixed(0)} Da)`);
   }
 }
+
+
+// --- Complex Polysaccharides & Branching Demonstration ---
+console.log("\n--- Complex Polysaccharides & Branching Demonstration ---");
+
+// Linear amylose vs branched amylopectin
+const linearAmylose = new Amylose(20);
+console.log(`Linear amylose: ${linearAmylose}, branches: ${linearAmylose.branchCount}`);
+
+const branchedAmylopectin = new Amylopectin(30, [6, 12, 18, 24]);
+console.log(`Amylopectin: ${branchedAmylopectin}`);
+console.log(`  Formula: ${branchedAmylopectin.molecularFormula}`);
+console.log(`  Mass: ${branchedAmylopectin.molecularMass.toFixed(0)} Da`);
+console.log(`  Branch points: ${branchedAmylopectin.branchCount}`);
+
+// Amylase alone cannot fully digest branched starch
+const branchingEnzymeProtein = new ProteinChain([asp, ala, lys, asp, ala]);
+const amylaseOnly = new Amylase(branchingEnzymeProtein);
+const amylaseResult = amylaseOnly.digest(branchedAmylopectin, new Environment(37, 7.0, 60));
+console.log(`\nAmylase alone on amylopectin: ${amylaseResult.products.speciesCount} products, conversion: ${(amylaseResult.conversionRate * 100).toFixed(0)}%`);
+
+// Isoamylase debranches first, then amylase digests fully
+const isoamylase = new Isoamylase(branchingEnzymeProtein);
+const debranchResult = isoamylase.digest(branchedAmylopectin, new Environment(37, 7.0, 30));
+console.log(`Isoamylase debranching: ${debranchResult.products.speciesCount} linearized chains, branches cleaved: ${(debranchResult.conversionRate * 100).toFixed(0)}%`);
+
+// Sequential digestion: debranch → amylase → maltase
+const starchBioreactor = new Bioreactor();
+starchBioreactor.addEnzyme(isoamylase);
+starchBioreactor.addEnzyme(amylaseOnly);
+starchBioreactor.addEnzyme(new Maltase(branchingEnzymeProtein));
+const fullDigestion = starchBioreactor.digest(branchedAmylopectin, new Environment(37, 7.0, 120));
+console.log(`Full digestion (Isoamylase + Amylase + Maltase): ${fullDigestion.products.speciesCount} products`);

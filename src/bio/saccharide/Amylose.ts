@@ -14,7 +14,7 @@ export class Amylose extends Polysaccharide {
    * @param glucoseUnitCount The number of glucose units in the chain.
    */
   constructor(glucoseUnitCount: number) {
-    super();
+    super(); // Amylose is linear — no branch points
     this.monomers = Object.freeze(Array.from({ length: glucoseUnitCount }, () => new Glucose()));
   }
 

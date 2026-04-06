@@ -275,9 +275,11 @@ export class Amylase extends Enzyme {
 
   /**
    * Calculates the effective Michaelis constant based on the structural
-   * "lock-and-key" fit between the substrate and the enzyme's active site.
+   * "lock-and-key" fit between the substrate and the enzyme's active site,
+   * modified by steric hindrance from branch points.
    *
    * A perfect match yields the base Km; poorer fits increase Km (lower affinity).
+   * Branch points near the chain ends further increase Km due to steric crowding.
    */
   #calculateDynamicKm(substrate: Polysaccharide): number {
     const substrateFingerprint = new StructuralFingerprint([
@@ -287,8 +289,13 @@ export class Amylase extends Enzyme {
     ]);
 
     const fit = this.activeSiteFingerprint.compatibilityWith(substrateFingerprint);
-    // Poor fit increases Km (lower affinity): Km = BASE_KM / fit
-    return this.BASE_KM / Math.max(fit, 0.01);
+
+    // Steric hindrance factor: branch points reduce enzyme accessibility
+    // Each branch point increases Km by ~20% due to crowding
+    const stericFactor = 1 + substrate.branchCount * 0.2;
+
+    // Poor fit increases Km (lower affinity): Km = BASE_KM / fit × stericFactor
+    return (this.BASE_KM / Math.max(fit, 0.01)) * stericFactor;
   }
 
   // ── Validation & State ───────────────────────────────────────────
