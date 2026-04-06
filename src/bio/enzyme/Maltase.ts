@@ -147,7 +147,11 @@ export class Maltase extends Enzyme {
       }
 
       // Apply thermal drift from reaction enthalpy
-      currentTemp += LawsOfPhysics.calculateThermalDrift(toProcess, this.DELTA_H, 1e-15);
+      currentTemp += LawsOfPhysics.calculateThermalDrift(
+        toProcess,
+        this.DELTA_H,
+        1e-15, // Default femtoliter-scale reaction vessel
+      );
     }
 
     productMixture.add(reactionMixture);

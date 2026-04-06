@@ -109,7 +109,11 @@ export class Isoamylase extends Enzyme {
       branchesCleaved += result.branchesCleaved;
       reactionMixture = result.remaining;
 
-      currentTemp += LawsOfPhysics.calculateThermalDrift(result.branchesCleaved, this.DELTA_H, 1e-15);
+      currentTemp += LawsOfPhysics.calculateThermalDrift(
+        result.branchesCleaved,
+        this.DELTA_H,
+        1e-15, // Default femtoliter-scale reaction vessel
+      );
     }
 
     productMixture.add(reactionMixture);
@@ -184,7 +188,7 @@ export class Isoamylase extends Enzyme {
   }
 
   #checkThermalDenaturation(environment: Environment): void {
-    if (environment.temperatureC >= 60) {
+    if (environment.temperatureC >= this.DENATURATION_THRESHOLD) {
       this.isDenatured = true;
     }
   }
