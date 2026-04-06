@@ -1,6 +1,3 @@
-import { Maltose } from "../saccharide/Maltose";
-import { Dextrin } from "../saccharide/Dextrin";
-import { Monosaccharide } from "../saccharide/Monosaccharide";
 import { ProteinChain } from "../ProteinChain";
 import { Enzyme } from "./Enzyme";
 import { Saccharide } from "../saccharide/Saccharide";
@@ -9,6 +6,8 @@ import { GlycosidicBondType } from "../saccharide/GlycosidicBondType";
 import { Environment, PHYSIOLOGICAL_CONDITIONS } from "../Environment";
 import { ReactionMixture } from "../ReactionMixture";
 import { ReactionResult, KineticSnapshot } from "../ReactionResult";
+import { KineticsSimulator, KineticParameters } from "./KineticsSimulator";
+import { HydrolysisMechanism, HydrolysisResult } from "./HydrolysisMechanism";
 
 /**
  * The Amylase enzyme.
@@ -16,13 +15,21 @@ import { ReactionResult, KineticSnapshot } from "../ReactionResult";
  * α-Amylase (EC 3.2.1.1) is an endohydrolase that randomly cleaves
  * internal α-1,4-glycosidic bonds in polysaccharides such as amylose,
  * yielding maltose, free monosaccharides, and limit dextrins as end products.
+ *
+ * This class serves as a configuration entity — it stores kinetic parameters
+ * and delegates the simulation to KineticsSimulator and HydrolysisMechanism.
  */
 export class Amylase extends Enzyme {
   /**
-   * Minimum monomer count for a fragment to contain a cleavable bond.
-   * A disaccharide (n = 2) is the smallest hydrolyzable unit.
+   * Optimal pH for maximal catalytic rate.
+   * Human salivary α-amylase peaks near pH 6.8.
    */
-  private readonly MIN_HYDROLYZABLE_COUNT = 2;
+  private readonly OPTIMAL_PH = 6.8;
+
+  /**
+   * pH tolerance width — controls the breadth of the bell-shaped activity curve.
+   */
+  private readonly PH_TOLERANCE = 1.5;
 
   /**
    * Optimal temperature for catalytic activity (°C).
@@ -35,55 +42,43 @@ export class Amylase extends Enzyme {
   private readonly DENATURATION_THRESHOLD = 60;
 
   /**
-   * Optimal pH for maximal catalytic rate.
-   * Human salivary α-amylase peaks near pH 6.8.
-   */
-  private readonly OPTIMAL_PH = 6.8;
-
-  /**
-   * pH tolerance width — controls the breadth of the bell-shaped activity curve.
-   * A narrower value produces a sharper peak around the optimal pH.
-   */
-  private readonly PH_TOLERANCE = 1.5;
-
-  /**
    * Catalytic rate constant (k_cat) — bonds cleaved per enzyme molecule per second
    * under saturating substrate conditions at optimal pH and temperature.
    */
   private readonly KCAT = 0.5;
 
   /**
-   * Michaelis constant. Substrate concentration at half Vmax.
-   * Lower values indicate higher substrate affinity.
+   * Michaelis constant — substrate concentration at half Vmax.
    */
   private readonly KM = 5;
 
   /**
-   * Product inhibition constant. Product concentration at half-maximal inhibition.
-   * Models competitive inhibition by maltose and monosaccharides at the active site.
+   * Product inhibition constant — product concentration at half-maximal inhibition.
    */
   private readonly KI = 200;
+
+  /**
+   * Maximum simulation steps to prevent runaway loops.
+   */
+  private readonly MAX_SIMULATION_STEPS = 10000;
 
   /**
    * Permanent structural damage flag — once true, the enzyme can never recover.
    */
   isDenatured = false;
 
+  private readonly kinetics = new KineticsSimulator();
+  private readonly mechanism = new HydrolysisMechanism();
+
   constructor(protein: ProteinChain) {
     super(protein);
   }
 
   /**
-   * Maximum number of simulation steps to prevent runaway loops.
-   * Corresponds to roughly 2.8 hours of simulated reaction time.
-   */
-  private readonly MAX_SIMULATION_STEPS = 10000;
-
-  /**
    * Catalyzes the hydrolysis of α-1,4-glycosidic bonds in a polysaccharide substrate.
    *
-   * The reaction follows Michaelis-Menten kinetics with competitive product inhibition
-   * and a bell-shaped pH activity profile. Reaction extent is governed by duration.
+   * Delegates time-stepping and rate calculation to KineticsSimulator,
+   * and bond cleavage/fragment classification to HydrolysisMechanism.
    *
    * @param substrate The polysaccharide substrate (e.g., amylose).
    * @param environment Reaction conditions (temperature, pH, duration).
@@ -112,29 +107,45 @@ export class Amylase extends Enzyme {
       return this.#unreactedResult(validatedSubstrate, environment);
     }
 
-    let reactionMixture: Polysaccharide[] = [validatedSubstrate];
+    const parameters: KineticParameters = {
+      kCat: this.KCAT,
+      kM: this.KM,
+      kI: this.KI,
+      phActivity,
+      tempActivity,
+      maxSteps: this.MAX_SIMULATION_STEPS,
+    };
+
+    return this.#runSimulation(validatedSubstrate, parameters, environment, initialBondCount);
+  }
+
+  /**
+   * Executes the time-stepped hydrolysis simulation using the delegated components.
+   */
+  #runSimulation(
+    substrate: Polysaccharide,
+    parameters: KineticParameters,
+    environment: Environment,
+    initialBondCount: number,
+  ): ReactionResult {
+    let reactionMixture: Polysaccharide[] = [substrate];
     const productMixture = new ReactionMixture();
     let bondsCleaved = 0;
     const history: KineticSnapshot[] = [];
-    const totalSteps = Math.min(Math.ceil(environment.durationInSeconds), this.MAX_SIMULATION_STEPS);
+    const totalSteps = Math.min(Math.ceil(environment.durationInSeconds), parameters.maxSteps);
 
     for (let step = 0; step < totalSteps; step++) {
-      // Record kinetic snapshot
-      history.push({
-        timeInSeconds: step,
-        remainingBonds: this.#totalCleavableBonds(reactionMixture),
-        productCount: productMixture.speciesCount,
-      });
+      history.push(this.kinetics.recordSnapshot(reactionMixture, productMixture, step));
 
       this.#checkThermalDenaturation(environment);
       if (this.isDenatured) break;
       if (!this.#hasHydrolyzableSubstrate(reactionMixture)) break;
 
-      const cleavageRate = this.#calculateCleavageRate(reactionMixture, productMixture, phActivity, tempActivity);
-      const bondsThisStep = this.#probabilisticBonds(cleavageRate);
+      const cleavageRate = this.kinetics.calculateCleavageRate(parameters, reactionMixture, productMixture);
+      const bondsThisStep = this.kinetics.probabilisticBonds(cleavageRate);
       if (bondsThisStep === 0) continue;
 
-      const result = this.#executeCatalyticCycle(reactionMixture, bondsThisStep);
+      const result = this.mechanism.execute(reactionMixture, bondsThisStep);
       productMixture.add(result.maltose);
       productMixture.add(result.freeMonosaccharides);
       bondsCleaved += result.bondsCleaved;
@@ -155,56 +166,10 @@ export class Amylase extends Enzyme {
     );
   }
 
-  // ── Kinetics Engine ──────────────────────────────────────────────
-
-  /**
-   * Calculates the effective bond cleavage rate (bonds/s) using
-   * Michaelis-Menten kinetics with competitive product inhibition,
-   * pH-dependent activity, and temperature-dependent activity.
-   */
-  #calculateCleavageRate(
-    mixture: Polysaccharide[],
-    products: ReactionMixture,
-    phActivity: number,
-    tempActivity: number,
-  ): number {
-    const substrateConcentration = this.#totalCleavableBonds(mixture);
-    const productConcentration = products.speciesCount;
-
-    const vmax = this.KCAT * phActivity * tempActivity;
-    const inhibitionFactor = 1 + productConcentration / this.KI;
-    return vmax * substrateConcentration / (this.KM * inhibitionFactor + substrateConcentration);
-  }
-
-  /**
-   * Temperature activity curve — zero below 5°C, zero above denaturation threshold,
-   * with a gradual rise between the optimal temperature and the threshold.
-   */
-  #calculateTempActivity(temperatureC: number): number {
-    if (temperatureC < 5) return 0;
-    if (temperatureC >= this.DENATURATION_THRESHOLD) return 0;
-    if (temperatureC <= this.OPTIMAL_TEMP) {
-      // Linear ramp from 5°C to optimal
-      return (temperatureC - 5) / (this.OPTIMAL_TEMP - 5);
-    }
-    // Gradual decline from optimal to denaturation threshold
-    return 1 - (temperatureC - this.OPTIMAL_TEMP) / (this.DENATURATION_THRESHOLD - this.OPTIMAL_TEMP);
-  }
-
-  /**
-   * Converts a fractional cleavage rate into an integer bond count
-   * using stochastic rounding.
-   */
-  #probabilisticBonds(rate: number): number {
-    const base = Math.floor(rate);
-    const remainder = rate - base;
-    return Math.random() < remainder ? base + 1 : base;
-  }
+  // ── Activity Curves ──────────────────────────────────────────────
 
   /**
    * Bell-shaped pH activity curve centered at OPTIMAL_PH.
-   * Returns a scaling factor between 0 and 1.
-   * Activity drops to near-zero beyond ±3 pH units from optimum.
    */
   #calculatePhActivity(ph: number): number {
     const deviation = ph - this.OPTIMAL_PH;
@@ -213,117 +178,15 @@ export class Amylase extends Enzyme {
   }
 
   /**
-   * Sums all cleavable glycosidic bonds across every molecule in the mixture.
-   * A chain of n monomers contributes n − 1 bonds.
+   * Temperature activity curve — zero below 5°C, zero above denaturation threshold.
    */
-  #totalCleavableBonds(mixture: Polysaccharide[]): number {
-    let total = 0;
-    for (const fragment of mixture) {
-      total += fragment.cleavableBondCount;
+  #calculateTempActivity(temperatureC: number): number {
+    if (temperatureC < 5) return 0;
+    if (temperatureC >= this.DENATURATION_THRESHOLD) return 0;
+    if (temperatureC <= this.OPTIMAL_TEMP) {
+      return (temperatureC - 5) / (this.OPTIMAL_TEMP - 5);
     }
-    return total;
-  }
-
-  /**
-   * Sums the molecular mass of every molecule in the mixture.
-   */
-  #totalMass(mixture: Polysaccharide[]): number {
-    let total = 0;
-    for (const fragment of mixture) {
-      total += fragment.molecularMass;
-    }
-    return total;
-  }
-
-  // ── Catalytic Cycle ──────────────────────────────────────────────
-
-  /**
-   * Executes one catalytic pass over the reaction mixture,
-   * cleaving up to the specified number of glycosidic bonds.
-   */
-  #executeCatalyticCycle(
-    mixture: Polysaccharide[],
-    budget: number,
-  ): { unhydrolyzedFragments: Polysaccharide[], maltose: Maltose[], freeMonosaccharides: Monosaccharide[], bondsCleaved: number } {
-    const unhydrolyzedFragments: Polysaccharide[] = [];
-    const maltose: Maltose[] = [];
-    const freeMonosaccharides: Monosaccharide[] = [];
-    let bondsCleaved = 0;
-
-    for (const oligomer of mixture) {
-      if (bondsCleaved >= budget) {
-        unhydrolyzedFragments.push(oligomer);
-        continue;
-      }
-
-      const result = this.#processOligomer(oligomer);
-      unhydrolyzedFragments.push(...result.remainingOligomers);
-      maltose.push(...result.maltose);
-      freeMonosaccharides.push(...result.freeMonosaccharides);
-      bondsCleaved += result.bondsCleaved;
-    }
-
-    return { unhydrolyzedFragments, maltose, freeMonosaccharides, bondsCleaved };
-  }
-
-  /**
-   * Processes a single oligosaccharide during a catalytic cycle.
-   * Disaccharides are released as maltose; longer chains are hydrolyzed.
-   */
-  #processOligomer(oligomer: Polysaccharide): { remainingOligomers: Polysaccharide[], maltose: Maltose[], freeMonosaccharides: Monosaccharide[], bondsCleaved: number } {
-    if (oligomer.count === this.MIN_HYDROLYZABLE_COUNT) {
-      return { remainingOligomers: [], maltose: [new Maltose()], freeMonosaccharides: [], bondsCleaved: 0 };
-    }
-
-    const [proximal, distal] = this.#cleaveGlycosidicBond(oligomer);
-    const maltose: Maltose[] = [];
-    const remainingOligomers: Polysaccharide[] = [];
-    const freeMonosaccharides: Monosaccharide[] = [];
-
-    this.#classifyFragment(proximal, maltose, remainingOligomers, freeMonosaccharides);
-    this.#classifyFragment(distal, maltose, remainingOligomers, freeMonosaccharides);
-
-    return { remainingOligomers, maltose, freeMonosaccharides, bondsCleaved: 1 };
-  }
-
-  /**
-   * Simulates endo-hydrolysis of a single α-1,4-glycosidic bond
-   * at a random position within the oligosaccharide chain.
-   */
-  #cleaveGlycosidicBond(chain: Polysaccharide): [Dextrin, Dextrin] {
-    const cleavageSite = this.#selectRandomCleavageSite(chain.count);
-    const proximalMonomers = chain.monomers.slice(0, cleavageSite);
-    const distalMonomers = chain.monomers.slice(cleavageSite);
-    return [
-      new Dextrin(proximalMonomers),
-      new Dextrin(distalMonomers),
-    ];
-  }
-
-  /**
-   * Selects a random cleavage site along the glycosidic backbone.
-   */
-  #selectRandomCleavageSite(chainCount: number): number {
-    return Math.floor(Math.random() * (chainCount - 1)) + 1;
-  }
-
-  /**
-   * Classifies a hydrolysis fragment as maltose, a remaining oligomer,
-   * or a free monosaccharide.
-   */
-  #classifyFragment(
-    fragment: Polysaccharide,
-    maltose: Maltose[],
-    remainingOligomers: Polysaccharide[],
-    freeMonosaccharides: Monosaccharide[],
-  ): void {
-    if (fragment.count === this.MIN_HYDROLYZABLE_COUNT) {
-      maltose.push(new Maltose());
-    } else if (fragment.count > this.MIN_HYDROLYZABLE_COUNT) {
-      remainingOligomers.push(fragment);
-    } else {
-      freeMonosaccharides.push(fragment.monomers[0]);
-    }
+    return 1 - (temperatureC - this.OPTIMAL_TEMP) / (this.DENATURATION_THRESHOLD - this.OPTIMAL_TEMP);
   }
 
   // ── Validation & State ───────────────────────────────────────────
@@ -335,7 +198,7 @@ export class Amylase extends Enzyme {
   #validateSubstrateSpecificity(substrate: Saccharide): Polysaccharide | null {
     if (!(substrate instanceof Polysaccharide)) return null;
     if (substrate.bondType !== GlycosidicBondType.ALPHA_1_4) return null;
-    if (substrate.count < this.MIN_HYDROLYZABLE_COUNT) return null;
+    if (substrate.count < 2) return null;
     return substrate;
   }
 
@@ -343,7 +206,7 @@ export class Amylase extends Enzyme {
    * Checks whether any fragment in the mixture contains cleavable bonds.
    */
   #hasHydrolyzableSubstrate(mixture: Polysaccharide[]): boolean {
-    return mixture.some(oligomer => oligomer.count > this.MIN_HYDROLYZABLE_COUNT);
+    return mixture.some(oligomer => oligomer.count > 2);
   }
 
   /**
@@ -376,5 +239,13 @@ export class Amylase extends Enzyme {
       substrate.molecularMass,
       !this.isDenatured && this.#calculatePhActivity(environment.pH) > 0,
     );
+  }
+
+  #totalMass(mixture: Polysaccharide[]): number {
+    let total = 0;
+    for (const fragment of mixture) {
+      total += fragment.molecularMass;
+    }
+    return total;
   }
 }
