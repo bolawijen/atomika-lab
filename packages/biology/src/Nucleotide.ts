@@ -59,7 +59,8 @@ export class Nucleotide extends Molecule {
 
   /**
    * Atomic composition of the nucleotide.
-   * Approximate formulas based on the base and sugar type.
+   * Standard stoichiometry for the deoxyribonucleotide (DNA) or
+   * ribonucleotide (RNA) form of each nitrogenous base.
    */
   get atomicComposition(): ReadonlyMap<Atom, number> {
     // Deoxyribose: C5H10O4, Ribose: C5H10O5, Phosphate: PO4
