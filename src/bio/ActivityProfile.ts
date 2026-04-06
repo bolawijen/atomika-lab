@@ -1,4 +1,4 @@
-import { Environment } from "../Environment";
+import { Environment } from "../core/Environment";
 import { Atom } from "../Atom";
 
 /**

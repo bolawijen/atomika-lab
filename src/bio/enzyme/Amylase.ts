@@ -3,14 +3,14 @@ import { Enzyme } from "./Enzyme";
 import { Saccharide } from "../saccharide/Saccharide";
 import { Polysaccharide } from "../saccharide/Polysaccharide";
 import { GlycosidicBondType } from "../saccharide/GlycosidicBondType";
-import { Environment, PHYSIOLOGICAL_CONDITIONS } from "../Environment";
-import { ReactionMixture } from "../ReactionMixture";
-import { ReactionResult, KineticSnapshot } from "../ReactionResult";
+import { Environment, PHYSIOLOGICAL_CONDITIONS } from "../../core/Environment";
+import { ReactionMixture } from "../../core/ReactionMixture";
+import { ReactionResult, KineticSnapshot } from "../../core/ReactionResult";
 import { KineticsSimulator, KineticParameters } from "./KineticsSimulator";
 import { HydrolysisMechanism, HydrolysisResult } from "./HydrolysisMechanism";
 import { ELEMENTS } from "../../Element";
-import { StructuralFingerprint } from "../StructuralFingerprint";
-import { Chirality } from "../Chirality";
+import { StructuralFingerprint } from "../../core/StructuralFingerprint";
+import { Chirality } from "../../core/Chirality";
 import { RDKitEngine } from "../RDKitEngine";
 
 /**

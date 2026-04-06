@@ -2,10 +2,10 @@ import { AminoAcid } from "./AminoAcid";
 import { ProteinChain } from "./ProteinChain";
 import { NucleicAcidChain } from "./NucleicAcidChain";
 import { Nucleotide, NitrogenousBase } from "./Nucleotide";
-import { Environment, PHYSIOLOGICAL_CONDITIONS } from "./Environment";
-import { ReactionMixture } from "./ReactionMixture";
-import { ReactionResult, KineticSnapshot } from "./ReactionResult";
-import { ReactionVessel, EnzymeKinetics } from "./ReactionVessel";
+import { Environment, PHYSIOLOGICAL_CONDITIONS } from "../core/Environment";
+import { ReactionMixture } from "../core/ReactionMixture";
+import { ReactionResult, KineticSnapshot } from "../core/ReactionResult";
+import { ReactionVessel, EnzymeKinetics } from "../core/ReactionVessel";
 import { ELEMENTS } from "../Element";
 
 /**

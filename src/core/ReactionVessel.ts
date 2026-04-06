@@ -1,6 +1,6 @@
-import { Polysaccharide } from "./saccharide/Polysaccharide";
-import { Saccharide } from "./saccharide/Saccharide";
-import { Monosaccharide } from "./saccharide/Monosaccharide";
+import { Polysaccharide } from "../bio/saccharide/Polysaccharide";
+import { Saccharide } from "../bio/saccharide/Saccharide";
+import { Monosaccharide } from "../bio/saccharide/Monosaccharide";
 import { ReactionMixture } from "./ReactionMixture";
 import { KineticSnapshot } from "./ReactionResult";
 import { Environment } from "./Environment";

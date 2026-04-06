@@ -3,10 +3,10 @@ import { Enzyme } from "./enzyme/Enzyme";
 import { Saccharide } from "./saccharide/Saccharide";
 import { NucleicAcidChain } from "./NucleicAcidChain";
 import { Nucleotide, NitrogenousBase, NucleicAcidType } from "./Nucleotide";
-import { Environment, PHYSIOLOGICAL_CONDITIONS } from "./Environment";
-import { ReactionMixture } from "./ReactionMixture";
-import { ReactionResult, KineticSnapshot } from "./ReactionResult";
-import { ReactionVessel, EnzymeKinetics } from "./ReactionVessel";
+import { Environment, PHYSIOLOGICAL_CONDITIONS } from "../core/Environment";
+import { ReactionMixture } from "../core/ReactionMixture";
+import { ReactionResult, KineticSnapshot } from "../core/ReactionResult";
+import { ReactionVessel, EnzymeKinetics } from "../core/ReactionVessel";
 
 /**
  * RNA Polymerase (EC 2.7.7.6).

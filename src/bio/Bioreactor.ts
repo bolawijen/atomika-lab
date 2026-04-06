@@ -1,9 +1,9 @@
-import { Saccharide } from "../saccharide/Saccharide";
-import { Environment } from "./Environment";
-import { ReactionMixture } from "./ReactionMixture";
-import { ReactionResult, KineticSnapshot } from "./ReactionResult";
+import { Saccharide } from "./saccharide/Saccharide";
+import { Environment } from "../core/Environment";
+import { ReactionMixture } from "../core/ReactionMixture";
+import { ReactionResult, KineticSnapshot } from "../core/ReactionResult";
 import { Enzyme } from "./enzyme/Enzyme";
-import { ReactionVessel } from "./ReactionVessel";
+import { ReactionVessel } from "../core/ReactionVessel";
 
 /**
  * A multi-enzyme system that coordinates simultaneous catalytic action

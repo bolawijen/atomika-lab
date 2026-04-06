@@ -1,6 +1,6 @@
 import { Molecule } from "../Molecule";
 import { Atom } from "../Atom";
-import { Chirality } from "./Chirality";
+import { Chirality } from "../core/Chirality";
 
 /**
  * A single amino acid, the building block of proteins.

@@ -1,5 +1,5 @@
 import { Saccharide } from "./Saccharide";
-import { Chirality } from "../Chirality";
+import { Chirality } from "../../core/Chirality";
 
 /**
  * Anomeric configuration — the stereochemistry at C1 of a cyclic saccharide.

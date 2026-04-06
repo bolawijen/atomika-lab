@@ -6,10 +6,10 @@ import { Enzyme } from "./Enzyme";
 import { Saccharide } from "../saccharide/Saccharide";
 import { Polysaccharide } from "../saccharide/Polysaccharide";
 import { GlycosidicBondType } from "../saccharide/GlycosidicBondType";
-import { Environment, PHYSIOLOGICAL_CONDITIONS } from "../Environment";
-import { ReactionMixture } from "../ReactionMixture";
-import { ReactionResult, KineticSnapshot } from "../ReactionResult";
-import { ReactionVessel, EnzymeKinetics } from "../ReactionVessel";
+import { Environment, PHYSIOLOGICAL_CONDITIONS } from "../../core/Environment";
+import { ReactionMixture } from "../../core/ReactionMixture";
+import { ReactionResult, KineticSnapshot } from "../../core/ReactionResult";
+import { ReactionVessel, EnzymeKinetics } from "../../core/ReactionVessel";
 
 /**
  * Isoamylase (EC 3.2.1.68) — a debranching enzyme.

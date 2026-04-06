@@ -1,7 +1,7 @@
 import { Monosaccharide, AnomericState } from "./Monosaccharide";
 import { ELEMENTS } from "../../Element";
 import { Atom } from "../../Atom";
-import { Chirality } from "../Chirality";
+import { Chirality } from "../../core/Chirality";
 
 /**
  * Fructose — a hexose monosaccharide with formula C₆H₁₂O₆.

@@ -1,7 +1,7 @@
 import { Polysaccharide } from "./saccharide/Polysaccharide";
-import { StructuralFingerprint } from "./StructuralFingerprint";
+import { StructuralFingerprint } from "../core/StructuralFingerprint";
 import { GlycosidicBondType } from "./saccharide/GlycosidicBondType";
-import { Chirality } from "./Chirality";
+import { Chirality } from "../core/Chirality";
 
 /**
  * Calculates the effective Michaelis constant (Km) based on the structural

@@ -14,7 +14,7 @@ import { Galactose } from "./src/bio/saccharide/Galactose";
 import { Lactose } from "./src/bio/saccharide/Lactose";
 import { Maltose } from "./src/bio/saccharide/Maltose";
 import { Dextrin } from "./src/bio/saccharide/Dextrin";
-import { Environment, PHYSIOLOGICAL_CONDITIONS } from "./src/bio/Environment";
+import { Environment, PHYSIOLOGICAL_CONDITIONS } from "./src/core/Environment";
 import { Bioreactor } from "./src/bio/Bioreactor";
 import { Nucleotide, NitrogenousBase, NucleicAcidType } from "./src/bio/Nucleotide";
 import { NucleicAcidChain } from "./src/bio/NucleicAcidChain";
