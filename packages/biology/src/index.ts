@@ -1,4 +1,5 @@
 export { Bacteria } from "./Bacteria";
+export { MycobacteriumTuberculosis } from "./MycobacteriumTuberculosis";
 export { Polymerase } from "./Polymerase";
 export { Ribosome } from "./Ribosome";
 export { Nucleotide, NitrogenousBase, NucleicAcidType } from "./Nucleotide";

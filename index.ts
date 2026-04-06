@@ -3,7 +3,7 @@ import { Amylose, Amylopectin, Glucose, Fructose, Sucrose, Galactose, Lactose, M
 import { Amylase, Isoamylase, Maltase, AminoAcid, ProteinChain } from "@atomika-lab/biochem";
 import { Environment, PHYSIOLOGICAL_CONDITIONS } from "@atomika-lab/core";
 import { Rifampicin } from "@atomika-lab/pharmacology";
-import { Bacteria, Polymerase, Ribosome } from "@atomika-lab/biology";
+import { Bacteria, MycobacteriumTuberculosis, Polymerase, Ribosome } from "@atomika-lab/biology";
 import { Nucleotide, NitrogenousBase, NucleicAcidType, NucleicAcidChain } from "@atomika-lab/biology";
 
 // --- Atom Demonstration ---
@@ -115,15 +115,23 @@ console.log("\n--- Pharmacology Demonstration ---");
 const bacteria = new Bacteria();
 bacteria.addEnzyme(new Polymerase(enzymeProtein));
 
+const tb = new MycobacteriumTuberculosis({});
+tb.addEnzyme(new Polymerase(enzymeProtein));
+
 const rifampicin = new Rifampicin();
 console.log(`Drug: ${rifampicin} (${rifampicin.pharmacologicalClass})`);
 console.log(`  Kd: ${rifampicin.dissociationConstant} nM`);
 console.log(`  Clearance: ${rifampicin.clearanceRate} min⁻¹`);
 console.log(`  LogP: ${rifampicin.logP}`);
 
-console.log(`Bacteria viability before exposure: ${(bacteria.getViability() * 100).toFixed(0)}%`);
+console.log(`\nGeneric Bacteria viability before exposure: ${(bacteria.getViability() * 100).toFixed(0)}%`);
 bacteria.exposedTo(rifampicin, normalEnv);
-console.log(`Bacteria viability after exposure: ${(bacteria.getViability() * 100).toFixed(0)}%`);
+console.log(`Generic Bacteria viability after exposure: ${(bacteria.getViability() * 100).toFixed(0)}%`);
+
+console.log(`\nM. tuberculosis viability before exposure: ${(tb.getViability() * 100).toFixed(0)}%`);
+tb.exposedTo(rifampicin, normalEnv);
+console.log(`M. tuberculosis viability after exposure: ${(tb.getViability() * 100).toFixed(0)}%`);
+console.log(`  (Rifampicin LogP ${rifampicin.logP} >= ${tb.minLogPForPenetration} threshold → penetrates mycolic acid barrier)`);
 
 
 // --- Genetic Foundation & Protein Synthesis Demonstration ---
