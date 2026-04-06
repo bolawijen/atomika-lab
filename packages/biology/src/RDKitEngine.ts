@@ -1,11 +1,11 @@
 import initRDKitModule from "@rdkit/rdkit";
 
 /**
- * Chemical library — a reference database of molecular structures,
- * properties, and transformation rules derived from standard chemistry.
+ * Computational representation of molecular structures and stereochemistry.
  *
- * Provides access to RDKit's chemical informatics functions:
- * SMARTS pattern matching, Morgan fingerprints, and chirality verification.
+ * Provides substructure pattern matching (SMARTS), structural fingerprints
+ * (Morgan/ECFP), and stereochemical descriptors for analyzing chemical
+ * structures, verifying chirality, and quantifying molecular similarity.
  */
 export class RDKitEngine {
   private static instance: RDKitEngine | null = null;
