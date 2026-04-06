@@ -32,12 +32,13 @@ export interface EnzymeKinetics {
 }
 
 /**
- * The physical container for an enzymatic reaction.
+ * The defined physical space in which an enzymatic reaction occurs.
  *
- * Holds the environmental conditions, vessel volume, and current temperature.
- * Computes kinetic rates using molar concentrations rather than raw counts.
- * Records kinetic snapshots and allows temperature to drift based on
- * the enthalpy of reaction.
+ * Characterized by volume, environmental conditions (temperature, pH, solute
+ * composition), and the thermodynamic state of the reaction mixture. Reaction
+ * kinetics follow Michaelis-Menten behavior with competitive product inhibition,
+ * and the temperature evolves according to the enthalpy of reaction. Mass balance
+ * is verified at each step to ensure stoichiometric consistency.
  */
 export class ReactionVessel {
   private environment: Environment;
