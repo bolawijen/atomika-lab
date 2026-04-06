@@ -1,5 +1,6 @@
 import { Maltose } from "../saccharide/Maltose";
 import { Dextrin } from "../saccharide/Dextrin";
+import { Glucose } from "../saccharide/Glucose";
 import { ProteinChain } from "../ProteinChain";
 import { Enzyme } from "./Enzyme";
 import { Saccharide } from "../saccharide/Saccharide";
@@ -77,9 +78,9 @@ export class Amylase extends Enzyme {
    * the enzyme undergoes thermal denaturation, or conditions become unfavorable.
    *
    * @param substrate The polysaccharide substrate (e.g., amylose).
-   * @returns Maltose molecules produced from the hydrolysis.
+   * @returns All hydrolysis products: maltose, free glucose, and limit dextrins.
    */
-  digest(substrate: Saccharide): Maltose[] {
+  digest(substrate: Saccharide): Saccharide[] {
     const validatedSubstrate = this.#validateSubstrateSpecificity(substrate);
     if (!validatedSubstrate) {
       return [];
@@ -90,7 +91,7 @@ export class Amylase extends Enzyme {
     if (this.isDenatured) return [];
 
     let reactionMixture: Polysaccharide[] = [validatedSubstrate];
-    const hydrolysisProducts: Maltose[] = [];
+    const hydrolysisProducts: Saccharide[] = [];
 
     while (this.isActive && this.#hasHydrolyzableSubstrate(reactionMixture)) {
       this.#checkThermalDenaturation();
@@ -98,8 +99,12 @@ export class Amylase extends Enzyme {
 
       const result = this.#executeCatalyticCycle(reactionMixture);
       hydrolysisProducts.push(...result.maltose);
+      hydrolysisProducts.push(...result.freeGlucose);
       reactionMixture = result.unhydrolyzedFragments;
     }
+
+    // Append remaining limit dextrins to the product mixture
+    hydrolysisProducts.push(...reactionMixture);
 
     return hydrolysisProducts;
   }
@@ -145,36 +150,39 @@ export class Amylase extends Enzyme {
    * Executes one full catalytic cycle over the entire reaction mixture.
    * Each molecule is either hydrolyzed or released as a product.
    */
-  #executeCatalyticCycle(mixture: Polysaccharide[]): { unhydrolyzedFragments: Polysaccharide[], maltose: Maltose[] } {
+  #executeCatalyticCycle(mixture: Polysaccharide[]): { unhydrolyzedFragments: Polysaccharide[], maltose: Maltose[], freeGlucose: Glucose[] } {
     const unhydrolyzedFragments: Polysaccharide[] = [];
     const maltose: Maltose[] = [];
+    const freeGlucose: Glucose[] = [];
 
     for (const oligomer of mixture) {
       const cycleResult = this.#processOligomer(oligomer);
       unhydrolyzedFragments.push(...cycleResult.remainingOligomers);
       maltose.push(...cycleResult.maltose);
+      freeGlucose.push(...cycleResult.freeGlucose);
     }
 
-    return { unhydrolyzedFragments, maltose };
+    return { unhydrolyzedFragments, maltose, freeGlucose };
   }
 
   /**
    * Processes a single oligosaccharide molecule during a catalytic cycle.
    * Disaccharides are released as maltose; longer chains are hydrolyzed into fragments.
    */
-  #processOligomer(oligomer: Polysaccharide): { remainingOligomers: Polysaccharide[], maltose: Maltose[] } {
+  #processOligomer(oligomer: Polysaccharide): { remainingOligomers: Polysaccharide[], maltose: Maltose[], freeGlucose: Glucose[] } {
     if (oligomer.count === this.MIN_HYDROLYZABLE_COUNT) {
-      return { remainingOligomers: [], maltose: [new Maltose()] };
+      return { remainingOligomers: [], maltose: [new Maltose()], freeGlucose: [] };
     }
 
     const [proximal, distal] = this.#cleaveGlycosidicBond(oligomer);
     const maltose: Maltose[] = [];
     const remainingOligomers: Polysaccharide[] = [];
+    const freeGlucose: Glucose[] = [];
 
-    this.#classifyFragment(proximal, maltose, remainingOligomers);
-    this.#classifyFragment(distal, maltose, remainingOligomers);
+    this.#classifyFragment(proximal, maltose, remainingOligomers, freeGlucose);
+    this.#classifyFragment(distal, maltose, remainingOligomers, freeGlucose);
 
-    return { remainingOligomers, maltose };
+    return { remainingOligomers, maltose, freeGlucose };
   }
 
   /**
@@ -203,21 +211,22 @@ export class Amylase extends Enzyme {
   }
 
   /**
-   * Classifies a hydrolysis fragment as either maltose (if it is a disaccharide)
-   * or a remaining oligomer for further catalytic cycles.
-   *
-   * Glucose monomers (n = 1) are excluded — they are not substrates for α-amylase.
+   * Classifies a hydrolysis fragment as maltose, a remaining oligomer,
+   * or a free glucose monomer.
    */
   #classifyFragment(
     fragment: Polysaccharide,
     maltose: Maltose[],
     remainingOligomers: Polysaccharide[],
+    freeGlucose: Glucose[],
   ): void {
     if (fragment.count === this.MIN_HYDROLYZABLE_COUNT) {
       maltose.push(new Maltose());
     } else if (fragment.count > this.MIN_HYDROLYZABLE_COUNT) {
       remainingOligomers.push(fragment);
+    } else {
+      // n === 1 → free glucose monomer released from hydrolysis
+      freeGlucose.push(fragment.monomers[0] as Glucose);
     }
-    // n === 1 → free glucose, not a substrate for α-amylase
   }
 }
