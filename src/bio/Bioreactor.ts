@@ -36,9 +36,10 @@ export class Bioreactor {
     const vessel = new ReactionVessel(environment);
     let reactionMixture: Saccharide[] = [substrate];
     const totalSteps = Math.min(Math.ceil(environment.durationInSeconds), 10000);
+    let currentTemp = environment.temperatureC;
 
     for (let step = 0; step < totalSteps; step++) {
-      vessel.recordSnapshot(reactionMixture, this.#asMixture(reactionMixture), step);
+      vessel.recordSnapshot(reactionMixture, this.#asMixture(reactionMixture), step, currentTemp);
 
       // Each enzyme acts on the current mixture simultaneously this tick
       const newProducts: Saccharide[] = [];
@@ -94,15 +95,6 @@ export class Bioreactor {
     }
     return molecule.constructor.name.includes("Maltose")
       || molecule.constructor.name.includes("Glucose");
-  }
-
-  #hasNoRemainingBonds(mixture: Saccharide[]): boolean {
-    for (const molecule of mixture) {
-      if ("cleavableBondCount" in molecule && (molecule as any).cleavableBondCount > 0) {
-        return false;
-      }
-    }
-    return true;
   }
 
   #totalMass(mixture: Saccharide[]): number {

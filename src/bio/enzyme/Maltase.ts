@@ -47,13 +47,25 @@ export class Maltase extends Enzyme {
 
   /**
    * Michaelis constant — substrate concentration at half Vmax.
+   * Scaled to nanomolar range for single-molecule simulation.
    */
-  private readonly KM = 2;
+  private readonly KM = 1e-8;
 
   /**
-   * Product inhibition constant — glucose competitively inhibits maltase.
+   * Product inhibition constant — product concentration at half-maximal inhibition.
+   * Scaled to micromolar range for single-molecule simulation.
    */
-  private readonly KI = 100;
+  private readonly KI = 1e-6;
+
+  /**
+   * Equilibrium constant — hydrolysis strongly favors products.
+   */
+  private readonly KEQ = 1e6;
+
+  /**
+   * Enthalpy of reaction (kJ/mol) — glycosidic bond hydrolysis is exothermic.
+   */
+  private readonly DELTA_H = -15;
 
   /**
    * Maximum simulation steps to prevent runaway loops.
@@ -76,12 +88,18 @@ export class Maltase extends Enzyme {
    * the same time-stepped simulation model as Amylase.
    *
    * @param substrate The saccharide substrate (maltose or maltose-containing mixture).
-   * @param environment Reaction conditions (temperature, pH, duration).
+   * @param environment Reaction conditions (temperature, pH, duration, solutes).
    * @returns ReactionResult containing the glucose products and kinetic history.
    */
   digest(substrate: Saccharide, environment: Environment = PHYSIOLOGICAL_CONDITIONS): ReactionResult {
     const vessel = new ReactionVessel(environment);
-    const kinetics: EnzymeKinetics = { kCat: this.KCAT, kM: this.KM, kI: this.KI };
+    const kinetics: EnzymeKinetics = {
+      kCat: this.KCAT,
+      kM: this.KM,
+      kI: this.KI,
+      kEq: this.KEQ,
+      deltaH: this.DELTA_H,
+    };
 
     const maltoseSubstrate = this.#validateSubstrateSpecificity(substrate);
     if (!maltoseSubstrate) {
@@ -107,9 +125,10 @@ export class Maltase extends Enzyme {
     const productMixture = new ReactionMixture();
     let moleculesProcessed = 0;
     const totalSteps = Math.min(Math.ceil(environment.durationInSeconds), this.MAX_SIMULATION_STEPS);
+    let currentTemp = environment.temperatureC;
 
     for (let step = 0; step < totalSteps; step++) {
-      vessel.recordSnapshot(reactionMixture, productMixture, step);
+      vessel.recordSnapshot(reactionMixture, productMixture, step, currentTemp);
 
       this.#checkThermalDenaturation(environment);
       if (this.isDenatured) break;
@@ -125,6 +144,9 @@ export class Maltase extends Enzyme {
         productMixture.add([new Glucose(), new Glucose()]);
         moleculesProcessed++;
       }
+
+      // Apply thermal drift from reaction enthalpy
+      currentTemp += this.#calculateThermalDrift(toProcess, this.DELTA_H);
     }
 
     productMixture.add(reactionMixture);
@@ -160,6 +182,14 @@ export class Maltase extends Enzyme {
       return (temperatureC - 5) / (this.OPTIMAL_TEMP - 5);
     }
     return 1 - (temperatureC - this.OPTIMAL_TEMP) / (this.DENATURATION_THRESHOLD - this.OPTIMAL_TEMP);
+  }
+
+  #calculateThermalDrift(bondsCleaved: number, deltaH: number): number {
+    const waterMass = 1e-15 * 1000;
+    const specificHeat = 4.184;
+    const energyJoules = bondsCleaved * Math.abs(deltaH) * 1000 / 6.022e23;
+    const temperatureChange = energyJoules / (waterMass * specificHeat);
+    return deltaH < 0 ? temperatureChange : -temperatureChange;
   }
 
   #checkThermalDenaturation(environment: Environment): void {

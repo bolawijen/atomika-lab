@@ -12,6 +12,8 @@ export interface KineticSnapshot {
   remainingBonds: number;
   /** Number of distinct product molecules accumulated. */
   productCount: number;
+  /** Current temperature of the reaction mixture (°C). */
+  temperatureC?: number;
 }
 
 /**

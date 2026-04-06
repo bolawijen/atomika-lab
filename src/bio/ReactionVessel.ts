@@ -14,21 +14,43 @@ export interface EnzymeKinetics {
   kM: number;
   /** Product inhibition constant — product concentration at half-maximal inhibition. */
   kI: number;
+  /** Equilibrium constant — ratio of forward to reverse reaction rates. */
+  kEq: number;
+  /** Enthalpy of reaction (kJ/mol) — heat released or absorbed per bond cleaved. */
+  deltaH: number;
 }
 
 /**
  * The physical container for an enzymatic reaction.
  *
- * Holds the environmental conditions and computes the kinetic rate
- * for each enzyme acting within the vessel. Records kinetic snapshots
- * for tracking concentration changes over time.
+ * Holds the environmental conditions, vessel volume, and current temperature.
+ * Computes kinetic rates using molar concentrations rather than raw counts.
+ * Records kinetic snapshots and allows temperature to drift based on
+ * the enthalpy of reaction.
  */
 export class ReactionVessel {
   private environment: Environment;
+  private currentTemperature: number;
   private snapshots: KineticSnapshot[] = [];
 
-  constructor(environment: Environment) {
+  /**
+   * Volume of the reaction vessel in liters.
+   * Used to convert molecule counts to molar concentrations.
+   */
+  readonly volumeInLiters: number;
+
+  constructor(environment: Environment, volumeInLiters: number = 1e-15) {
     this.environment = environment;
+    this.currentTemperature = environment.temperatureC;
+    this.volumeInLiters = volumeInLiters;
+  }
+
+  /**
+   * The current temperature of the reaction mixture (°C).
+   * May drift from the initial set point due to reaction enthalpy.
+   */
+  getCurrentTemperature(): number {
+    return this.currentTemperature;
   }
 
   /**
@@ -40,7 +62,11 @@ export class ReactionVessel {
 
   /**
    * Calculates the effective bond cleavage rate (bonds/s) using
-   * Michaelis-Menten kinetics with competitive product inhibition.
+   * Michaelis-Menten kinetics with competitive product inhibition
+   * and reversible reaction equilibrium.
+   *
+   * When product concentration approaches the equilibrium ratio,
+   * the net rate decreases and may become negative (condensation).
    */
   calculateCleavageRate(
     kinetics: EnzymeKinetics,
@@ -49,12 +75,47 @@ export class ReactionVessel {
     mixture: Polysaccharide[],
     products: ReactionMixture,
   ): number {
-    const substrateConcentration = this.#totalCleavableBonds(mixture);
-    const productConcentration = products.speciesCount;
+    const substrateConcentration = this.#molarConcentration(this.#totalCleavableBonds(mixture));
+    const productConcentration = this.#molarConcentration(products.speciesCount);
 
     const vmax = kinetics.kCat * phActivity * tempActivity;
     const inhibitionFactor = 1 + productConcentration / kinetics.kI;
-    return vmax * substrateConcentration / (kinetics.kM * inhibitionFactor + substrateConcentration);
+
+    // Forward rate from Michaelis-Menten
+    const forwardRate = vmax * substrateConcentration / (kinetics.kM * inhibitionFactor + substrateConcentration);
+
+    // Reverse rate (condensation) driven by equilibrium constant
+    // When [P]/[S] approaches Keq, net rate approaches zero
+    const reactionQuotient = substrateConcentration > 0 ? productConcentration / substrateConcentration : 0;
+    const equilibriumFactor = 1 - reactionQuotient / kinetics.kEq;
+
+    return forwardRate * Math.max(0, equilibriumFactor);
+  }
+
+  /**
+   * Updates the vessel temperature based on the enthalpy of reaction.
+   * Each bond cleaved releases or absorbs heat, shifting the temperature
+   * according to the specific heat capacity of water.
+   */
+  applyThermalDrift(bondsCleaved: number, deltaH: number): void {
+    if (bondsCleaved === 0) return;
+
+    // Specific heat capacity of water: 4.184 J/(g·°C)
+    // Mass of water in vessel ≈ volumeInLiters × 1000 g/L
+    const waterMass = this.volumeInLiters * 1000;
+    const specificHeat = 4.184;
+
+    // Energy released: bondsCleaved × |ΔH| (converted from kJ/mol to J)
+    // Assuming 1 molecule ≈ 1/NA mol, scale to simulation units
+    const energyJoules = bondsCleaved * Math.abs(deltaH) * 1000 / 6.022e23;
+    const temperatureChange = energyJoules / (waterMass * specificHeat);
+
+    // Exothermic (ΔH < 0) raises temperature; endothermic lowers it
+    if (deltaH < 0) {
+      this.currentTemperature += temperatureChange;
+    } else {
+      this.currentTemperature -= temperatureChange;
+    }
   }
 
   /**
@@ -75,6 +136,7 @@ export class ReactionVessel {
       timeInSeconds,
       remainingBonds: this.#totalCleavableBondsInMixture(mixture),
       productCount: products.speciesCount,
+      temperatureC: this.currentTemperature,
     };
   }
 
@@ -90,6 +152,13 @@ export class ReactionVessel {
    */
   resetHistory(): void {
     this.snapshots = [];
+  }
+
+  /**
+   * Converts a molecule count to molar concentration (M).
+   */
+  #molarConcentration(moleculeCount: number): number {
+    return moleculeCount / (6.022e23 * this.volumeInLiters);
   }
 
   #totalCleavableBonds(mixture: Polysaccharide[]): number {

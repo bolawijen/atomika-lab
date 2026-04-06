@@ -1,7 +1,10 @@
+import { Atom } from "../Atom";
+
 /**
  * Reaction environment conditions that influence enzyme activity.
- * Temperature and pH determine whether an enzyme can maintain its
- * native conformation and catalytic function.
+ * Temperature, pH, solute composition, and reaction duration collectively
+ * determine whether an enzyme can maintain its native conformation
+ * and catalytic function.
  *
  * Immutable — once constructed, conditions cannot change.
  * This ensures a consistent reaction context across all enzymes
@@ -20,15 +23,37 @@ export class Environment {
    */
   readonly durationInSeconds: number;
 
-  constructor(temperatureC: number, pH: number, durationInSeconds: number = 60) {
+  /**
+   * Dissolved ionic species present in the reaction medium.
+   * Maps each element to its molar concentration (mM).
+   * Many enzymes require specific co-factors (e.g., Ca²⁺, Cl⁻) for activity.
+   */
+  readonly solutes: ReadonlyMap<Atom, number>;
+
+  constructor(
+    temperatureC: number,
+    pH: number,
+    durationInSeconds: number = 60,
+    solutes: ReadonlyMap<Atom, number> = new Map(),
+  ) {
     this.temperatureC = temperatureC;
     this.pH = pH;
     this.durationInSeconds = durationInSeconds;
+    this.solutes = solutes;
   }
 }
 
 /**
  * Standard physiological conditions for human enzymes.
- * Body temperature 37°C, neutral pH 7.0, 60-second reaction.
+ * Body temperature 37°C, neutral pH 7.0, 60-second reaction,
+ * with physiological ion concentrations (Ca²⁺ 2.5 mM, Cl⁻ 100 mM).
  */
-export const PHYSIOLOGICAL_CONDITIONS = new Environment(37, 7.0, 60);
+export const PHYSIOLOGICAL_CONDITIONS = new Environment(
+  37,
+  7.0,
+  60,
+  new Map([
+    [new Atom({ name: "Calcium", symbol: "Ca", protonCount: 20, mass: 40.078, charge: 2, valence: 2 }), 2.5],
+    [new Atom({ name: "Chlorine", symbol: "Cl", protonCount: 17, mass: 35.45, charge: -1, valence: 1 }), 100],
+  ]),
+);

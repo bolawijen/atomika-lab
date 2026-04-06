@@ -12,6 +12,10 @@ export interface KineticParameters {
   kM: number;
   /** Product inhibition constant — product concentration at half-maximal inhibition. */
   kI: number;
+  /** Equilibrium constant — ratio of forward to reverse reaction rates. */
+  kEq: number;
+  /** Enthalpy of reaction (kJ/mol) — heat released or absorbed per bond cleaved. */
+  deltaH: number;
   /** pH activity scaling factor (0–1). */
   phActivity: number;
   /** Temperature activity scaling factor (0–1). */
@@ -34,24 +38,48 @@ export interface CleavageOutcome {
  * Computes the time-stepped kinetics of an enzymatic hydrolysis reaction.
  *
  * Handles Michaelis-Menten rate calculation with competitive product inhibition,
- * stochastic rounding of fractional bond counts, and kinetic snapshot recording.
+ * reversible reaction equilibrium, stochastic rounding of fractional bond counts,
+ * and kinetic snapshot recording.
  */
 export class KineticsSimulator {
   /**
+   * Volume of the reaction vessel in liters.
+   * Used to convert molecule counts to molar concentrations.
+   */
+  private readonly volumeInLiters: number;
+
+  constructor(volumeInLiters: number = 1e-15) {
+    this.volumeInLiters = volumeInLiters;
+  }
+
+  /**
    * Calculates the effective bond cleavage rate (bonds/s) using
-   * Michaelis-Menten kinetics with competitive product inhibition.
+   * Michaelis-Menten kinetics with competitive product inhibition
+   * and reversible reaction equilibrium.
+   *
+   * When product concentration approaches the equilibrium ratio,
+   * the net rate decreases and may become negative (condensation).
    */
   calculateCleavageRate(
     parameters: KineticParameters,
     mixture: Polysaccharide[],
     products: ReactionMixture,
   ): number {
-    const substrateConcentration = this.#totalCleavableBonds(mixture);
-    const productConcentration = products.speciesCount;
+    const substrateConcentration = this.#molarConcentration(this.#totalCleavableBonds(mixture));
+    const productConcentration = this.#molarConcentration(products.speciesCount);
 
     const vmax = parameters.kCat * parameters.phActivity * parameters.tempActivity;
     const inhibitionFactor = 1 + productConcentration / parameters.kI;
-    return vmax * substrateConcentration / (parameters.kM * inhibitionFactor + substrateConcentration);
+
+    // Forward rate from Michaelis-Menten
+    const forwardRate = vmax * substrateConcentration / (parameters.kM * inhibitionFactor + substrateConcentration);
+
+    // Reverse rate (condensation) driven by equilibrium constant
+    // When [P]/[S] approaches Keq, net rate approaches zero
+    const reactionQuotient = substrateConcentration > 0 ? productConcentration / substrateConcentration : 0;
+    const equilibriumFactor = 1 - reactionQuotient / parameters.kEq;
+
+    return forwardRate * Math.max(0, equilibriumFactor);
   }
 
   /**
@@ -67,11 +95,12 @@ export class KineticsSimulator {
   /**
    * Records the current state of the reaction for kinetic history.
    */
-  recordSnapshot(mixture: Polysaccharide[], products: ReactionMixture, timeInSeconds: number): KineticSnapshot {
+  recordSnapshot(mixture: Polysaccharide[], products: ReactionMixture, timeInSeconds: number, temperatureC?: number): KineticSnapshot {
     return {
       timeInSeconds,
       remainingBonds: this.#totalCleavableBonds(mixture),
       productCount: products.speciesCount,
+      temperatureC,
     };
   }
 
@@ -84,5 +113,12 @@ export class KineticsSimulator {
       total += fragment.cleavableBondCount;
     }
     return total;
+  }
+
+  /**
+   * Converts a molecule count to molar concentration (M).
+   */
+  #molarConcentration(moleculeCount: number): number {
+    return moleculeCount / (6.022e23 * this.volumeInLiters);
   }
 }
