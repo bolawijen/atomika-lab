@@ -1,12 +1,14 @@
-import { Polysaccharide } from "./Polysaccharide";
-import { Monosaccharide } from "./Monosaccharide";
+import { OligoSaccharide } from "./OligoSaccharide";
+import { Monosaccharide, MolecularIdentity } from "./Monosaccharide";
+import { Chirality } from "../../core/Chirality";
+import { AnomericState } from "./Monosaccharide";
 import { GlycosidicBondType } from "./GlycosidicBondType";
 
 /**
- * Dextrin — a short-chain polysaccharide.
+ * Dextrin — a short-chain oligosaccharide.
  * Intermediate product of starch hydrolysis.
  */
-export class Dextrin extends Polysaccharide {
+export class Dextrin extends OligoSaccharide {
   readonly monomers: ReadonlyArray<Monosaccharide>;
   readonly bondType = GlycosidicBondType.ALPHA_1_4;
 

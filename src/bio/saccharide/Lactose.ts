@@ -1,7 +1,6 @@
 import { Disaccharide } from "./Disaccharide";
-import { Monosaccharide } from "./Monosaccharide";
-import { Galactose } from "./Galactose";
-import { Glucose } from "./Glucose";
+import { Monosaccharide, MolecularIdentity, AnomericState } from "./Monosaccharide";
+import { Chirality } from "../../core/Chirality";
 import { GlycosidicBondType } from "./GlycosidicBondType";
 
 /**
@@ -14,7 +13,10 @@ export class Lactose extends Disaccharide {
 
   constructor() {
     super();
-    this.monomers = Object.freeze([new Galactose(), new Glucose()]);
+    this.monomers = Object.freeze([
+      new Monosaccharide(MolecularIdentity.GALACTOSE, Chirality.D, AnomericState.ALPHA),
+      new Monosaccharide(MolecularIdentity.GLUCOSE, Chirality.D, AnomericState.ALPHA),
+    ]);
   }
 
   toString(): string {

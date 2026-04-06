@@ -1,33 +1,23 @@
-import { Monosaccharide, AnomericState } from "./Monosaccharide";
-import { ELEMENTS } from "../../Element";
-import { Atom } from "../../Atom";
+import { Monosaccharide, MolecularIdentity, AnomericState } from "./Monosaccharide";
 import { Chirality } from "../../core/Chirality";
 
 /**
- * Galactose — a hexose monosaccharide with formula C₆H₁₂O₆.
- * An epimer of glucose, component of lactose.
- * Natural galactose is the D-isomer.
+ * Creates a D-Galactose monosaccharide.
+ * Galactose is an epimer of glucose, component of lactose.
+ *
+ * @param anomericState The anomeric configuration (α or β).
+ * @returns A monosaccharide with D-Galactose identity.
+ */
+export function createGalactose(anomericState: AnomericState = AnomericState.ALPHA): Monosaccharide {
+  return new Monosaccharide(MolecularIdentity.GALACTOSE, Chirality.D, anomericState);
+}
+
+/**
+ * Legacy class for backward compatibility.
+ * Prefer using createGalactose() factory function.
  */
 export class Galactose extends Monosaccharide {
-  readonly chirality = Chirality.D;
-
   constructor(anomericState: AnomericState = AnomericState.ALPHA) {
-    super(anomericState);
-  }
-
-  get atomicComposition(): ReadonlyMap<Atom, number> {
-    return new Map([
-      [ELEMENTS.C, 6],
-      [ELEMENTS.H, 12],
-      [ELEMENTS.O, 6],
-    ]);
-  }
-
-  get count(): number {
-    return 1;
-  }
-
-  toString(): string {
-    return "Galactose";
+    super(MolecularIdentity.GALACTOSE, Chirality.D, anomericState);
   }
 }

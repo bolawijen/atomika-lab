@@ -1,6 +1,6 @@
 import { Disaccharide } from "./Disaccharide";
-import { Monosaccharide } from "./Monosaccharide";
-import { Glucose } from "./Glucose";
+import { Monosaccharide, MolecularIdentity, AnomericState } from "./Monosaccharide";
+import { Chirality } from "../../core/Chirality";
 import { GlycosidicBondType } from "./GlycosidicBondType";
 
 /**
@@ -13,7 +13,10 @@ export class Maltose extends Disaccharide {
 
   constructor() {
     super();
-    this.monomers = Object.freeze([new Glucose(), new Glucose()]);
+    this.monomers = Object.freeze([
+      new Monosaccharide(MolecularIdentity.GLUCOSE, Chirality.D, AnomericState.ALPHA),
+      new Monosaccharide(MolecularIdentity.GLUCOSE, Chirality.D, AnomericState.ALPHA),
+    ]);
   }
 
   toString(): string {

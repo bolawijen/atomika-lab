@@ -1,5 +1,7 @@
 import { Saccharide } from "./Saccharide";
 import { Chirality } from "../../core/Chirality";
+import { ELEMENTS } from "../../Element";
+import { Atom } from "../../Atom";
 
 /**
  * Anomeric configuration — the stereochemistry at C1 of a cyclic saccharide.
@@ -13,14 +15,33 @@ export enum AnomericState {
 }
 
 /**
- * A monosaccharide (simple sugar).
- * Base type for molecules like Glucose, Fructose, and Galactose.
+ * Molecular identity of a monosaccharide.
+ * Each identity corresponds to a specific stereochemical arrangement
+ * of hydroxyl groups on the carbon backbone.
  */
-export abstract class Monosaccharide extends Saccharide {
+export enum MolecularIdentity {
+  GLUCOSE = "D-Glucose",
+  FRUCTOSE = "D-Fructose",
+  GALACTOSE = "D-Galactose",
+}
+
+/**
+ * A monosaccharide (simple sugar) — the fundamental unit of carbohydrates.
+ *
+ * Defined by its molecular identity (glucose, fructose, galactose),
+ * chirality (D/L), and anomeric state (α/β). All hexoses share the
+ * formula C₆H₁₂O₆ but differ in stereochemical arrangement.
+ */
+export class Monosaccharide extends Saccharide {
+  /**
+   * The specific molecular identity of this saccharide.
+   */
+  readonly identity: MolecularIdentity;
+
   /**
    * The chirality of this saccharide. Natural sugars are D-isomers.
    */
-  abstract readonly chirality: Chirality;
+  readonly chirality: Chirality;
 
   /**
    * The anomeric state of the anomeric carbon.
@@ -29,9 +50,34 @@ export abstract class Monosaccharide extends Saccharide {
    */
   anomericState: AnomericState;
 
-  constructor(anomericState: AnomericState = AnomericState.ALPHA) {
+  constructor(
+    identity: MolecularIdentity,
+    chirality: Chirality = Chirality.D,
+    anomericState: AnomericState = AnomericState.ALPHA,
+  ) {
     super();
+    this.identity = identity;
+    this.chirality = chirality;
     this.anomericState = anomericState;
+  }
+
+  /**
+   * Number of monomer units — a monosaccharide is a single unit.
+   */
+  get count(): number {
+    return 1;
+  }
+
+  /**
+   * Atomic composition: C₆H₁₂O₆ for all hexoses.
+   * Isomers share the same formula but differ in stereochemistry.
+   */
+  get atomicComposition(): ReadonlyMap<Atom, number> {
+    return new Map([
+      [ELEMENTS.C, 6],
+      [ELEMENTS.H, 12],
+      [ELEMENTS.O, 6],
+    ]);
   }
 
   /**
@@ -42,5 +88,9 @@ export abstract class Monosaccharide extends Saccharide {
     this.anomericState = this.anomericState === AnomericState.ALPHA
       ? AnomericState.BETA
       : AnomericState.ALPHA;
+  }
+
+  toString(): string {
+    return this.identity;
   }
 }

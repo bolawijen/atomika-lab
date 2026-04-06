@@ -1,6 +1,6 @@
 import { Polysaccharide } from "./Polysaccharide";
-import { Monosaccharide } from "./Monosaccharide";
-import { Glucose } from "./Glucose";
+import { Monosaccharide, MolecularIdentity, AnomericState } from "./Monosaccharide";
+import { Chirality } from "../../core/Chirality";
 import { GlycosidicBondType, GlycosidicBond } from "./GlycosidicBondType";
 
 /**
@@ -30,7 +30,9 @@ export class Amylopectin extends Polysaccharide {
 
     super(branchPoints);
     this.monomers = Object.freeze(
-      Array.from({ length: glucoseUnitCount }, () => new Glucose())
+      Array.from({ length: glucoseUnitCount }, () =>
+        new Monosaccharide(MolecularIdentity.GLUCOSE, Chirality.D, AnomericState.ALPHA)
+      )
     );
   }
 

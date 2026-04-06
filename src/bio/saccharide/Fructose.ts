@@ -1,33 +1,23 @@
-import { Monosaccharide, AnomericState } from "./Monosaccharide";
-import { ELEMENTS } from "../../Element";
-import { Atom } from "../../Atom";
+import { Monosaccharide, MolecularIdentity, AnomericState } from "./Monosaccharide";
 import { Chirality } from "../../core/Chirality";
 
 /**
- * Fructose — a hexose monosaccharide with formula C₆H₁₂O₆.
- * A structural isomer of glucose, found in fruits and honey.
- * Natural fructose is the D-isomer.
+ * Creates a D-Fructose monosaccharide.
+ * Fructose is a structural isomer of glucose, found in fruits and honey.
+ *
+ * @param anomericState The anomeric configuration (α or β).
+ * @returns A monosaccharide with D-Fructose identity.
+ */
+export function createFructose(anomericState: AnomericState = AnomericState.ALPHA): Monosaccharide {
+  return new Monosaccharide(MolecularIdentity.FRUCTOSE, Chirality.D, anomericState);
+}
+
+/**
+ * Legacy class for backward compatibility.
+ * Prefer using createFructose() factory function.
  */
 export class Fructose extends Monosaccharide {
-  readonly chirality = Chirality.D;
-
   constructor(anomericState: AnomericState = AnomericState.ALPHA) {
-    super(anomericState);
-  }
-
-  get atomicComposition(): ReadonlyMap<Atom, number> {
-    return new Map([
-      [ELEMENTS.C, 6],
-      [ELEMENTS.H, 12],
-      [ELEMENTS.O, 6],
-    ]);
-  }
-
-  get count(): number {
-    return 1;
-  }
-
-  toString(): string {
-    return "Fructose";
+    super(MolecularIdentity.FRUCTOSE, Chirality.D, anomericState);
   }
 }
