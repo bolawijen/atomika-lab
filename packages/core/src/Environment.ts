@@ -1,11 +1,19 @@
 import { Atom } from "./Atom";
 
 /**
+ * Boltzmann constant (J/K) — relates thermal energy to temperature.
+ */
+const BOLTZMANN_CONSTANT = 1.381e-23;
+
+/**
  * Reaction conditions that influence enzyme activity.
  *
  * Temperature, pH, solute composition, pressure, and electromagnetic fields
  * collectively determine whether an enzyme can maintain its native conformation
  * and catalytic function. Reaction duration governs the extent of conversion.
+ *
+ * The Environment is the energy source that drives all molecular motion through
+ * thermal energy (Brownian motion). Without it, molecules are inert.
  */
 export class Environment {
   /** Temperature in degrees Celsius. */
@@ -61,6 +69,20 @@ export class Environment {
     this.pressureAtm = params.pressureAtm ?? 1.0;
     this.magneticFieldTesla = params.magneticFieldTesla ?? 0;
     this.electricFieldVoltsPerMeter = params.electricFieldVoltsPerMeter ?? 0;
+  }
+
+  /**
+   * Thermal energy available for molecular motion (Joules).
+   *
+   * E = (3/2)kT — the average kinetic energy of a particle
+   * in thermal equilibrium at temperature T.
+   *
+   * This energy drives Brownian motion, diffusion, and molecular collisions.
+   * At absolute zero, all molecular motion ceases.
+   */
+  get thermalEnergy(): number {
+    const temperatureK = this.temperatureC + 273.15;
+    return (3 / 2) * BOLTZMANN_CONSTANT * temperatureK;
   }
 }
 

@@ -65,6 +65,11 @@ export class Bacteria {
    * physicochemical properties; the biological system responds to those
    * properties through thermodynamic interactions.
    *
+   * Energy → Action → Target pattern:
+   * - Energy source: Environment (thermal energy at body temperature)
+   * - Action: Passive diffusion driven by Brownian motion
+   * - Target: Bacterial RNA polymerase (structural complementarity)
+   *
    * @param drug The medicinal substance present in the environment.
    * @param environment The thermal and chemical context of exposure.
    */
@@ -72,8 +77,7 @@ export class Bacteria {
     // Thermal energy drives passive diffusion (Brownian motion)
     // Membrane permeability requires lipophilicity (LogP > 0)
     // and sufficient thermal energy for molecular motion
-    const thermalEnergy = environment.temperatureC + 273.15; // Kelvin
-    const canPenetrate = drug.logP > 0 && thermalEnergy > 200;
+    const canPenetrate = drug.logP > 0 && environment.thermalEnergy > 0;
     if (!canPenetrate) return;
 
     // Target recognition — structural complementarity
