@@ -35,11 +35,12 @@ export interface CleavageOutcome {
 }
 
 /**
- * Computes the time-stepped kinetics of an enzymatic hydrolysis reaction.
+ * Time-dependent progression of enzymatic hydrolysis.
  *
- * Handles Michaelis-Menten rate calculation with competitive product inhibition,
- * reversible reaction equilibrium, stochastic rounding of fractional bond counts,
- * and kinetic snapshot recording.
+ * Models the reaction rate through Michaelis-Menten kinetics with competitive
+ * product inhibition and reversible reaction equilibrium. The extent of hydrolysis
+ * is determined by substrate concentration, product accumulation, and the
+ * thermodynamic drive toward equilibrium.
  */
 export class KineticsSimulator {
   /**
