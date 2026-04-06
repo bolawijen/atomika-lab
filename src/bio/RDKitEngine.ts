@@ -92,4 +92,75 @@ export class RDKitEngine {
     if (!atom) return "";
     return atom.get_chiral_tag() || "";
   }
+
+  /**
+   * Parses a SMILES string and returns the atomic composition as a map.
+   * Uses RDKit's formula descriptor for accurate atom counting.
+   */
+  getAtomicCompositionFromSmiles(smiles: string): Map<any, number> {
+    if (!this.initialized) throw new Error("RDKit not initialized");
+    const mol = this.rdkit.get_mol(smiles);
+    if (!mol) return new Map();
+
+    const descriptors = mol.get_descriptors();
+    const formula = descriptors.formula || "";
+    mol.delete();
+
+    return this.#parseFormula(formula);
+  }
+
+  /**
+   * Returns the accurate molecular weight from RDKit.
+   */
+  getMolecularWeight(smiles: string): number {
+    if (!this.initialized) throw new Error("RDKit not initialized");
+    const mol = this.rdkit.get_mol(smiles);
+    if (!mol) return 0;
+    const descriptors = mol.get_descriptors();
+    const weight = descriptors.amw || 0;
+    mol.delete();
+    return weight;
+  }
+
+  /**
+   * Calculates the LogP (octanol-water partition coefficient) for a molecule.
+   * High LogP indicates hydrophobicity (low aqueous solubility).
+   */
+  getLogP(smiles: string): number {
+    if (!this.initialized) throw new Error("RDKit not initialized");
+    const mol = this.rdkit.get_mol(smiles);
+    if (!mol) return 0;
+    const descriptors = mol.get_descriptors();
+    const logP = descriptors.MolLogP || 0;
+    mol.delete();
+    return logP;
+  }
+
+  /**
+   * Parses a chemical formula into an atom count map.
+   * E.g., "C6H12O6" → Map{C: 6, H: 12, O: 6}
+   */
+  #parseFormula(formula: string): Map<any, number> {
+    const { ELEMENTS } = require("../../Element");
+    const counts = new Map<any, number>();
+
+    // Match element symbols followed by optional numbers
+    const regex = /([A-Z][a-z]?)(\d*)/g;
+    let match;
+
+    while ((match = regex.exec(formula)) !== null) {
+      const symbol = match[1];
+      const count = match[2] ? parseInt(match[2], 10) : 1;
+
+      // Find matching element in our registry
+      for (const [, atom] of Object.entries(ELEMENTS)) {
+        if ((atom as any).symbol === symbol) {
+          counts.set(atom, (counts.get(atom) || 0) + count);
+          break;
+        }
+      }
+    }
+
+    return counts;
+  }
 }
