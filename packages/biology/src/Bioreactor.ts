@@ -6,11 +6,12 @@ import { Enzyme } from "./enzyme/Enzyme";
 import { ReactionVessel } from "@atomika-lab/biochem";
 
 /**
- * A multi-enzyme system that coordinates simultaneous catalytic action
- * on a shared reaction mixture using tick-based time stepping.
+ * A multi-enzyme system in which multiple catalytic species act
+ * simultaneously on a shared reaction mixture.
  *
- * Models a bioreactor or digestive tract where multiple enzymes
- * act concurrently on the same pool of molecules.
+ * Represents a digestive tract or fermentation vessel where enzymes
+ * compete for overlapping substrates and their combined activity
+ * determines the overall conversion of the reaction mixture.
  */
 export class Bioreactor {
   private enzymes: Enzyme[] = [];
