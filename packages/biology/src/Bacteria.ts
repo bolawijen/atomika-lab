@@ -1,6 +1,7 @@
 import { Enzyme } from "@atomika-lab/biochem";
 import { Polymerase } from "./Polymerase";
 import { Rifampicin } from "@atomika-lab/pharmacology";
+import { Environment } from "@atomika-lab/core";
 
 /**
  * A bacterial cell hosting enzymatic machinery.
@@ -57,22 +58,29 @@ export class Bacteria {
   }
 
   /**
-   * Responds to drug exposure through passive diffusion and target binding.
+   * Responds to drug exposure through thermodynamically-driven processes.
    *
-   * The drug molecule is a passive data source; the biological system
-   * drives the pharmacological process through thermodynamic interactions.
+   * The Environment provides thermal energy (Brownian motion) that drives
+   * passive diffusion. The drug molecule is a passive participant with
+   * physicochemical properties; the biological system responds to those
+   * properties through thermodynamic interactions.
    *
    * @param drug The medicinal substance present in the environment.
+   * @param environment The thermal and chemical context of exposure.
    */
-  exposedTo(drug: Rifampicin): void {
-    // Passive diffusion driven by lipophilicity (LogP > 0 implies membrane permeability)
-    if (drug.logP <= 0) return;
+  exposedTo(drug: Rifampicin, environment: Environment): void {
+    // Thermal energy drives passive diffusion (Brownian motion)
+    // Membrane permeability requires lipophilicity (LogP > 0)
+    // and sufficient thermal energy for molecular motion
+    const thermalEnergy = environment.temperatureC + 273.15; // Kelvin
+    const canPenetrate = drug.logP > 0 && thermalEnergy > 200;
+    if (!canPenetrate) return;
 
     // Target recognition — structural complementarity
     const polymerase = this.enzymes.find(e => e instanceof Polymerase) as Polymerase | undefined;
     if (!polymerase) return;
 
-    // Reversible binding — driven by binding affinity (Kd)
+    // Reversible binding — driven by binding affinity (Kd) and thermal context
     polymerase.bindLigand(drug, drug.dissociationConstant);
 
     this.updateViability();

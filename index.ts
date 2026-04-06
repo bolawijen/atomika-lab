@@ -122,7 +122,7 @@ console.log(`  Clearance: ${rifampicin.clearanceRate} min⁻¹`);
 console.log(`  LogP: ${rifampicin.logP}`);
 
 console.log(`Bacteria viability before exposure: ${(bacteria.getViability() * 100).toFixed(0)}%`);
-bacteria.exposedTo(rifampicin);
+bacteria.exposedTo(rifampicin, normalEnv);
 console.log(`Bacteria viability after exposure: ${(bacteria.getViability() * 100).toFixed(0)}%`);
 
 
