@@ -114,25 +114,28 @@ export class Amylase extends Enzyme {
   private readonly mechanism = new HydrolysisMechanism();
   private rdkit: RDKitEngine | null = null;
   private idealSubstrateFp: StructuralFingerprint | null = null;
+  private rdkitInitializing = false;
 
   constructor(protein: ProteinChain) {
     super(protein);
     // Active site fingerprint: encodes α-1,4 bond specificity, D-chirality preference,
     // and polysaccharide chain recognition
     this.activeSiteFingerprint = new StructuralFingerprint([
-      GlycosidicBondType.ALPHA_1_4.charCodeAt(0),  // bond type
-      Chirality.D.charCodeAt(0),                     // chirality preference
-      4,                                              // chain length preference
+      GlycosidicBondType.ALPHA_1_4,  // bond type code
+      Chirality.D,                     // chirality code
+      4,                               // chain length preference
     ]);
-
-    // Initialize RDKit asynchronously
-    this.#initializeRDKit();
   }
 
   /**
-   * Initializes RDKit and precomputes the ideal substrate fingerprint.
+   * Lazily initializes RDKit and precomputes the ideal substrate fingerprint.
+   * Called on first use during digest() to avoid blocking construction.
    */
-  private async #initializeRDKit(): Promise<void> {
+  private async #ensureRDKitInitialized(): Promise<void> {
+    if (this.rdkitInitializing) return;
+    if (this.rdkit) return;
+
+    this.rdkitInitializing = true;
     try {
       this.rdkit = await RDKitEngine.getInstance();
       StructuralFingerprint.setEngine(this.rdkit);
@@ -147,6 +150,8 @@ export class Amylase extends Enzyme {
     } catch {
       // RDKit initialization failed — fall back to hash-based fingerprints
       this.rdkit = null;
+    } finally {
+      this.rdkitInitializing = false;
     }
   }
 
@@ -166,6 +171,9 @@ export class Amylase extends Enzyme {
     if (!validatedSubstrate) {
       return this.#reportInertState();
     }
+
+    // Trigger lazy RDKit initialization (non-blocking — fallback used if not ready)
+    this.#ensureRDKitInitialized();
 
     const initialBondCount = validatedSubstrate.cleavableBondCount;
 
@@ -376,8 +384,8 @@ export class Amylase extends Enzyme {
    */
   #fallbackFit(substrate: Polysaccharide): number {
     const substrateFingerprint = new StructuralFingerprint([
-      substrate.bondType.charCodeAt(0),
-      Chirality.D.charCodeAt(0),
+      substrate.bondType,
+      Chirality.D,
       Math.min(substrate.count, 10),
     ]);
     return this.activeSiteFingerprint.compatibilityWith(substrateFingerprint);

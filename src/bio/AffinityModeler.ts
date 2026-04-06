@@ -49,8 +49,8 @@ export class AffinityModeler {
    */
   #calculateFit(substrate: Polysaccharide): number {
     const substrateFingerprint = new StructuralFingerprint([
-      substrate.bondType.charCodeAt(0),
-      Chirality.D.charCodeAt(0),
+      substrate.bondType,
+      Chirality.D,
       Math.min(substrate.count, 10),
     ]);
 
