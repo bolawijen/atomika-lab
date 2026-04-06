@@ -116,7 +116,7 @@ export class Amylase extends Enzyme {
   private rdkitInitializing = false;
 
   constructor(protein: ProteinChain) {
-    super(protein);
+    super(protein.sequence);
     // Active site fingerprint: encodes α-1,4 bond specificity, D-chirality preference,
     // and polysaccharide chain recognition
     this.activeSiteFingerprint = new StructuralFingerprint([

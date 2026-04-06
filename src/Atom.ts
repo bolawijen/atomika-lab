@@ -1,7 +1,7 @@
 /**
- * Properties defining a chemical atom.
+ * Physical and chemical parameters defining an atomic species.
  */
-export interface AtomProps {
+export interface AtomicParameters {
   name: string;
   symbol: string;
   protonCount: number;
@@ -52,7 +52,7 @@ export class Atom {
   /** Van der Waals radius (Ångströms). */
   readonly vanDerWaalsRadius?: number;
 
-  constructor(props: AtomProps) {
+  constructor(props: AtomicParameters) {
     this.name = props.name;
     this.symbol = props.symbol;
     this.protonCount = props.protonCount;

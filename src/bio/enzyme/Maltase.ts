@@ -78,7 +78,7 @@ export class Maltase extends Enzyme {
   isDenatured = false;
 
   constructor(protein: ProteinChain) {
-    super(protein);
+    super(protein.sequence);
   }
 
   /**

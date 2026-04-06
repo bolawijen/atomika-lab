@@ -47,6 +47,10 @@ export abstract class Molecule {
   /**
    * Molecular formula in Hill notation (C first, then H, then alphabetical).
    * E.g., "C₆H₁₂O₆" for glucose.
+   *
+   * The Hill system is the standard convention for chemical formulas:
+   * carbon atoms listed first, hydrogen second, then all other elements
+   * in alphabetical order.
    */
   get molecularFormula(): string {
     const composition = this.atomicComposition;
@@ -54,7 +58,7 @@ export abstract class Molecule {
 
     const entries = Array.from(composition.entries());
 
-    // Hill system: C first, H second, then alphabetical by symbol
+    // Hill system ordering: carbon first, hydrogen second, then alphabetical
     entries.sort((a, b) => {
       const aIsC = a[0].symbol === "C";
       const bIsC = b[0].symbol === "C";
