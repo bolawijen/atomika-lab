@@ -1,11 +1,13 @@
 import { StructuralFingerprint } from "@atomika-lab/core";
 
 /**
- * Molecular recognition service that computes structural similarity
- * between enzyme active sites and substrate molecules.
+ * Molecular recognition through structural complementarity.
  *
- * Acts as a "chemical instrument" — enzymes do not contain modeling engines;
- * they present their active site patterns to this service for affinity calculation.
+ * Determines the binding affinity between an enzyme's active site and a
+ * substrate molecule based on the similarity of their structural fingerprints.
+ * High similarity indicates favorable intermolecular forces and steric fit,
+ * resulting in strong binding (low Km). Branch points in the substrate
+ * introduce steric hindrance that reduces effective affinity.
  */
 export class AffinityModeler {
   /**
