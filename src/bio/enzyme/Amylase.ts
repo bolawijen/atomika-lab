@@ -138,7 +138,6 @@ export class Amylase extends Enzyme {
     this.rdkitInitializing = true;
     try {
       this.rdkit = await RDKitEngine.getInstance();
-      StructuralFingerprint.setEngine(this.rdkit);
 
       // Compute Morgan fingerprint for ideal substrate (D-glucose polymer)
       const glucoseMol = this.rdkit.createMolecule(D_GLUCOSE_SMILES);
@@ -345,7 +344,7 @@ export class Amylase extends Enzyme {
         try {
           const substrateFp = this.rdkit.getMorganFingerprint(substrateMol, 2);
           const substrateFingerprint = new StructuralFingerprint([0], substrateFp);
-          fit = this.idealSubstrateFp.compatibilityWith(substrateFingerprint);
+          fit = this.idealSubstrateFp.compatibilityWith(substrateFingerprint, this.rdkit);
           substrateMol.delete();
         } catch {
           fit = this.#fallbackFit(substrate);
@@ -388,7 +387,7 @@ export class Amylase extends Enzyme {
       Chirality.D,
       Math.min(substrate.count, 10),
     ]);
-    return this.activeSiteFingerprint.compatibilityWith(substrateFingerprint);
+    return this.activeSiteFingerprint.compatibilityWith(substrateFingerprint, this.rdkit || undefined);
   }
 
   // ── Validation & State ───────────────────────────────────────────

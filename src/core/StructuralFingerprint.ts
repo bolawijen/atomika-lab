@@ -16,8 +16,6 @@ export class StructuralFingerprint {
   private readonly hash: number;
   /** RDKit Morgan fingerprint (if available). */
   private readonly morganFp: Uint8Array | null;
-  /** Cached RDKit engine instance (if available). */
-  private static cachedEngine: RDKitEngine | null = null;
 
   constructor(components: number[], morganFp?: Uint8Array) {
     // Simple polynomial rolling hash for feature vector
@@ -30,28 +28,21 @@ export class StructuralFingerprint {
   }
 
   /**
-   * Sets the RDKit engine instance for use by all fingerprints.
-   * Called once after RDKit initialization.
-   */
-  static setEngine(engine: RDKitEngine): void {
-    StructuralFingerprint.cachedEngine = engine;
-  }
-
-  /**
    * Computes the structural compatibility score between this fingerprint
    * and another (e.g., enzyme active site vs. substrate).
    *
    * Returns a value between 0 (no fit) and 1 (perfect lock-and-key match).
-   * Uses Tanimoto similarity when Morgan fingerprints are available.
+   * Uses Tanimoto similarity when Morgan fingerprints are available
+   * and an RDKit engine is provided.
+   *
+   * @param other The fingerprint to compare against.
+   * @param rdkit Optional RDKit engine for Tanimoto similarity calculation.
    */
-  compatibilityWith(other: StructuralFingerprint): number {
+  compatibilityWith(other: StructuralFingerprint, rdkit?: RDKitEngine): number {
     // Use RDKit Morgan fingerprint Tanimoto similarity if available
-    if (this.morganFp && other.morganFp && StructuralFingerprint.cachedEngine) {
+    if (this.morganFp && other.morganFp && rdkit) {
       try {
-        return StructuralFingerprint.cachedEngine.tanimotoSimilarity(
-          this.morganFp,
-          other.morganFp,
-        );
+        return rdkit.tanimotoSimilarity(this.morganFp, other.morganFp);
       } catch {
         // Fall back to hash-based if RDKit fails
       }
