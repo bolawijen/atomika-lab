@@ -1,14 +1,11 @@
 import { Atom } from "./Atom";
 
 /**
- * Reaction environment conditions that influence enzyme activity.
- * Temperature, pH, solute composition, and reaction duration collectively
- * determine whether an enzyme can maintain its native conformation
- * and catalytic function.
+ * Reaction conditions that influence enzyme activity.
  *
- * Immutable — once constructed, conditions cannot change.
- * This ensures a consistent reaction context across all enzymes
- * in a multi-enzyme system.
+ * Temperature, pH, solute composition, pressure, and electromagnetic fields
+ * collectively determine whether an enzyme can maintain its native conformation
+ * and catalytic function. Reaction duration governs the extent of conversion.
  */
 export class Environment {
   /** Temperature in degrees Celsius. */
