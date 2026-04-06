@@ -16,10 +16,10 @@ export class AminoAcid extends Molecule {
   private _atomicComposition: ReadonlyMap<Atom, number>;
 
   /**
-   * @param name The full name of the amino acid.
-   * @param threeLetterCode The three-letter abbreviation.
-   * @param oneLetterCode The one-letter abbreviation.
-   * @param atomicComposition The stoichiometric composition of this amino acid.
+   * @param name IUPAC name of the amino acid.
+   * @param threeLetterCode Standard three-letter code used in protein sequence notation.
+   * @param oneLetterCode Standard one-letter code used in protein sequence notation.
+   * @param atomicComposition Stoichiometric composition of this amino acid.
    */
   constructor(
     name: string,
