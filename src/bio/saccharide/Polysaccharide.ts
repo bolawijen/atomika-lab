@@ -2,6 +2,7 @@ import { Saccharide } from "./Saccharide";
 import { Monosaccharide } from "./Monosaccharide";
 import { ELEMENTS } from "../../Element";
 import { Atom } from "../../Atom";
+import { GlycosidicBondType } from "./GlycosidicBondType";
 
 /**
  * A polysaccharide (complex carbohydrate).
@@ -10,11 +11,20 @@ import { Atom } from "../../Atom";
 export abstract class Polysaccharide extends Saccharide {
   /**
    * The monomer units that constitute this polysaccharide.
+   * Treated as immutable — modifications require creating a new instance
+   * to ensure cached atomic composition remains valid.
    */
-  abstract monomers: Monosaccharide[];
+  abstract readonly monomers: ReadonlyArray<Monosaccharide>;
 
   /**
-   * Cached atomic composition to avoid O(n) recalculation on repeated access.
+   * The predominant glycosidic bond type in this polysaccharide.
+   * Determines which enzymes can hydrolyze the chain.
+   */
+  abstract readonly bondType: GlycosidicBondType;
+
+  /**
+   * Cached atomic composition, computed once on first access.
+   * Safe because monomers are immutable.
    */
   private _cachedComposition: ReadonlyMap<Atom, number> | null = null;
 
@@ -26,9 +36,17 @@ export abstract class Polysaccharide extends Saccharide {
   }
 
   /**
+   * Number of cleavable glycosidic bonds in the chain.
+   * A chain of n monomers has n − 1 bonds.
+   */
+  get cleavableBondCount(): number {
+    return Math.max(0, this.monomers.length - 1);
+  }
+
+  /**
    * Atomic composition derived from the sum of all monomer residues,
    * minus (n − 1) H₂O molecules lost during glycosidic bond condensation.
-   * Result is memoized to avoid repeated O(n) computation.
+   * Result is computed once and cached, safe because monomers are immutable.
    */
   get atomicComposition(): ReadonlyMap<Atom, number> {
     if (this._cachedComposition) return this._cachedComposition;
