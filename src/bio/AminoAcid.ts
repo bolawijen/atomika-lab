@@ -1,14 +1,17 @@
 import { Molecule } from "../Molecule";
 import { Atom } from "../Atom";
+import { Chirality } from "./Chirality";
 
 /**
  * A single amino acid, the building block of proteins.
  * Each amino acid has a characteristic atomic composition.
+ * Natural amino acids in proteins are L-isomers.
  */
 export class AminoAcid extends Molecule {
   name: string;
   threeLetterCode: string;
   oneLetterCode: string;
+  readonly chirality = Chirality.L;
 
   private _atomicComposition: ReadonlyMap<Atom, number>;
 

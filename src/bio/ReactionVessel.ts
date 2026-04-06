@@ -1,5 +1,6 @@
-import { Polysaccharide } from "../saccharide/Polysaccharide";
-import { Saccharide } from "../saccharide/Saccharide";
+import { Polysaccharide } from "./saccharide/Polysaccharide";
+import { Saccharide } from "./saccharide/Saccharide";
+import { Monosaccharide } from "./saccharide/Monosaccharide";
 import { ReactionMixture } from "./ReactionMixture";
 import { KineticSnapshot } from "./ReactionResult";
 import { Environment } from "./Environment";
@@ -152,6 +153,24 @@ export class ReactionVessel {
    */
   resetHistory(): void {
     this.snapshots = [];
+  }
+
+  /**
+   * Performs mutarotation on all free monosaccharides in the mixture.
+   * In aqueous solution, monosaccharides spontaneously interconvert
+   * between alpha and beta anomeric forms, approaching an equilibrium
+   * ratio (typically ~36% alpha, ~64% beta for glucose at 25°C).
+   */
+  performMutarotation(mixture: Saccharide[]): void {
+    for (const molecule of mixture) {
+      if (molecule instanceof Monosaccharide) {
+        // Stochastic mutarotation — each monosaccharide has a probability
+        // of flipping its anomeric state each second
+        if (Math.random() < 0.1) {
+          molecule.mutarotate();
+        }
+      }
+    }
   }
 
   /**

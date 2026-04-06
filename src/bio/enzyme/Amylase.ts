@@ -9,6 +9,8 @@ import { ReactionResult, KineticSnapshot } from "../ReactionResult";
 import { KineticsSimulator, KineticParameters } from "./KineticsSimulator";
 import { HydrolysisMechanism, HydrolysisResult } from "./HydrolysisMechanism";
 import { ELEMENTS } from "../../Element";
+import { StructuralFingerprint } from "../StructuralFingerprint";
+import { Chirality } from "../Chirality";
 
 /**
  * The Amylase enzyme.
@@ -62,6 +64,18 @@ export class Amylase extends Enzyme {
   private readonly KI = 1e-6;
 
   /**
+   * Structural fingerprint of the enzyme's active site.
+   * Encodes features that determine substrate specificity and affinity.
+   */
+  private readonly activeSiteFingerprint: StructuralFingerprint;
+
+  /**
+   * Base Michaelis constant — the Km when substrate perfectly matches the active site.
+   * Scaled to nanomolar range for single-molecule simulation.
+   */
+  private readonly BASE_KM = 1e-8;
+
+  /**
    * Equilibrium constant — ratio of forward to reverse reaction rates.
    * Hydrolysis strongly favors products (Keq >> 1).
    */
@@ -88,6 +102,13 @@ export class Amylase extends Enzyme {
 
   constructor(protein: ProteinChain) {
     super(protein);
+    // Active site fingerprint: encodes α-1,4 bond specificity, D-chirality preference,
+    // and polysaccharide chain recognition
+    this.activeSiteFingerprint = new StructuralFingerprint([
+      GlycosidicBondType.ALPHA_1_4.charCodeAt(0),  // bond type
+      Chirality.D.charCodeAt(0),                     // chirality preference
+      4,                                              // chain length preference
+    ]);
   }
 
   /**
@@ -131,7 +152,7 @@ export class Amylase extends Enzyme {
 
     const parameters: KineticParameters = {
       kCat: this.KCAT * coFactorActivity,
-      kM: this.KM,
+      kM: this.#calculateDynamicKm(validatedSubstrate),
       kI: this.KI,
       kEq: this.KEQ,
       deltaH: this.DELTA_H,
@@ -250,6 +271,24 @@ export class Amylase extends Enzyme {
     const energyJoules = bondsCleaved * Math.abs(deltaH) * 1000 / 6.022e23;
     const temperatureChange = energyJoules / (waterMass * specificHeat);
     return deltaH < 0 ? temperatureChange : -temperatureChange;
+  }
+
+  /**
+   * Calculates the effective Michaelis constant based on the structural
+   * "lock-and-key" fit between the substrate and the enzyme's active site.
+   *
+   * A perfect match yields the base Km; poorer fits increase Km (lower affinity).
+   */
+  #calculateDynamicKm(substrate: Polysaccharide): number {
+    const substrateFingerprint = new StructuralFingerprint([
+      substrate.bondType.charCodeAt(0),
+      Chirality.D.charCodeAt(0),
+      Math.min(substrate.count, 10),
+    ]);
+
+    const fit = this.activeSiteFingerprint.compatibilityWith(substrateFingerprint);
+    // Poor fit increases Km (lower affinity): Km = BASE_KM / fit
+    return this.BASE_KM / Math.max(fit, 0.01);
   }
 
   // ── Validation & State ───────────────────────────────────────────
