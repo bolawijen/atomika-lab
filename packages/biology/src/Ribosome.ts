@@ -95,10 +95,12 @@ const GENETIC_CODE: ReadonlyMap<string, { name: string; threeLetter: string; one
 ]);
 
 /**
- * The Ribosome — a molecular machine that translates RNA into protein.
+ * Ribonucleoprotein complex that catalyzes translation of messenger RNA
+ * into a polypeptide chain.
  *
- * Reads an mRNA template in codon triplets and assembles the corresponding
- * amino acid chain according to the standard genetic code.
+ * Sequential codon-directed incorporation of aminoacyl-tRNA substrates
+ * according to the standard genetic code, forming peptide bonds between
+ * adjacent amino acids to extend the growing polypeptide.
  */
 export class Ribosome {
   /**
