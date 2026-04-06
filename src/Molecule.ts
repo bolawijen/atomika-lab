@@ -1,6 +1,20 @@
 import { Atom } from "./Atom";
 
 /**
+ * Phases of matter for a chemical substance.
+ */
+export enum Phase {
+  /** Ordered crystalline or amorphous solid. */
+  SOLID = "solid",
+  /** Fluid with definite volume but no definite shape. */
+  LIQUID = "liquid",
+  /** Expands to fill its container. */
+  GAS = "gas",
+  /** Dissolved in a solvent (typically water). */
+  AQUEOUS = "aqueous",
+}
+
+/**
  * A molecule — a group of atoms chemically bonded together.
  * Provides molecular formula and mass derived from atomic composition.
  */
@@ -10,6 +24,25 @@ export abstract class Molecule {
    * Each element is associated with its stoichiometric count.
    */
   abstract get atomicComposition(): ReadonlyMap<Atom, number>;
+
+  /**
+   * Melting point in degrees Celsius at 1 atm pressure.
+   * Below this temperature, the pure substance is solid.
+   */
+  meltingPointC?: number;
+
+  /**
+   * Boiling point in degrees Celsius at 1 atm pressure.
+   * Above this temperature, the pure substance is gaseous.
+   */
+  boilingPointC?: number;
+
+  /**
+   * Solubility product constant (Ksp) — the maximum concentration
+   * of this substance that can remain dissolved at 25°C before precipitation.
+   * Undefined for fully miscible or gaseous substances.
+   */
+  solubilityProduct?: number;
 
   /**
    * Molecular formula in Hill notation (C first, then H, then alphabetical).

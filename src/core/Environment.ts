@@ -24,6 +24,12 @@ export class Environment {
   readonly durationInSeconds: number;
 
   /**
+   * Pressure in atmospheres (atm).
+   * Affects phase transitions via the Clausius-Clapeyron relation.
+   */
+  readonly pressureAtm: number;
+
+  /**
    * Dissolved ionic species present in the reaction medium.
    * Maps each element to its molar concentration (mM).
    * Many enzymes require specific co-factors (e.g., Ca²⁺, Cl⁻) for activity.
@@ -35,11 +41,13 @@ export class Environment {
     pH: number,
     durationInSeconds: number = 60,
     solutes: ReadonlyMap<Atom, number> = new Map(),
+    pressureAtm: number = 1.0,
   ) {
     this.temperatureC = temperatureC;
     this.pH = pH;
     this.durationInSeconds = durationInSeconds;
     this.solutes = solutes;
+    this.pressureAtm = pressureAtm;
   }
 }
 
