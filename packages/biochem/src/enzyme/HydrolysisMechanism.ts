@@ -18,10 +18,12 @@ export interface HydrolysisResult {
 }
 
 /**
- * Executes the physical action of glycosidic bond hydrolysis.
+ * Glycosidic bond hydrolysis by nucleophilic attack of water.
  *
- * Handles random chain cleavage, fragment classification,
- * and the assembly of hydrolysis products.
+ * Cleaves glycosidic linkages at random positions along the saccharide chain,
+ * yielding maltose (disaccharide), dextrin fragments (short oligosaccharides),
+ * and free monosaccharide units. The distribution of products depends on
+ * the chain length and the number of bonds cleaved.
  */
 export class HydrolysisMechanism {
   /**
