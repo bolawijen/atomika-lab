@@ -12,8 +12,7 @@ import { GlycosidicBondType, GlycosidicBond } from "./GlycosidicBondType";
 export abstract class Polysaccharide extends Saccharide {
   /**
    * The monomer units that constitute this polysaccharide.
-   * Treated as immutable — modifications require creating a new instance
-   * to ensure cached atomic composition remains valid.
+   * Stable structure; chemical transformation produces a new species.
    */
   abstract readonly monomers: ReadonlyArray<Monosaccharide>;
 
@@ -26,7 +25,7 @@ export abstract class Polysaccharide extends Saccharide {
   /**
    * Branch points in the polysaccharide structure.
    * Each entry records an α-1,6 linkage connecting a branch to the main chain.
-   * Linear polysaccharides (e.g., amylose) have an empty array.
+   * Linear polysaccharides (e.g., amylose) lack branch points.
    */
   readonly branchPoints: ReadonlyArray<GlycosidicBond>;
 

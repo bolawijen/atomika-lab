@@ -4,7 +4,7 @@ import { Nucleotide, NitrogenousBase, NucleicAcidType } from "./Nucleotide";
 
 /**
  * A polynucleotide chain — a sequence of nucleotides linked by phosphodiester bonds.
- * Represents either DNA or RNA depending on the nucleotide type.
+ * Forms the structural basis of genetic material.
  */
 export class NucleicAcidChain extends Molecule {
   readonly sequence: Nucleotide[];

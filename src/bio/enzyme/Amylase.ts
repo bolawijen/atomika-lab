@@ -32,8 +32,7 @@ const D_GLUCOSE_SMILES = "C([C@@H]1[C@H]([C@@H]([C@H]([C@H](O1)O)O)O)O)O";
  * yielding maltose, free monosaccharides, and limit dextrins as end products.
  *
  * Requires Ca²⁺ for structural integrity and Cl⁻ as an allosteric activator.
- * This class serves as a configuration entity — it stores kinetic parameters
- * and delegates the simulation to KineticsSimulator and HydrolysisMechanism.
+ * Stores kinetic parameters and catalytic mechanisms for hydrolysis.
  */
 export class Amylase extends Enzyme {
   /**
@@ -101,7 +100,7 @@ export class Amylase extends Enzyme {
 
   /**
    * Maximum reaction duration in simulation steps.
-   * Represents the physical time horizon of the reaction vessel.
+   * Represents the duration of the reaction vessel.
    */
   private readonly VESSEL_TIME_HORIZON = 10000;
 
@@ -157,9 +156,9 @@ export class Amylase extends Enzyme {
   /**
    * Catalyzes the hydrolysis of α-1,4-glycosidic bonds in a polysaccharide substrate.
    *
-   * Delegates time-stepping and rate calculation to KineticsSimulator,
-   * and bond cleavage/fragment classification to HydrolysisMechanism.
-   * Checks for required co-factors (Ca²⁺, Cl⁻) before catalysis.
+   * The reaction proceeds through iterative cycles of endo-cleavage governed by
+   * Michaelis-Menten kinetics with competitive product inhibition and a bell-shaped
+   * pH activity profile. Reaction extent is determined by environmental duration.
    *
    * @param substrate The polysaccharide substrate (e.g., amylose).
    * @param environment Reaction conditions (temperature, pH, duration, solutes).

@@ -1,14 +1,11 @@
 import initRDKitModule from "@rdkit/rdkit";
 
 /**
- * Singleton wrapper around RDKit.js.
- *
- * Initializes the RDKit WebAssembly module once and provides
- * chemical informatics functions: SMARTS matching, Morgan fingerprints,
- * and chirality verification.
- *
- * Acts as the chemical library — a reference database of molecular structures,
+ * Chemical library — a reference database of molecular structures,
  * properties, and transformation rules derived from standard chemistry.
+ *
+ * Provides access to RDKit's chemical informatics functions:
+ * SMARTS pattern matching, Morgan fingerprints, and chirality verification.
  */
 export class RDKitEngine {
   private static instance: RDKitEngine | null = null;
@@ -18,7 +15,7 @@ export class RDKitEngine {
   private constructor() {}
 
   /**
-   * Returns the singleton chemical library instance.
+   * Returns the chemical library instance.
    */
   static async getInstance(): Promise<RDKitEngine> {
     if (!RDKitEngine.instance) {
@@ -47,7 +44,7 @@ export class RDKitEngine {
 
   /**
    * Finds all substructure matches for a SMARTS pattern in the given molecule.
-   * Returns an array of atom index tuples.
+   * Returns a sequence of atomic coordinates for each matched pattern.
    */
   matchSmarts(mol: any, smartsPattern: string): number[][] {
     if (!this.initialized) throw new Error("RDKit not initialized");

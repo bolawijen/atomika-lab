@@ -1,0 +1,3 @@
+- ini adalah proyek untuk mengkodekan sains kimia, prosesnya, pake bahasa high-level, pake term term kimia internasional. jadi, jgn ada term programming di jsdoc dll. hanya kimia saja. gunakan paradigm oop sesuai kimia jika diperlukan
+
+- jsdoc class harus hanya berisi "what" dari class sesuai definisi kimianya

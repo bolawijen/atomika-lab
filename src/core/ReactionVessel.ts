@@ -265,7 +265,7 @@ export class ReactionVessel {
 
   /**
    * Counts all atoms across every molecule in the mixture.
-   * Uses the atomCount property from each molecule.
+   * Calculates total stoichiometry from each molecule's atomic composition.
    */
   #countAllAtoms(mixture: Saccharide[]): Map<Atom, number> {
     const counts = new Map<Atom, number>();
