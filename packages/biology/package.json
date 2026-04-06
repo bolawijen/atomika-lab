@@ -1,0 +1,10 @@
+{
+  "name": "@atomika-lab/biology",
+  "version": "0.1.0",
+  "type": "module",
+  "main": "src/index.ts",
+  "dependencies": {
+    "@atomika-lab/core": "workspace:*",
+    "@atomika-lab/biochem": "workspace:*"
+  }
+}

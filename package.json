@@ -1,8 +1,11 @@
 {
-  "name": "atomik-lab",
+  "name": "@atomika-lab/root",
   "module": "index.ts",
   "type": "module",
   "private": true,
+  "workspaces": [
+    "packages/*"
+  ],
   "devDependencies": {
     "@types/bun": "latest"
   },
