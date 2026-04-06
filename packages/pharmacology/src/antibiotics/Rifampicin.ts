@@ -48,11 +48,10 @@ export class Rifampicin extends BaseDrug {
   }
 
   /**
-   * Inhibits bacterial RNA polymerase by binding to its active site,
-   * blocking the RNA exit channel. The enzyme remains structurally
-   * intact but transcriptionally inactive.
+   * Exerts antibacterial effect by inhibiting bacterial RNA polymerase.
+   * Reduces bacterial viability through competitive inhibition of transcription.
    */
-  attack(target: Bacteria): void {
+  inhibit(target: Bacteria): void {
     const enzymes = target.getEnzymes();
 
     for (const enzyme of enzymes) {
