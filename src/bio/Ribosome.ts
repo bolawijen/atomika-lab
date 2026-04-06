@@ -6,6 +6,7 @@ import { Environment, PHYSIOLOGICAL_CONDITIONS } from "../core/Environment";
 import { ReactionMixture } from "../core/ReactionMixture";
 import { ReactionResult, KineticSnapshot } from "../core/ReactionResult";
 import { ReactionVessel, EnzymeKinetics } from "../core/ReactionVessel";
+import { LawsOfPhysics } from "../core/LawsOfPhysics";
 import { ELEMENTS } from "../Element";
 
 /**
@@ -213,7 +214,7 @@ export class Ribosome {
         codonsTranslated++;
       }
 
-      currentTemp += this.#calculateThermalDrift(toTranslate, this.DELTA_H);
+      currentTemp += LawsOfPhysics.calculateThermalDrift(toTranslate, this.DELTA_H, 1e-15);
     }
 
     const productMixture = new ReactionMixture();
@@ -268,13 +269,5 @@ export class Ribosome {
     const allAminoAcids = Array.from(GENETIC_CODE.values()).filter(aa => aa.oneLetter !== "*");
     const wrongAAs = allAminoAcids.filter(aa => aa.oneLetter !== correctInfo.oneLetter);
     return wrongAAs[Math.floor(Math.random() * wrongAAs.length)];
-  }
-
-  #calculateThermalDrift(bondsFormed: number, deltaH: number): number {
-    const waterMass = 1e-15 * 1000;
-    const specificHeat = 4.184;
-    const energyJoules = bondsFormed * Math.abs(deltaH) * 1000 / 6.022e23;
-    const temperatureChange = energyJoules / (waterMass * specificHeat);
-    return deltaH < 0 ? temperatureChange : -temperatureChange;
   }
 }

@@ -7,6 +7,7 @@ import { Environment, PHYSIOLOGICAL_CONDITIONS } from "../core/Environment";
 import { ReactionMixture } from "../core/ReactionMixture";
 import { ReactionResult, KineticSnapshot } from "../core/ReactionResult";
 import { ReactionVessel, EnzymeKinetics } from "../core/ReactionVessel";
+import { LawsOfPhysics } from "../core/LawsOfPhysics";
 
 /**
  * RNA Polymerase (EC 2.7.7.6).
@@ -117,7 +118,7 @@ export class Polymerase extends Enzyme {
         nucleotidesAdded++;
       }
 
-      currentTemp += this.#calculateThermalDrift(toAdd, this.DELTA_H);
+      currentTemp += LawsOfPhysics.calculateThermalDrift(toAdd, this.DELTA_H, 1e-15);
     }
 
     const productMixture = new ReactionMixture();
@@ -167,16 +168,8 @@ export class Polymerase extends Enzyme {
     return wrongBases[Math.floor(Math.random() * wrongBases.length)];
   }
 
-  #calculateThermalDrift(bondsFormed: number, deltaH: number): number {
-    const waterMass = 1e-15 * 1000;
-    const specificHeat = 4.184;
-    const energyJoules = bondsFormed * Math.abs(deltaH) * 1000 / 6.022e23;
-    const temperatureChange = energyJoules / (waterMass * specificHeat);
-    return deltaH < 0 ? temperatureChange : -temperatureChange;
-  }
-
   #checkThermalDenaturation(environment: Environment): void {
-    if (environment.temperatureC >= 60) {
+    if (environment.temperatureC >= this.DENATURATION_THRESHOLD) {
       this.isDenatured = true;
     }
   }
