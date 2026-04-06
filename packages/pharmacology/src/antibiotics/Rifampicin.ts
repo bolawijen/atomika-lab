@@ -1,7 +1,21 @@
 import { BaseDrug } from "@atomika-lab/pharmacology";
 import { Bacteria } from "@atomika-lab/biology";
-import { ELEMENTS } from "@atomika-lab/core";
-import { Atom } from "@atomika-lab/core";
+import { ELEMENTS, Atom } from "@atomika-lab/core";
+import { Enzyme } from "@atomika-lab/biochem";
+
+/**
+ * Enzyme that can undergo irreversible structural unfolding.
+ */
+interface DenaturableEnzyme extends Enzyme {
+  isDenatured: boolean;
+}
+
+/**
+ * Type guard for enzymes that support denaturation.
+ */
+function isDenaturable(enzyme: Enzyme): enzyme is DenaturableEnzyme {
+  return "isDenatured" in enzyme;
+}
 
 /**
  * Rifampicin — a bactericidal antibiotic that inhibits bacterial
@@ -36,15 +50,12 @@ export class Rifampicin extends BaseDrug {
    */
   attack(target: Bacteria): void {
     const enzymes = target.getEnzymes();
-    let inhibitedCount = 0;
 
     for (const enzyme of enzymes) {
-      // Simulate competitive inhibition of RNA polymerase
-      if ("isDenatured" in enzyme && !enzyme.isDenatured) {
+      if (isDenaturable(enzyme) && !enzyme.isDenatured) {
         // High-affinity binding effectively blocks the active site
         if (Math.random() < this.targetAffinity / (this.targetAffinity + 1)) {
-          (enzyme as any).isDenatured = true;
-          inhibitedCount++;
+          enzyme.isDenatured = true;
         }
       }
     }
