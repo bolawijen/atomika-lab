@@ -8,6 +8,7 @@ import { Environment, PHYSIOLOGICAL_CONDITIONS } from "../../core/Environment";
 import { ReactionMixture } from "../../core/ReactionMixture";
 import { ReactionResult, KineticSnapshot } from "../../core/ReactionResult";
 import { ReactionVessel, EnzymeKinetics } from "../../core/ReactionVessel";
+import { LawsOfPhysics } from "../../core/LawsOfPhysics";
 
 /**
  * The Maltase enzyme.
@@ -146,7 +147,7 @@ export class Maltase extends Enzyme {
       }
 
       // Apply thermal drift from reaction enthalpy
-      currentTemp += this.#calculateThermalDrift(toProcess, this.DELTA_H);
+      currentTemp += LawsOfPhysics.calculateThermalDrift(toProcess, this.DELTA_H, 1e-15);
     }
 
     productMixture.add(reactionMixture);
@@ -182,14 +183,6 @@ export class Maltase extends Enzyme {
       return (temperatureC - 5) / (this.OPTIMAL_TEMP - 5);
     }
     return 1 - (temperatureC - this.OPTIMAL_TEMP) / (this.DENATURATION_THRESHOLD - this.OPTIMAL_TEMP);
-  }
-
-  #calculateThermalDrift(bondsCleaved: number, deltaH: number): number {
-    const waterMass = 1e-15 * 1000;
-    const specificHeat = 4.184;
-    const energyJoules = bondsCleaved * Math.abs(deltaH) * 1000 / 6.022e23;
-    const temperatureChange = energyJoules / (waterMass * specificHeat);
-    return deltaH < 0 ? temperatureChange : -temperatureChange;
   }
 
   #checkThermalDenaturation(environment: Environment): void {

@@ -12,6 +12,7 @@ import { ELEMENTS } from "../../Element";
 import { StructuralFingerprint } from "../../core/StructuralFingerprint";
 import { Chirality } from "../../core/Chirality";
 import { RDKitEngine } from "../RDKitEngine";
+import { LawsOfPhysics } from "../../core/LawsOfPhysics";
 
 /**
  * SMARTS pattern for α-1,4-glycosidic linkage — the target of α-amylase.
@@ -243,7 +244,7 @@ export class Amylase extends Enzyme {
       reactionMixture = result.unhydrolyzedFragments;
 
       // Apply thermal drift from reaction enthalpy
-      currentTemp += this.#calculateThermalDrift(result.bondsCleaved, parameters.deltaH);
+      currentTemp += LawsOfPhysics.calculateThermalDrift(result.bondsCleaved, parameters.deltaH, 1e-15);
     }
 
     productMixture.add(reactionMixture);
@@ -304,18 +305,6 @@ export class Amylase extends Enzyme {
       return (temperatureC - 5) / (this.OPTIMAL_TEMP - 5);
     }
     return 1 - (temperatureC - this.OPTIMAL_TEMP) / (this.DENATURATION_THRESHOLD - this.OPTIMAL_TEMP);
-  }
-
-  /**
-   * Calculates temperature drift from reaction enthalpy.
-   * Exothermic hydrolysis releases heat, raising the mixture temperature.
-   */
-  #calculateThermalDrift(bondsCleaved: number, deltaH: number): number {
-    const waterMass = 1e-15 * 1000; // 1 fL vessel ≈ 1 ng water
-    const specificHeat = 4.184;
-    const energyJoules = bondsCleaved * Math.abs(deltaH) * 1000 / 6.022e23;
-    const temperatureChange = energyJoules / (waterMass * specificHeat);
-    return deltaH < 0 ? temperatureChange : -temperatureChange;
   }
 
   /**
