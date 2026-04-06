@@ -35,7 +35,7 @@ export class Amylase extends Enzyme {
 
   /**
    * Permanent structural damage flag — once true, the enzyme can never recover.
-   * Analogous to hardware failure: the protein backbone is unfolded beyond repair.
+   * The protein tertiary structure has undergone irreversible unfolding.
    */
   isDenatured = false;
 
@@ -50,17 +50,17 @@ export class Amylase extends Enzyme {
   }
 
   /**
-   * Software state — whether the enzyme can currently perform catalysis.
+   * Biochemical activity state — whether the enzyme can currently perform catalysis.
    * Depends on environment: temperature, pH, and structural integrity.
    *
    * Unlike isDenatured, inactivity from suboptimal conditions is reversible.
-   * If conditions return to normal, the enzyme resumes catalysis.
+   * If conditions return to the physiological range, the enzyme resumes catalysis.
    */
   get isActive(): boolean {
-    // Hardware check — permanent damage
+    // Irreversible denaturation — permanent structural loss
     if (this.isDenatured) return false;
 
-    // Temperature window — enzyme "freezes" below 5°C, denatures above threshold
+    // Temperature window — catalytic rate drops below 5°C
     if (this.environment.temperatureC < 5) return false;
     if (this.environment.temperatureC > this.DENATURATION_THRESHOLD) return false;
 

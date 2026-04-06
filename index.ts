@@ -55,23 +55,23 @@ const normalAmylase = new Amylase(enzymeProtein, normalEnv);
 const normalProducts = normalAmylase.digest(substrate);
 console.log(`Normal (37°C, pH 7.0): ${normalProducts.length} maltose, denatured: ${normalAmylase.isDenatured}`);
 
-// Scenario B: Freezing (0°C) — enzyme sleeps, not dead
+// Scenario B: Freezing (0°C) — enzyme inactivated (reversible)
 const coldEnv = new Environment(0, 7.0);
 const coldAmylase = new Amylase(enzymeProtein, coldEnv);
 const coldProducts = coldAmylase.digest(new Amylose(10));
-console.log(`Frozen (0°C, pH 7.0): ${coldProducts.length} maltose, denatured: ${coldAmylase.isDenatured}, active: ${coldAmylase.isActive}`);
+console.log(`Frozen (0°C, pH 7.0): ${coldProducts.length} products, denatured: ${coldAmylase.isDenatured}, active: ${coldAmylase.isActive}`);
 
-// Scenario C: Boiling (80°C) — hardware destroyed
+// Scenario C: Boiling (80°C) — irreversible denaturation
 const hotEnv = new Environment(80, 7.0);
 const hotAmylase = new Amylase(enzymeProtein, hotEnv);
 const hotProducts = hotAmylase.digest(new Amylose(10));
-console.log(`Boiling (80°C, pH 7.0): ${hotProducts.length} maltose, denatured: ${hotAmylase.isDenatured}, active: ${hotAmylase.isActive}`);
+console.log(`Boiling (80°C, pH 7.0): ${hotProducts.length} products, denatured: ${hotAmylase.isDenatured}, active: ${hotAmylase.isActive}`);
 
 // Scenario D: Acidic stomach (pH 2) — α-amylase inhibited
 const acidEnv = new Environment(37, 2.0);
 const acidAmylase = new Amylase(enzymeProtein, acidEnv);
 const acidProducts = acidAmylase.digest(new Amylose(10));
-console.log(`Acidic (37°C, pH 2.0): ${acidProducts.length} maltose, denatured: ${acidAmylase.isDenatured}, active: ${acidAmylase.isActive}`);
+console.log(`Acidic (37°C, pH 2.0): ${acidProducts.length} products, denatured: ${acidAmylase.isDenatured}, active: ${acidAmylase.isActive}`);
 console.log("\n");
 
 
