@@ -2,6 +2,7 @@ import { Atom } from "./src/Atom";
 import { ELEMENTS } from "./src/Element";
 import { Amylose } from "./src/bio/saccharide/Amylose";
 import { Amylase } from "./src/bio/enzyme/Amylase";
+import { Maltase } from "./src/bio/enzyme/Maltase";
 import { AminoAcid } from "./src/bio/AminoAcid";
 import { ProteinChain } from "./src/bio/ProteinChain";
 import { Glucose } from "./src/bio/saccharide/Glucose";
@@ -12,6 +13,7 @@ import { Lactose } from "./src/bio/saccharide/Lactose";
 import { Maltose } from "./src/bio/saccharide/Maltose";
 import { Dextrin } from "./src/bio/saccharide/Dextrin";
 import { Environment, PHYSIOLOGICAL_CONDITIONS } from "./src/bio/Environment";
+import { Bioreactor } from "./src/bio/Bioreactor";
 
 // --- Atom Demonstration ---
 console.log(`--- Atom Demonstration ---`);
@@ -114,3 +116,28 @@ const sucrose = new Sucrose();
 const lactose = new Lactose();
 console.log(`Sucrose: ${sucrose.molecularFormula} (${sucrose.molecularMass.toFixed(2)} Da)`);
 console.log(`Lactose: ${lactose.molecularFormula} (${lactose.molecularMass.toFixed(2)} Da)`);
+
+
+// --- Multi-Enzyme Bioreactor Demonstration ---
+console.log("\n--- Multi-Enzyme Bioreactor Demonstration ---");
+
+const digestiveEnzymeProtein = new ProteinChain([asp, ala, lys, asp, ala]);
+const bioreactor = new Bioreactor();
+bioreactor.addEnzyme(new Amylase(digestiveEnzymeProtein));
+bioreactor.addEnzyme(new Maltase(digestiveEnzymeProtein));
+
+const starchSubstrate = new Amylose(10);
+console.log(`Initial substrate: ${starchSubstrate} → ${starchSubstrate.molecularFormula}`);
+
+const digestiveEnv = new Environment(37, 7.0, 120);
+const digestiveResult = bioreactor.digest(starchSubstrate, digestiveEnv);
+console.log(`After 120s digestion: ${digestiveResult.products.speciesCount} molecular species`);
+console.log(`Conversion: ${(digestiveResult.conversionRate * 100).toFixed(0)}%`);
+console.log(`Remaining mass: ${digestiveResult.remainingSubstrateMass.toFixed(0)} Da`);
+
+// Show kinetic history
+if (digestiveResult.history.length > 0) {
+  const first = digestiveResult.history[0];
+  const last = digestiveResult.history[digestiveResult.history.length - 1];
+  console.log(`Kinetic range: ${first.remainingBonds} → ${last.remainingBonds} cleavable bonds`);
+}
