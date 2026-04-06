@@ -49,7 +49,8 @@ export class NucleicAcidChain extends Molecule {
   }
 
   /**
-   * Returns the sequence as a string of base letters (e.g., "ATCG").
+   * Primary structure representation using standard nucleobase notation
+   * (A, T, C, G for DNA; A, U, C, G for RNA).
    */
   toString(): string {
     return this.sequence.map(n => n.base).join("");

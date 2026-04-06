@@ -6,6 +6,9 @@ import initRDKitModule from "@rdkit/rdkit";
  * Provides substructure pattern matching (SMARTS), structural fingerprints
  * (Morgan/ECFP), and stereochemical descriptors for analyzing chemical
  * structures, verifying chirality, and quantifying molecular similarity.
+ *
+ * Initialized once and shared across all components requiring molecular
+ * recognition capabilities.
  */
 export class RDKitEngine {
   private static instance: RDKitEngine | null = null;
