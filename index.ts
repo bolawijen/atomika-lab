@@ -14,6 +14,10 @@ import { Maltose } from "./src/bio/saccharide/Maltose";
 import { Dextrin } from "./src/bio/saccharide/Dextrin";
 import { Environment, PHYSIOLOGICAL_CONDITIONS } from "./src/bio/Environment";
 import { Bioreactor } from "./src/bio/Bioreactor";
+import { Nucleotide, NitrogenousBase, NucleicAcidType } from "./src/bio/Nucleotide";
+import { NucleicAcidChain } from "./src/bio/NucleicAcidChain";
+import { Polymerase } from "./src/bio/Polymerase";
+import { Ribosome } from "./src/bio/Ribosome";
 
 // --- Atom Demonstration ---
 console.log(`--- Atom Demonstration ---`);
@@ -140,4 +144,57 @@ if (digestiveResult.history.length > 0) {
   const first = digestiveResult.history[0];
   const last = digestiveResult.history[digestiveResult.history.length - 1];
   console.log(`Kinetic range: ${first.remainingBonds} → ${last.remainingBonds} cleavable bonds`);
+}
+
+
+// --- Genetic Foundation & Protein Synthesis Demonstration ---
+console.log("\n--- Genetic Foundation & Protein Synthesis Demonstration ---");
+
+// 1. Nucleotide base-pairing
+const adenine = new Nucleotide(NitrogenousBase.ADENINE, NucleicAcidType.DNA);
+const thymine = new Nucleotide(NitrogenousBase.THYMINE, NucleicAcidType.DNA);
+const cytosine = new Nucleotide(NitrogenousBase.CYTOSINE, NucleicAcidType.DNA);
+const guanine = new Nucleotide(NitrogenousBase.GUANINE, NucleicAcidType.DNA);
+console.log(`DNA bases: ${adenine}↔${adenine.complementaryBase}, ${thymine}↔${thymine.complementaryBase}, ${cytosine}↔${cytosine.complementaryBase}, ${guanine}↔${guanine.complementaryBase}`);
+
+// 2. DNA template strand
+const dnaTemplate = new NucleicAcidChain([
+  new Nucleotide(NitrogenousBase.ADENINE, NucleicAcidType.DNA),
+  new Nucleotide(NitrogenousBase.UGG, NucleicAcidType.DNA), // UGG not valid for DNA, fix below
+]);
+
+// Correct DNA template for "Met-Ala-Lys" → AUG GCU AAA (mRNA) → TAC CGA TTT (DNA template)
+const codingDna = new NucleicAcidChain([
+  new Nucleotide(NitrogenousBase.THYMINE, NucleicAcidType.DNA),
+  new Nucleotide(NitrogenousBase.ADENINE, NucleicAcidType.DNA),
+  new Nucleotide(NitrogenousBase.CYTOSINE, NucleicAcidType.DNA),
+  new Nucleotide(NitrogenousBase.CYTOSINE, NucleicAcidType.DNA),
+  new Nucleotide(NitrogenousBase.GUANINE, NucleicAcidType.DNA),
+  new Nucleotide(NitrogenousBase.ADENINE, NucleicAcidType.DNA),
+  new Nucleotide(NitrogenousBase.ADENINE, NucleicAcidType.DNA),
+  new Nucleotide(NitrogenousBase.ADENINE, NucleicAcidType.DNA),
+  new Nucleotide(NitrogenousBase.THYMINE, NucleicAcidType.DNA),
+]);
+console.log(`DNA template: ${codingDna} (${codingDna.count} nucleotides)`);
+console.log(`DNA formula: ${codingDna.molecularFormula} (${codingDna.molecularMass.toFixed(0)} Da)`);
+
+// 3. Transcription: DNA → mRNA
+const polymeraseProtein = new ProteinChain([asp, ala, lys, asp, ala]);
+const rnaPolymerase = new Polymerase(polymeraseProtein);
+const transcriptionEnv = new Environment(37, 7.5, 30);
+const transcriptionResult = rnaPolymerase.digest(codingDna, transcriptionEnv);
+const mrna = transcriptionResult.products.getAll()[0] as NucleicAcidChain | undefined;
+if (mrna) {
+  console.log(`mRNA transcript: ${mrna} (${mrna.count} nucleotides)`);
+  console.log(`mRNA formula: ${mrna.molecularFormula} (${mrna.molecularMass.toFixed(0)} Da)`);
+
+  // 4. Translation: mRNA → Protein
+  const ribosome = new Ribosome();
+  const translationEnv = new Environment(37, 7.2, 60);
+  const translationResult = ribosome.translate(mrna, translationEnv);
+  const protein = translationResult.products.getAll()[0] as ProteinChain | undefined;
+  if (protein) {
+    console.log(`Protein: ${protein} (${protein.count} amino acids)`);
+    console.log(`Protein formula: ${protein.molecularFormula} (${protein.molecularMass.toFixed(0)} Da)`);
+  }
 }
