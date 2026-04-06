@@ -69,7 +69,7 @@ export class Polymerase extends Enzyme {
    *
    * @param substrate The DNA template strand.
    * @param environment Reaction conditions (temperature, pH, duration, solutes).
-   * @returns ReactionResult containing the synthesized RNA and kinetic history.
+   * RNA transcript formed by complementary base pairing with the DNA template.
    */
   digest(substrate: Saccharide, environment: Environment = PHYSIOLOGICAL_CONDITIONS): ReactionResult {
     // Active site occupied — transcription blocked
