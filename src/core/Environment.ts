@@ -30,6 +30,18 @@ export class Environment {
   readonly pressureAtm: number;
 
   /**
+   * Magnetic field strength in Tesla.
+   * Affects plasma dynamics via the Lorentz force.
+   */
+  readonly magneticFieldTesla: number;
+
+  /**
+   * Electric field strength in volts per meter.
+   * Drives charged particle motion in plasma.
+   */
+  readonly electricFieldVoltsPerMeter: number;
+
+  /**
    * Dissolved ionic species present in the reaction medium.
    * Maps each element to its molar concentration (mM).
    * Many enzymes require specific co-factors (e.g., Ca²⁺, Cl⁻) for activity.
@@ -42,12 +54,16 @@ export class Environment {
     durationInSeconds: number = 60,
     solutes: ReadonlyMap<Atom, number> = new Map(),
     pressureAtm: number = 1.0,
+    magneticFieldTesla: number = 0,
+    electricFieldVoltsPerMeter: number = 0,
   ) {
     this.temperatureC = temperatureC;
     this.pH = pH;
     this.durationInSeconds = durationInSeconds;
     this.solutes = solutes;
     this.pressureAtm = pressureAtm;
+    this.magneticFieldTesla = magneticFieldTesla;
+    this.electricFieldVoltsPerMeter = electricFieldVoltsPerMeter;
   }
 }
 

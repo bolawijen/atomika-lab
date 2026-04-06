@@ -18,6 +18,12 @@ export interface AtomProps {
    * E.g., Iron: [4, 6], Copper: [4, 6].
    */
   coordinationNumbers?: number[];
+  /**
+   * First ionization energy in electron volts (eV).
+   * Energy required to remove the most loosely bound electron.
+   * E.g., Hydrogen: 13.6 eV, Carbon: 11.3 eV, Iron: 7.9 eV.
+   */
+  ionizationEnergy?: number;
 }
 
 /**
@@ -35,6 +41,8 @@ export class Atom {
   readonly oxidationStates?: number[];
   /** Common coordination numbers for this element. */
   readonly coordinationNumbers?: number[];
+  /** First ionization energy in electron volts (eV). */
+  readonly ionizationEnergy?: number;
 
   constructor(props: AtomProps) {
     this.name = props.name;
@@ -45,6 +53,7 @@ export class Atom {
     this.valence = props.valence;
     this.oxidationStates = props.oxidationStates;
     this.coordinationNumbers = props.coordinationNumbers;
+    this.ionizationEnergy = props.ionizationEnergy;
   }
 
   getNeutrons(): number {
