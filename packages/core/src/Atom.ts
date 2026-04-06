@@ -52,17 +52,17 @@ export class Atom {
   /** Van der Waals radius (Ångströms). */
   readonly vanDerWaalsRadius?: number;
 
-  constructor(props: AtomicParameters) {
-    this.name = props.name;
-    this.symbol = props.symbol;
-    this.protonCount = props.protonCount;
-    this.mass = props.mass;
-    this.charge = props.charge ?? 0;
-    this.valence = props.valence;
-    this.oxidationStates = props.oxidationStates;
-    this.coordinationNumbers = props.coordinationNumbers;
-    this.ionizationEnergy = props.ionizationEnergy;
-    this.vanDerWaalsRadius = props.vanDerWaalsRadius;
+  constructor(params: AtomicParameters) {
+    this.name = params.name;
+    this.symbol = params.symbol;
+    this.protonCount = params.protonCount;
+    this.mass = params.mass;
+    this.charge = params.charge ?? 0;
+    this.valence = params.valence;
+    this.oxidationStates = params.oxidationStates;
+    this.coordinationNumbers = params.coordinationNumbers;
+    this.ionizationEnergy = params.ionizationEnergy;
+    this.vanDerWaalsRadius = params.vanDerWaalsRadius;
   }
 
   /** Number of neutrons, derived from mass minus proton count. */
