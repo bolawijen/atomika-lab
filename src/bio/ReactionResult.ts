@@ -2,8 +2,22 @@ import { Saccharide } from "../saccharide/Saccharide";
 import { ReactionMixture } from "./ReactionMixture";
 
 /**
+ * A kinetic snapshot taken at one time step during the reaction.
+ * Records substrate and product concentrations for plotting kinetics curves.
+ */
+export interface KineticSnapshot {
+  /** Time elapsed since reaction start (seconds). */
+  timeInSeconds: number;
+  /** Total cleavable bonds remaining across all substrate molecules. */
+  remainingBonds: number;
+  /** Number of distinct product molecules accumulated. */
+  productCount: number;
+}
+
+/**
  * The outcome of an enzymatic hydrolysis reaction.
- * Contains both the product mixture and kinetic metadata.
+ * Contains the final product mixture, kinetic metadata, and
+ * a time-resolved history of concentration changes.
  */
 export class ReactionResult {
   /** All molecular species present after the reaction. */
@@ -18,15 +32,23 @@ export class ReactionResult {
   /** Whether the enzyme retained catalytic activity at reaction end. */
   readonly isEnzymeStillActive: boolean;
 
+  /**
+   * Time-resolved concentration profile of the reaction.
+   * Each entry represents the state at one second of simulated time.
+   */
+  readonly history: ReadonlyArray<KineticSnapshot>;
+
   constructor(
     products: ReactionMixture,
     conversionRate: number,
     remainingSubstrateMass: number,
     isEnzymeStillActive: boolean,
+    history: ReadonlyArray<KineticSnapshot> = [],
   ) {
     this.products = products;
     this.conversionRate = conversionRate;
     this.remainingSubstrateMass = remainingSubstrateMass;
     this.isEnzymeStillActive = isEnzymeStillActive;
+    this.history = history;
   }
 }

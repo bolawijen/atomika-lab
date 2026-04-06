@@ -8,7 +8,7 @@ import { Polysaccharide } from "../saccharide/Polysaccharide";
 import { GlycosidicBondType } from "../saccharide/GlycosidicBondType";
 import { Environment, PHYSIOLOGICAL_CONDITIONS } from "../Environment";
 import { ReactionMixture } from "../ReactionMixture";
-import { ReactionResult } from "../ReactionResult";
+import { ReactionResult, KineticSnapshot } from "../ReactionResult";
 
 /**
  * The Amylase enzyme.
@@ -74,6 +74,12 @@ export class Amylase extends Enzyme {
   }
 
   /**
+   * Maximum number of simulation steps to prevent runaway loops.
+   * Corresponds to roughly 2.8 hours of simulated reaction time.
+   */
+  private readonly MAX_SIMULATION_STEPS = 10000;
+
+  /**
    * Catalyzes the hydrolysis of α-1,4-glycosidic bonds in a polysaccharide substrate.
    *
    * The reaction follows Michaelis-Menten kinetics with competitive product inhibition
@@ -81,7 +87,7 @@ export class Amylase extends Enzyme {
    *
    * @param substrate The polysaccharide substrate (e.g., amylose).
    * @param environment Reaction conditions (temperature, pH, duration).
-   * @returns ReactionResult containing the product mixture and kinetic metadata.
+   * @returns ReactionResult containing the product mixture, kinetic history, and metadata.
    */
   digest(substrate: Saccharide, environment: Environment = PHYSIOLOGICAL_CONDITIONS): ReactionResult {
     const validatedSubstrate = this.#validateSubstrateSpecificity(substrate);
@@ -109,9 +115,17 @@ export class Amylase extends Enzyme {
     let reactionMixture: Polysaccharide[] = [validatedSubstrate];
     const productMixture = new ReactionMixture();
     let bondsCleaved = 0;
-    const totalSteps = Math.ceil(environment.durationInSeconds);
+    const history: KineticSnapshot[] = [];
+    const totalSteps = Math.min(Math.ceil(environment.durationInSeconds), this.MAX_SIMULATION_STEPS);
 
     for (let step = 0; step < totalSteps; step++) {
+      // Record kinetic snapshot
+      history.push({
+        timeInSeconds: step,
+        remainingBonds: this.#totalCleavableBonds(reactionMixture),
+        productCount: productMixture.speciesCount,
+      });
+
       this.#checkThermalDenaturation(environment);
       if (this.isDenatured) break;
       if (!this.#hasHydrolyzableSubstrate(reactionMixture)) break;
@@ -137,6 +151,7 @@ export class Amylase extends Enzyme {
       Math.min(conversionRate, 1),
       remainingMass,
       !this.isDenatured && this.#calculatePhActivity(environment.pH) > 0,
+      history,
     );
   }
 

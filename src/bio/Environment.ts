@@ -2,19 +2,23 @@
  * Reaction environment conditions that influence enzyme activity.
  * Temperature and pH determine whether an enzyme can maintain its
  * native conformation and catalytic function.
+ *
+ * Immutable — once constructed, conditions cannot change.
+ * This ensures a consistent reaction context across all enzymes
+ * in a multi-enzyme system.
  */
 export class Environment {
   /** Temperature in degrees Celsius. */
-  temperatureC: number;
+  readonly temperatureC: number;
 
   /** pH level (0–14 scale). */
-  pH: number;
+  readonly pH: number;
 
   /**
    * Reaction duration in seconds.
    * Governs the extent of hydrolysis through kinetic constraints.
    */
-  durationInSeconds: number;
+  readonly durationInSeconds: number;
 
   constructor(temperatureC: number, pH: number, durationInSeconds: number = 60) {
     this.temperatureC = temperatureC;
