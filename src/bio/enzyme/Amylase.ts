@@ -1,18 +1,20 @@
 import { Maltose } from "../saccharide/Maltose";
 import { Dextrin } from "../saccharide/Dextrin";
-import { Glucose } from "../saccharide/Glucose";
+import { Monosaccharide } from "../saccharide/Monosaccharide";
 import { ProteinChain } from "../ProteinChain";
 import { Enzyme } from "./Enzyme";
 import { Saccharide } from "../saccharide/Saccharide";
 import { Polysaccharide } from "../saccharide/Polysaccharide";
 import { Environment, PHYSIOLOGICAL_CONDITIONS } from "../Environment";
+import { ReactionMixture } from "../ReactionMixture";
+import { ReactionResult } from "../ReactionResult";
 
 /**
  * The Amylase enzyme.
  *
  * α-Amylase (EC 3.2.1.1) is an endohydrolase that randomly cleaves
  * internal α-1,4-glycosidic bonds in polysaccharides such as amylose,
- * yielding maltose and limit dextrins as end products.
+ * yielding maltose, free glucose, and limit dextrins as end products.
  */
 export class Amylase extends Enzyme {
   /**
@@ -34,19 +36,25 @@ export class Amylase extends Enzyme {
   private readonly DENATURATION_THRESHOLD = 60;
 
   /**
+   * Maximum catalytic turnover rate (bonds cleaved per second).
+   * Represents Vmax under saturating substrate conditions.
+   */
+  private readonly VMAX = 100;
+
+  /**
+   * Michaelis constant (mM). Substrate concentration at half Vmax.
+   * Lower values indicate higher substrate affinity.
+   */
+  private readonly KM = 5;
+
+  /**
    * Permanent structural damage flag — once true, the enzyme can never recover.
    * The protein tertiary structure has undergone irreversible unfolding.
    */
   isDenatured = false;
 
-  /**
-   * Reaction environment governing enzyme activity.
-   */
-  environment: Environment;
-
-  constructor(protein: ProteinChain, environment: Environment = PHYSIOLOGICAL_CONDITIONS) {
+  constructor(protein: ProteinChain) {
     super(protein);
-    this.environment = environment;
   }
 
   /**
@@ -56,16 +64,16 @@ export class Amylase extends Enzyme {
    * Unlike isDenatured, inactivity from suboptimal conditions is reversible.
    * If conditions return to the physiological range, the enzyme resumes catalysis.
    */
-  get isActive(): boolean {
+  #isEnvironmentActive(environment: Environment): boolean {
     // Irreversible denaturation — permanent structural loss
     if (this.isDenatured) return false;
 
     // Temperature window — catalytic rate drops below 5°C
-    if (this.environment.temperatureC < 5) return false;
-    if (this.environment.temperatureC > this.DENATURATION_THRESHOLD) return false;
+    if (environment.temperatureC < 5) return false;
+    if (environment.temperatureC > this.DENATURATION_THRESHOLD) return false;
 
     // pH window — α-amylase requires near-neutral pH (4–9)
-    if (this.environment.pH < 4 || this.environment.pH > 9) return false;
+    if (environment.pH < 4 || environment.pH > 9) return false;
 
     return true;
   }
@@ -73,59 +81,107 @@ export class Amylase extends Enzyme {
   /**
    * Catalyzes the hydrolysis of α-1,4-glycosidic bonds in a polysaccharide substrate.
    *
-   * The reaction proceeds through iterative cycles of endo-cleavage until all
-   * remaining oligosaccharides are too short to be further hydrolyzed,
-   * the enzyme undergoes thermal denaturation, or conditions become unfavorable.
+   * The reaction follows Michaelis-Menten kinetics: the number of bonds cleaved
+   * per cycle is limited by Vmax and the substrate concentration relative to Km.
+   * Reaction extent is governed by the environment duration.
    *
    * @param substrate The polysaccharide substrate (e.g., amylose).
-   * @returns All hydrolysis products: maltose, free glucose, and limit dextrins.
+   * @param environment Reaction conditions (temperature, pH, duration).
+   * @returns ReactionResult containing the product mixture and kinetic metadata.
    */
-  digest(substrate: Saccharide): Saccharide[] {
+  digest(substrate: Saccharide, environment: Environment = PHYSIOLOGICAL_CONDITIONS): ReactionResult {
     const validatedSubstrate = this.#validateSubstrateSpecificity(substrate);
     if (!validatedSubstrate) {
-      return [];
+      return this.#emptyResult();
     }
 
-    // Check for immediate thermal denaturation before any catalysis
-    this.#checkThermalDenaturation();
-    if (this.isDenatured) return [];
+    const initialBondCount = validatedSubstrate.count - 1;
+    let bondsCleaved = 0;
+
+    // Check for immediate thermal denaturation
+    this.#checkThermalDenaturation(environment);
+    if (this.isDenatured) {
+      return this.#unreactedResult(validatedSubstrate, environment);
+    }
+
+    if (!this.#isEnvironmentActive(environment)) {
+      return this.#unreactedResult(validatedSubstrate, environment);
+    }
 
     let reactionMixture: Polysaccharide[] = [validatedSubstrate];
-    const hydrolysisProducts: Saccharide[] = [];
+    const productMixture = new ReactionMixture();
 
-    while (this.isActive && this.#hasHydrolyzableSubstrate(reactionMixture)) {
-      this.#checkThermalDenaturation();
+    // Calculate effective catalytic rate from Michaelis-Menten kinetics
+    // v = Vmax * [S] / (Km + [S])
+    // Approximate [S] as monomer count (higher count = more substrate)
+    const substrateConcentration = validatedSubstrate.count;
+    const effectiveRate = this.VMAX * substrateConcentration / (this.KM + substrateConcentration);
+
+    // Total bonds that can be cleaved within the reaction duration
+    const maxCleavages = Math.floor(effectiveRate * environment.durationInSeconds);
+    let cleavageBudget = maxCleavages;
+
+    while (cleavageBudget > 0 && this.#hasHydrolyzableSubstrate(reactionMixture)) {
+      this.#checkThermalDenaturation(environment);
       if (this.isDenatured) break;
 
-      const result = this.#executeCatalyticCycle(reactionMixture);
-      hydrolysisProducts.push(...result.maltose);
-      hydrolysisProducts.push(...result.freeGlucose);
+      const result = this.#executeCatalyticCycle(reactionMixture, cleavageBudget);
+      productMixture.add(result.maltose);
+      productMixture.add(result.freeMonosaccharides);
+      bondsCleaved += result.bondsCleaved;
+      cleavageBudget -= result.bondsCleaved;
       reactionMixture = result.unhydrolyzedFragments;
     }
 
     // Append remaining limit dextrins to the product mixture
-    hydrolysisProducts.push(...reactionMixture);
+    productMixture.add(reactionMixture);
 
-    return hydrolysisProducts;
+    const remainingMass = reactionMixture.reduce((sum, frag) => sum + frag.molecularMass, 0);
+    const conversionRate = initialBondCount > 0 ? bondsCleaved / initialBondCount : 0;
+
+    return new ReactionResult(
+      productMixture,
+      Math.min(conversionRate, 1),
+      remainingMass,
+      !this.isDenatured && this.#isEnvironmentActive(environment),
+    );
+  }
+
+  /**
+   * Returns an empty reaction result for invalid or denatured reactions.
+   */
+  #emptyResult(): ReactionResult {
+    return new ReactionResult(new ReactionMixture(), 0, 0, false);
+  }
+
+  /**
+   * Returns the unreacted substrate when conditions prevent catalysis.
+   */
+  #unreactedResult(substrate: Polysaccharide, environment: Environment): ReactionResult {
+    const mixture = new ReactionMixture();
+    mixture.add([substrate]);
+    return new ReactionResult(
+      mixture,
+      0,
+      substrate.molecularMass,
+      !this.isDenatured && this.#isEnvironmentActive(environment),
+    );
   }
 
   /**
    * Evaluates whether the current temperature causes irreversible unfolding.
    * Near the denaturation threshold, damage becomes probabilistic.
    */
-  #checkThermalDenaturation(): void {
-    if (this.environment.temperatureC >= this.DENATURATION_THRESHOLD) {
-      // Above threshold: denaturation is certain
+  #checkThermalDenaturation(environment: Environment): void {
+    if (environment.temperatureC >= this.DENATURATION_THRESHOLD) {
       this.isDenatured = true;
-    } else if (this.environment.temperatureC > this.OPTIMAL_TEMP) {
-      // Between optimal and threshold: probabilistic damage
-      const stressFactor = (this.environment.temperatureC - this.OPTIMAL_TEMP)
+    } else if (environment.temperatureC > this.OPTIMAL_TEMP) {
+      const stressFactor = (environment.temperatureC - this.OPTIMAL_TEMP)
         / (this.DENATURATION_THRESHOLD - this.OPTIMAL_TEMP);
       if (Math.random() < stressFactor * 0.1) {
         this.isDenatured = true;
       }
     }
-    // Below optimal: no damage, just reduced activity (handled by isActive)
   }
 
   /**
@@ -147,42 +203,53 @@ export class Amylase extends Enzyme {
   }
 
   /**
-   * Executes one full catalytic cycle over the entire reaction mixture.
-   * Each molecule is either hydrolyzed or released as a product.
+   * Executes one full catalytic cycle over the reaction mixture,
+   * constrained by the remaining cleavage budget from Michaelis-Menten kinetics.
    */
-  #executeCatalyticCycle(mixture: Polysaccharide[]): { unhydrolyzedFragments: Polysaccharide[], maltose: Maltose[], freeGlucose: Glucose[] } {
+  #executeCatalyticCycle(
+    mixture: Polysaccharide[],
+    budget: number,
+  ): { unhydrolyzedFragments: Polysaccharide[], maltose: Maltose[], freeMonosaccharides: Monosaccharide[], bondsCleaved: number } {
     const unhydrolyzedFragments: Polysaccharide[] = [];
     const maltose: Maltose[] = [];
-    const freeGlucose: Glucose[] = [];
+    const freeMonosaccharides: Monosaccharide[] = [];
+    let bondsCleaved = 0;
 
     for (const oligomer of mixture) {
+      if (bondsCleaved >= budget) {
+        unhydrolyzedFragments.push(oligomer);
+        continue;
+      }
+
       const cycleResult = this.#processOligomer(oligomer);
       unhydrolyzedFragments.push(...cycleResult.remainingOligomers);
       maltose.push(...cycleResult.maltose);
-      freeGlucose.push(...cycleResult.freeGlucose);
+      freeMonosaccharides.push(...cycleResult.freeMonosaccharides);
+      bondsCleaved += cycleResult.bondsCleaved;
     }
 
-    return { unhydrolyzedFragments, maltose, freeGlucose };
+    return { unhydrolyzedFragments, maltose, freeMonosaccharides, bondsCleaved };
   }
 
   /**
    * Processes a single oligosaccharide molecule during a catalytic cycle.
    * Disaccharides are released as maltose; longer chains are hydrolyzed into fragments.
    */
-  #processOligomer(oligomer: Polysaccharide): { remainingOligomers: Polysaccharide[], maltose: Maltose[], freeGlucose: Glucose[] } {
+  #processOligomer(oligomer: Polysaccharide): { remainingOligomers: Polysaccharide[], maltose: Maltose[], freeMonosaccharides: Monosaccharide[], bondsCleaved: number } {
     if (oligomer.count === this.MIN_HYDROLYZABLE_COUNT) {
-      return { remainingOligomers: [], maltose: [new Maltose()], freeGlucose: [] };
+      return { remainingOligomers: [], maltose: [new Maltose()], freeMonosaccharides: [], bondsCleaved: 0 };
     }
 
     const [proximal, distal] = this.#cleaveGlycosidicBond(oligomer);
     const maltose: Maltose[] = [];
     const remainingOligomers: Polysaccharide[] = [];
-    const freeGlucose: Glucose[] = [];
+    const freeMonosaccharides: Monosaccharide[] = [];
 
-    this.#classifyFragment(proximal, maltose, remainingOligomers, freeGlucose);
-    this.#classifyFragment(distal, maltose, remainingOligomers, freeGlucose);
+    this.#classifyFragment(proximal, maltose, remainingOligomers, freeMonosaccharides);
+    this.#classifyFragment(distal, maltose, remainingOligomers, freeMonosaccharides);
 
-    return { remainingOligomers, maltose, freeGlucose };
+    // One glycosidic bond was cleaved to produce these two fragments
+    return { remainingOligomers, maltose, freeMonosaccharides, bondsCleaved: 1 };
   }
 
   /**
@@ -212,21 +279,24 @@ export class Amylase extends Enzyme {
 
   /**
    * Classifies a hydrolysis fragment as maltose, a remaining oligomer,
-   * or a free glucose monomer.
+   * or a free monosaccharide.
+   *
+   * The actual monomer instance from the fragment is preserved — no type casting.
    */
   #classifyFragment(
     fragment: Polysaccharide,
     maltose: Maltose[],
     remainingOligomers: Polysaccharide[],
-    freeGlucose: Glucose[],
+    freeMonosaccharides: Monosaccharide[],
   ): void {
     if (fragment.count === this.MIN_HYDROLYZABLE_COUNT) {
       maltose.push(new Maltose());
     } else if (fragment.count > this.MIN_HYDROLYZABLE_COUNT) {
       remainingOligomers.push(fragment);
     } else {
-      // n === 1 → free glucose monomer released from hydrolysis
-      freeGlucose.push(fragment.monomers[0] as Glucose);
+      // n === 1 → free monosaccharide released from hydrolysis
+      // Use the actual monomer instance from the fragment, no casting needed
+      freeMonosaccharides.push(fragment.monomers[0]);
     }
   }
 }

@@ -46,32 +46,36 @@ console.log("\n");
 // --- Enzyme Environment Demonstration ---
 console.log("--- Enzyme Environment Demonstration ---");
 
-const substrate = new Amylose(10);
 const enzymeProtein = new ProteinChain([asp, ala, lys, asp, ala]);
 
-// Scenario A: Physiological conditions (37°C, pH 7)
-const normalEnv = new Environment(37, 7.0);
-const normalAmylase = new Amylase(enzymeProtein, normalEnv);
-const normalProducts = normalAmylase.digest(substrate);
-console.log(`Normal (37°C, pH 7.0): ${normalProducts.length} maltose, denatured: ${normalAmylase.isDenatured}`);
+// Scenario A: Physiological conditions (37°C, pH 7, 60s)
+const normalEnv = new Environment(37, 7.0, 60);
+const normalResult = new Amylase(enzymeProtein).digest(new Amylose(10), normalEnv);
+console.log(`Normal (37°C, pH 7.0, 60s): ${normalResult.products.speciesCount} products, conversion: ${(normalResult.conversionRate * 100).toFixed(0)}%, remaining: ${normalResult.remainingSubstrateMass.toFixed(0)} Da, active: ${normalResult.isEnzymeStillActive}`);
 
 // Scenario B: Freezing (0°C) — enzyme inactivated (reversible)
-const coldEnv = new Environment(0, 7.0);
-const coldAmylase = new Amylase(enzymeProtein, coldEnv);
-const coldProducts = coldAmylase.digest(new Amylose(10));
-console.log(`Frozen (0°C, pH 7.0): ${coldProducts.length} products, denatured: ${coldAmylase.isDenatured}, active: ${coldAmylase.isActive}`);
+const coldEnv = new Environment(0, 7.0, 60);
+const coldResult = new Amylase(enzymeProtein).digest(new Amylose(10), coldEnv);
+console.log(`Frozen (0°C, pH 7.0, 60s): ${coldResult.products.speciesCount} products, conversion: ${(coldResult.conversionRate * 100).toFixed(0)}%, remaining: ${coldResult.remainingSubstrateMass.toFixed(0)} Da, active: ${coldResult.isEnzymeStillActive}`);
 
 // Scenario C: Boiling (80°C) — irreversible denaturation
-const hotEnv = new Environment(80, 7.0);
-const hotAmylase = new Amylase(enzymeProtein, hotEnv);
-const hotProducts = hotAmylase.digest(new Amylose(10));
-console.log(`Boiling (80°C, pH 7.0): ${hotProducts.length} products, denatured: ${hotAmylase.isDenatured}, active: ${hotAmylase.isActive}`);
+const hotEnv = new Environment(80, 7.0, 60);
+const hotResult = new Amylase(enzymeProtein).digest(new Amylose(10), hotEnv);
+console.log(`Boiling (80°C, pH 7.0, 60s): ${hotResult.products.speciesCount} products, conversion: ${(hotResult.conversionRate * 100).toFixed(0)}%, remaining: ${hotResult.remainingSubstrateMass.toFixed(0)} Da, active: ${hotResult.isEnzymeStillActive}`);
 
 // Scenario D: Acidic stomach (pH 2) — α-amylase inhibited
-const acidEnv = new Environment(37, 2.0);
-const acidAmylase = new Amylase(enzymeProtein, acidEnv);
-const acidProducts = acidAmylase.digest(new Amylose(10));
-console.log(`Acidic (37°C, pH 2.0): ${acidProducts.length} products, denatured: ${acidAmylase.isDenatured}, active: ${acidAmylase.isActive}`);
+const acidEnv = new Environment(37, 2.0, 60);
+const acidResult = new Amylase(enzymeProtein).digest(new Amylose(10), acidEnv);
+console.log(`Acidic (37°C, pH 2.0, 60s): ${acidResult.products.speciesCount} products, conversion: ${(acidResult.conversionRate * 100).toFixed(0)}%, remaining: ${acidResult.remainingSubstrateMass.toFixed(0)} Da, active: ${acidResult.isEnzymeStillActive}`);
+
+// Scenario E: Short reaction (5s) vs long reaction (300s)
+const shortEnv = new Environment(37, 7.0, 5);
+const shortResult = new Amylase(enzymeProtein).digest(new Amylose(10), shortEnv);
+console.log(`Short (37°C, pH 7.0, 5s): ${shortResult.products.speciesCount} products, conversion: ${(shortResult.conversionRate * 100).toFixed(0)}%`);
+
+const longEnv = new Environment(37, 7.0, 300);
+const longResult = new Amylase(enzymeProtein).digest(new Amylose(10), longEnv);
+console.log(`Long (37°C, pH 7.0, 300s): ${longResult.products.speciesCount} products, conversion: ${(longResult.conversionRate * 100).toFixed(0)}%`);
 console.log("\n");
 
 
