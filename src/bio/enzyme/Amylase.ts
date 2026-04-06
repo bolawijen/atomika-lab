@@ -36,16 +36,22 @@ export class Amylase extends Enzyme {
   private readonly DENATURATION_THRESHOLD = 60;
 
   /**
-   * Maximum catalytic turnover rate (bonds cleaved per second).
-   * Represents Vmax under saturating substrate conditions.
+   * Catalytic rate constant (k_cat) — bonds cleaved per enzyme molecule per second
+   * under saturating substrate conditions.
    */
-  private readonly VMAX = 100;
+  private readonly KCAT = 0.5;
 
   /**
    * Michaelis constant (mM). Substrate concentration at half Vmax.
    * Lower values indicate higher substrate affinity.
    */
   private readonly KM = 5;
+
+  /**
+   * Product inhibition constant (mM). Product concentration at half-maximal inhibition.
+   * Models competitive inhibition by maltose and glucose at the active site.
+   */
+  private readonly KI = 200;
 
   /**
    * Permanent structural damage flag — once true, the enzyme can never recover.
@@ -96,7 +102,6 @@ export class Amylase extends Enzyme {
     }
 
     const initialBondCount = validatedSubstrate.count - 1;
-    let bondsCleaved = 0;
 
     // Check for immediate thermal denaturation
     this.#checkThermalDenaturation(environment);
@@ -111,25 +116,36 @@ export class Amylase extends Enzyme {
     let reactionMixture: Polysaccharide[] = [validatedSubstrate];
     const productMixture = new ReactionMixture();
 
-    // Calculate effective catalytic rate from Michaelis-Menten kinetics
-    // v = Vmax * [S] / (Km + [S])
-    // Approximate [S] as monomer count (higher count = more substrate)
-    const substrateConcentration = validatedSubstrate.count;
-    const effectiveRate = this.VMAX * substrateConcentration / (this.KM + substrateConcentration);
+    // Vmax = k_cat * [E] — enzyme concentration is 1 molecule in this simulation
+    const vmax = this.KCAT;
 
-    // Total bonds that can be cleaved within the reaction duration
-    const maxCleavages = Math.floor(effectiveRate * environment.durationInSeconds);
-    let cleavageBudget = maxCleavages;
+    // Simulate reaction in discrete time steps (1 second each).
+    // Each step applies Michaelis-Menten kinetics with product inhibition:
+    // v = Vmax * [S] / (Km * (1 + [P]/Ki) + [S])
+    let bondsCleaved = 0;
+    const totalSteps = Math.ceil(environment.durationInSeconds);
 
-    while (cleavageBudget > 0 && this.#hasHydrolyzableSubstrate(reactionMixture)) {
+    for (let step = 0; step < totalSteps; step++) {
       this.#checkThermalDenaturation(environment);
       if (this.isDenatured) break;
+      if (!this.#hasHydrolyzableSubstrate(reactionMixture)) break;
 
-      const result = this.#executeCatalyticCycle(reactionMixture, cleavageBudget);
+      const substrateConcentration = reactionMixture.reduce((sum, frag) => sum + frag.count, 0);
+      const productConcentration = productMixture.speciesCount;
+
+      // Michaelis-Menten with competitive product inhibition
+      const inhibitionFactor = 1 + productConcentration / this.KI;
+      const rate = vmax * substrateConcentration / (this.KM * inhibitionFactor + substrateConcentration);
+
+      // Probabilistic bond cleavage — fractional rates become probability
+      const bondsThisStep = Math.random() < (rate % 1) ? Math.floor(rate) + 1 : Math.floor(rate);
+
+      if (bondsThisStep === 0) continue;
+
+      const result = this.#executeCatalyticCycle(reactionMixture, bondsThisStep);
       productMixture.add(result.maltose);
       productMixture.add(result.freeMonosaccharides);
       bondsCleaved += result.bondsCleaved;
-      cleavageBudget -= result.bondsCleaved;
       reactionMixture = result.unhydrolyzedFragments;
     }
 
