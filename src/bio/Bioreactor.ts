@@ -39,7 +39,7 @@ export class Bioreactor {
     let currentTemp = environment.temperatureC;
 
     for (let step = 0; step < totalSteps; step++) {
-      vessel.recordSnapshot(reactionMixture, this.#asMixture(reactionMixture), step, currentTemp);
+      vessel.recordProgression(reactionMixture, this.#asMixture(reactionMixture), step, currentTemp);
 
       // Each enzyme acts on the current mixture simultaneously this tick
       const newProducts: Saccharide[] = [];
@@ -76,7 +76,7 @@ export class Bioreactor {
       0,
       this.#totalMass(reactionMixture),
       true,
-      vessel.getHistory(),
+      vessel.getReactionPath(),
     );
   }
 

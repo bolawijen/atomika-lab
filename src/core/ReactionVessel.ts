@@ -43,7 +43,7 @@ export interface EnzymeKinetics {
 export class ReactionVessel {
   private environment: Environment;
   private currentTemperature: number;
-  private snapshots: KineticSnapshot[] = [];
+  private reactionPath: KineticSnapshot[] = [];
   private initialAtomCounts: Map<Atom, number> | null = null;
 
   /**
@@ -154,29 +154,38 @@ export class ReactionVessel {
   }
 
   /**
-   * Records the current state of the reaction mixture for kinetic history.
+   * Records the current state of the reaction mixture along the reaction path.
    */
-  recordSnapshot(mixture: Saccharide[], products: ReactionMixture, timeInSeconds: number): KineticSnapshot {
-    return {
+  recordProgression(mixture: Saccharide[], products: ReactionMixture, timeInSeconds: number): KineticSnapshot {
+    const snapshot = {
       timeInSeconds,
       remainingBonds: this.#totalCleavableBondsInMixture(mixture),
       productCount: products.speciesCount,
       temperatureC: this.currentTemperature,
     };
+    this.registerState(snapshot);
+    return snapshot;
   }
 
   /**
-   * Returns the accumulated kinetic snapshots.
+   * Registers a kinetic state along the reaction path.
    */
-  getHistory(): ReadonlyArray<KineticSnapshot> {
-    return this.snapshots;
+  registerState(snapshot: KineticSnapshot): void {
+    this.reactionPath.push(snapshot);
   }
 
   /**
-   * Clears the snapshot history for a new reaction.
+   * Returns the chronological reaction path.
    */
-  resetHistory(): void {
-    this.snapshots = [];
+  getReactionPath(): ReadonlyArray<KineticSnapshot> {
+    return this.reactionPath;
+  }
+
+  /**
+   * Clears the reaction path for a new reaction.
+   */
+  resetPath(): void {
+    this.reactionPath = [];
   }
 
   /**

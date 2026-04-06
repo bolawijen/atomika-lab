@@ -142,9 +142,9 @@ console.log(`Conversion: ${(digestiveResult.conversionRate * 100).toFixed(0)}%`)
 console.log(`Remaining mass: ${digestiveResult.remainingSubstrateMass.toFixed(0)} Da`);
 
 // Show kinetic history
-if (digestiveResult.history.length > 0) {
-  const first = digestiveResult.history[0];
-  const last = digestiveResult.history[digestiveResult.history.length - 1];
+if (digestiveResult.reactionPath.length > 0) {
+  const first = digestiveResult.reactionPath[0];
+  const last = digestiveResult.reactionPath[digestiveResult.reactionPath.length - 1];
   console.log(`Kinetic range: ${first.remainingBonds} → ${last.remainingBonds} cleavable bonds`);
 }
 

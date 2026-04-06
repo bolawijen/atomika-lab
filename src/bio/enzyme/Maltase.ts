@@ -128,7 +128,7 @@ export class Maltase extends Enzyme {
     let currentTemp = environment.temperatureC;
 
     for (let step = 0; step < totalSteps; step++) {
-      vessel.recordSnapshot(reactionMixture, productMixture, step, currentTemp);
+      vessel.recordProgression(reactionMixture, productMixture, step, currentTemp);
 
       this.#checkThermalDenaturation(environment);
       if (this.isDenatured) break;
@@ -160,7 +160,7 @@ export class Maltase extends Enzyme {
       Math.min(conversionRate, 1),
       remainingMass,
       !this.isDenatured && this.#calculatePhActivity(environment.pH) > 0,
-      vessel.getHistory(),
+      vessel.getReactionPath(),
     );
   }
 

@@ -220,7 +220,7 @@ export class Amylase extends Enzyme {
     let currentTemp = environment.temperatureC;
 
     for (let step = 0; step < totalSteps; step++) {
-      history.push(this.kinetics.recordSnapshot(reactionMixture, productMixture, step, currentTemp));
+      history.push(this.kinetics.recordProgression(reactionMixture, productMixture, step, currentTemp));
 
       this.#checkThermalDenaturation(environment);
       if (this.isDenatured) break;

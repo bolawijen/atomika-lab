@@ -178,7 +178,7 @@ export class Ribosome {
     let currentTemp = environment.temperatureC;
 
     for (let step = 0; step < totalSteps; step++) {
-      vessel.recordSnapshot([], new ReactionMixture(), step, currentTemp);
+      vessel.recordProgression([], new ReactionMixture(), step, currentTemp);
 
       if (codonsTranslated >= totalCodons) break;
 
@@ -228,7 +228,7 @@ export class Ribosome {
       Math.min(conversionRate, 1),
       0,
       true,
-      vessel.getHistory(),
+      vessel.getReactionPath(),
     );
   }
 

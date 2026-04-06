@@ -19,7 +19,7 @@ export interface KineticSnapshot {
 /**
  * The outcome of an enzymatic hydrolysis reaction.
  * Contains the final product mixture, kinetic metadata, and
- * a time-resolved history of concentration changes.
+ * the chronological reaction path showing concentration changes over time.
  */
 export class ReactionResult {
   /** All molecular species present after the reaction. */
@@ -35,22 +35,22 @@ export class ReactionResult {
   readonly isEnzymeStillActive: boolean;
 
   /**
-   * Time-resolved concentration profile of the reaction.
-   * Each entry represents the state at one second of simulated time.
+   * The chronological reaction path — a time-resolved sequence of
+   * concentration and temperature states throughout the reaction.
    */
-  readonly history: ReadonlyArray<KineticSnapshot>;
+  readonly reactionPath: ReadonlyArray<KineticSnapshot>;
 
   constructor(
     products: ReactionMixture,
     conversionRate: number,
     remainingSubstrateMass: number,
     isEnzymeStillActive: boolean,
-    history: ReadonlyArray<KineticSnapshot> = [],
+    reactionPath: ReadonlyArray<KineticSnapshot> = [],
   ) {
     this.products = products;
     this.conversionRate = conversionRate;
     this.remainingSubstrateMass = remainingSubstrateMass;
     this.isEnzymeStillActive = isEnzymeStillActive;
-    this.history = history;
+    this.reactionPath = reactionPath;
   }
 }

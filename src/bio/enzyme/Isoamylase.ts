@@ -93,7 +93,7 @@ export class Isoamylase extends Enzyme {
     let currentTemp = environment.temperatureC;
 
     for (let step = 0; step < totalSteps; step++) {
-      vessel.recordSnapshot(reactionMixture, productMixture, step, currentTemp);
+      vessel.recordProgression(reactionMixture, productMixture, step, currentTemp);
 
       this.#checkThermalDenaturation(environment);
       if (this.isDenatured) break;
@@ -122,7 +122,7 @@ export class Isoamylase extends Enzyme {
       Math.min(conversionRate, 1),
       remainingMass,
       !this.isDenatured,
-      vessel.getHistory(),
+      vessel.getReactionPath(),
     );
   }
 

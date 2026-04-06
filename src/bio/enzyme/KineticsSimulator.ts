@@ -93,9 +93,9 @@ export class KineticsSimulator {
   }
 
   /**
-   * Records the current state of the reaction for kinetic history.
+   * Records the current state of the reaction along the reaction path.
    */
-  recordSnapshot(mixture: Polysaccharide[], products: ReactionMixture, timeInSeconds: number, temperatureC?: number): KineticSnapshot {
+  recordProgression(mixture: Polysaccharide[], products: ReactionMixture, timeInSeconds: number, temperatureC?: number): KineticSnapshot {
     return {
       timeInSeconds,
       remainingBonds: this.#totalCleavableBonds(mixture),
