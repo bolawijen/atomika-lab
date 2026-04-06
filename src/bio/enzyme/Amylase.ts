@@ -100,9 +100,10 @@ export class Amylase extends Enzyme {
   private readonly DELTA_H = -15;
 
   /**
-   * Maximum simulation steps to prevent runaway loops.
+   * Maximum reaction duration in simulation steps.
+   * Represents the physical time horizon of the reaction vessel.
    */
-  private readonly MAX_SIMULATION_STEPS = 10000;
+  private readonly VESSEL_TIME_HORIZON = 10000;
 
   /**
    * Permanent structural damage flag — once true, the enzyme can never recover.
@@ -163,29 +164,29 @@ export class Amylase extends Enzyme {
   digest(substrate: Saccharide, environment: Environment = PHYSIOLOGICAL_CONDITIONS): ReactionResult {
     const validatedSubstrate = this.#validateSubstrateSpecificity(substrate);
     if (!validatedSubstrate) {
-      return this.#emptyResult();
+      return this.#reportInertState();
     }
 
     const initialBondCount = validatedSubstrate.cleavableBondCount;
 
     this.#checkThermalDenaturation(environment);
     if (this.isDenatured) {
-      return this.#unreactedResult(validatedSubstrate, environment);
+      return this.#reportInhibitedReaction(validatedSubstrate, environment);
     }
 
     const coFactorActivity = this.#calculateCoFactorActivity(environment);
     if (coFactorActivity === 0) {
-      return this.#unreactedResult(validatedSubstrate, environment);
+      return this.#reportInhibitedReaction(validatedSubstrate, environment);
     }
 
     const phActivity = this.#calculatePhActivity(environment.pH);
     if (phActivity === 0) {
-      return this.#unreactedResult(validatedSubstrate, environment);
+      return this.#reportInhibitedReaction(validatedSubstrate, environment);
     }
 
     const tempActivity = this.#calculateTempActivity(environment.temperatureC);
     if (tempActivity === 0) {
-      return this.#unreactedResult(validatedSubstrate, environment);
+      return this.#reportInhibitedReaction(validatedSubstrate, environment);
     }
 
     const parameters: KineticParameters = {
@@ -196,7 +197,7 @@ export class Amylase extends Enzyme {
       deltaH: this.DELTA_H,
       phActivity,
       tempActivity,
-      maxSteps: this.MAX_SIMULATION_STEPS,
+      maxSteps: this.VESSEL_TIME_HORIZON,
     };
 
     return this.#runSimulation(validatedSubstrate, parameters, environment, initialBondCount);
@@ -435,11 +436,17 @@ export class Amylase extends Enzyme {
 
   // ── Result Helpers ───────────────────────────────────────────────
 
-  #emptyResult(): ReactionResult {
+  /**
+   * Reports an inert state — no reaction occurs due to invalid substrate.
+   */
+  #reportInertState(): ReactionResult {
     return new ReactionResult(new ReactionMixture(), 0, 0, false);
   }
 
-  #unreactedResult(substrate: Polysaccharide, environment: Environment): ReactionResult {
+  /**
+   * Reports an inhibited reaction — substrate present but conditions prevent catalysis.
+   */
+  #reportInhibitedReaction(substrate: Polysaccharide, environment: Environment): ReactionResult {
     const mixture = new ReactionMixture();
     mixture.add([substrate]);
     return new ReactionResult(
