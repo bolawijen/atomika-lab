@@ -45,22 +45,22 @@ export class Environment {
    */
   readonly solutes: ReadonlyMap<Atom, number>;
 
-  constructor(
-    temperatureC: number,
-    pH: number,
-    durationInSeconds: number = 60,
-    solutes: ReadonlyMap<Atom, number> = new Map(),
-    pressureAtm: number = 1.0,
-    magneticFieldTesla: number = 0,
-    electricFieldVoltsPerMeter: number = 0,
-  ) {
-    this.temperatureC = temperatureC;
-    this.pH = pH;
-    this.durationInSeconds = durationInSeconds;
-    this.solutes = solutes;
-    this.pressureAtm = pressureAtm;
-    this.magneticFieldTesla = magneticFieldTesla;
-    this.electricFieldVoltsPerMeter = electricFieldVoltsPerMeter;
+  constructor(params: {
+    temperatureC: number;
+    pH: number;
+    durationInSeconds?: number;
+    solutes?: ReadonlyMap<Atom, number>;
+    pressureAtm?: number;
+    magneticFieldTesla?: number;
+    electricFieldVoltsPerMeter?: number;
+  }) {
+    this.temperatureC = params.temperatureC;
+    this.pH = params.pH;
+    this.durationInSeconds = params.durationInSeconds ?? 60;
+    this.solutes = params.solutes ?? new Map();
+    this.pressureAtm = params.pressureAtm ?? 1.0;
+    this.magneticFieldTesla = params.magneticFieldTesla ?? 0;
+    this.electricFieldVoltsPerMeter = params.electricFieldVoltsPerMeter ?? 0;
   }
 }
 
@@ -69,12 +69,12 @@ export class Environment {
  * Body temperature 37°C, neutral pH 7.0, 60-second reaction,
  * with physiological ion concentrations (Ca²⁺ 2.5 mM, Cl⁻ 100 mM).
  */
-export const PHYSIOLOGICAL_CONDITIONS = new Environment(
-  37,
-  7.0,
-  60,
-  new Map([
+export const PHYSIOLOGICAL_CONDITIONS = new Environment({
+  temperatureC: 37,
+  pH: 7.0,
+  durationInSeconds: 60,
+  solutes: new Map([
     [new Atom({ name: "Calcium", symbol: "Ca", protonCount: 20, mass: 40.078, charge: 2, valence: 2 }), 2.5],
     [new Atom({ name: "Chlorine", symbol: "Cl", protonCount: 17, mass: 35.45, charge: -1, valence: 1 }), 100],
   ]),
-);
+});

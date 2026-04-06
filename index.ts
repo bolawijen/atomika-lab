@@ -41,31 +41,31 @@ console.log("--- Enzyme Environment Demonstration ---");
 const enzymeProtein = new ProteinChain([asp, ala, lys, asp, ala]);
 
 // Scenario A: Physiological conditions (37°C, pH 7, 60s)
-const normalEnv = new Environment(37, 7.0, 60);
+const normalEnv = new Environment({ temperatureC: 37, pH: 7.0, durationInSeconds: 60 });
 const normalResult = new Amylase(enzymeProtein).digest(new Amylose(10), normalEnv);
 console.log(`Normal (37°C, pH 7.0, 60s): ${normalResult.reactionPath.length > 0 ? normalResult.products.speciesCount : 0} products, conversion: ${(normalResult.conversionRate * 100).toFixed(0)}%, remaining: ${normalResult.remainingSubstrateMass.toFixed(0)} Da, active: ${normalResult.isEnzymeStillActive}`);
 
 // Scenario B: Freezing (0°C) — enzyme inactivated (reversible)
-const coldEnv = new Environment(0, 7.0, 60);
+const coldEnv = new Environment({ temperatureC: 0, pH: 7.0, durationInSeconds: 60 });
 const coldResult = new Amylase(enzymeProtein).digest(new Amylose(10), coldEnv);
 console.log(`Frozen (0°C, pH 7.0, 60s): ${coldResult.reactionPath.length > 0 ? coldResult.products.speciesCount : 0} products, conversion: ${(coldResult.conversionRate * 100).toFixed(0)}%, remaining: ${coldResult.remainingSubstrateMass.toFixed(0)} Da, active: ${coldResult.isEnzymeStillActive}`);
 
 // Scenario C: Boiling (80°C) — irreversible denaturation
-const hotEnv = new Environment(80, 7.0, 60);
+const hotEnv = new Environment({ temperatureC: 80, pH: 7.0, durationInSeconds: 60 });
 const hotResult = new Amylase(enzymeProtein).digest(new Amylose(10), hotEnv);
 console.log(`Boiling (80°C, pH 7.0, 60s): ${hotResult.reactionPath.length > 0 ? hotResult.products.speciesCount : 0} products, conversion: ${(hotResult.conversionRate * 100).toFixed(0)}%, remaining: ${hotResult.remainingSubstrateMass.toFixed(0)} Da, active: ${hotResult.isEnzymeStillActive}`);
 
 // Scenario D: Acidic stomach (pH 2) — α-amylase inhibited
-const acidEnv = new Environment(37, 2.0, 60);
+const acidEnv = new Environment({ temperatureC: 37, pH: 2.0, durationInSeconds: 60 });
 const acidResult = new Amylase(enzymeProtein).digest(new Amylose(10), acidEnv);
 console.log(`Acidic (37°C, pH 2.0, 60s): ${acidResult.reactionPath.length > 0 ? acidResult.products.speciesCount : 0} products, conversion: ${(acidResult.conversionRate * 100).toFixed(0)}%, remaining: ${acidResult.remainingSubstrateMass.toFixed(0)} Da, active: ${acidResult.isEnzymeStillActive}`);
 
 // Scenario E: Short reaction (5s) vs long reaction (300s)
-const shortEnv = new Environment(37, 7.0, 5);
+const shortEnv = new Environment({ temperatureC: 37, pH: 7.0, durationInSeconds: 5 });
 const shortResult = new Amylase(enzymeProtein).digest(new Amylose(10), shortEnv);
 console.log(`Short (37°C, pH 7.0, 5s): ${shortResult.reactionPath.length > 0 ? shortResult.products.speciesCount : 0} products, conversion: ${(shortResult.conversionRate * 100).toFixed(0)}%`);
 
-const longEnv = new Environment(37, 7.0, 300);
+const longEnv = new Environment({ temperatureC: 37, pH: 7.0, durationInSeconds: 300 });
 const longResult = new Amylase(enzymeProtein).digest(new Amylose(10), longEnv);
 console.log(`Long (37°C, pH 7.0, 300s): ${longResult.reactionPath.length > 0 ? longResult.products.speciesCount : 0} products, conversion: ${(longResult.conversionRate * 100).toFixed(0)}%`);
 console.log("\n");
@@ -120,7 +120,7 @@ bioreactor.addEnzyme(new Maltase(digestiveEnzymeProtein));
 const branchedAmylopectin = new Amylopectin(30, [6, 12, 18, 24]);
 console.log(`Initial substrate: ${branchedAmylopectin}`);
 
-const fullDigestion = bioreactor.digest(branchedAmylopectin, new Environment(37, 7.0, 120));
+const fullDigestion = bioreactor.digest(branchedAmylopectin, new Environment({ temperatureC: 37, pH: 7.0, durationInSeconds: 120 }));
 console.log(`After 120s digestion: ${fullDigestion.reactionPath.length > 0 ? fullDigestion.products.speciesCount : 0} molecular species`);
 console.log(`Conversion: ${(fullDigestion.conversionRate * 100).toFixed(0)}%`);
 console.log(`Remaining mass: ${fullDigestion.remainingSubstrateMass.toFixed(0)} Da`);
@@ -192,9 +192,9 @@ console.log(`  Mass: ${branched.molecularMass.toFixed(0)} Da`);
 console.log(`  Branch points: ${branched.branchCount}`);
 
 const amylaseOnly = new Amylase(digestiveEnzymeProtein);
-const amylaseResult = amylaseOnly.digest(branched, new Environment(37, 7.0, 60));
+const amylaseResult = amylaseOnly.digest(branched, new Environment({ temperatureC: 37, pH: 7.0, durationInSeconds: 60 }));
 console.log(`\nAmylase alone on amylopectin: ${amylaseResult.reactionPath.length > 0 ? amylaseResult.products.speciesCount : 0} products, conversion: ${(amylaseResult.conversionRate * 100).toFixed(0)}%`);
 
 const isoamylase = new Isoamylase(digestiveEnzymeProtein);
-const debranchResult = isoamylase.digest(branched, new Environment(37, 7.0, 30));
+const debranchResult = isoamylase.digest(branched, new Environment({ temperatureC: 37, pH: 7.0, durationInSeconds: 30 }));
 console.log(`Isoamylase debranching: ${debranchResult.reactionPath.length > 0 ? debranchResult.products.speciesCount : 0} linearized chains, branches cleaved: ${(debranchResult.conversionRate * 100).toFixed(0)}%`);
