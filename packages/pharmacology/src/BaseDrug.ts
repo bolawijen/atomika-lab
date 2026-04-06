@@ -1,10 +1,10 @@
 import { Molecule } from "@atomika-lab/core";
 
 /**
- * Base class for therapeutic agents and drug compounds.
+ * Medicinal chemical entity designed to interact with a biological target.
  *
- * Defines the fundamental properties required for pharmacological
- * simulation: target binding affinity and metabolic clearance rate.
+ * Characterized by binding affinity to the target receptor, metabolic
+ * clearance rate, and therapeutic classification.
  */
 export abstract class BaseDrug extends Molecule {
   /**
