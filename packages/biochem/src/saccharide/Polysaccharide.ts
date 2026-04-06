@@ -1,7 +1,7 @@
 import { Saccharide } from "./Saccharide";
 import { Monosaccharide } from "./Monosaccharide";
-import { ELEMENTS } from "../../Element";
-import { Atom } from "../../Atom";
+import { ELEMENTS } from "@atomika-lab/core";
+import { Atom } from "@atomika-lab/core";
 import { GlycosidicBondType, GlycosidicBond } from "./GlycosidicBondType";
 
 /**

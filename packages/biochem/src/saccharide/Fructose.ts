@@ -1,5 +1,5 @@
 import { Monosaccharide, MolecularIdentity, AnomericState } from "./Monosaccharide";
-import { Chirality } from "../../core/Chirality";
+import { Chirality } from "@atomika-lab/core";
 
 /**
  * Creates a D-Fructose monosaccharide.

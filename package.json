@@ -13,6 +13,10 @@
     "typescript": "^5"
   },
   "dependencies": {
+    "@atomika-lab/core": "workspace:*",
+    "@atomika-lab/biochem": "workspace:*",
+    "@atomika-lab/biology": "workspace:*",
+    "@atomika-lab/pharmacology": "workspace:*",
     "@rdkit/rdkit": "^2025.3.4-1.0.0"
   }
 }

@@ -1,9 +1,9 @@
 import { Saccharide } from "./saccharide/Saccharide";
-import { Environment } from "../core/Environment";
-import { ReactionMixture } from "../core/ReactionMixture";
-import { ReactionResult, KineticSnapshot } from "../core/ReactionResult";
+import { Environment } from "@atomika-lab/core";
+import { ReactionMixture } from "@atomika-lab/biochem";
+import { ReactionResult, KineticSnapshot } from "@atomika-lab/biochem";
 import { Enzyme } from "./enzyme/Enzyme";
-import { ReactionVessel } from "../core/ReactionVessel";
+import { ReactionVessel } from "@atomika-lab/biochem";
 
 /**
  * A multi-enzyme system that coordinates simultaneous catalytic action

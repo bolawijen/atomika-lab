@@ -2,13 +2,13 @@ import { Glucose } from "../saccharide/Glucose";
 import { Maltose } from "../saccharide/Maltose";
 import { Monosaccharide } from "../saccharide/Monosaccharide";
 import { Saccharide } from "../saccharide/Saccharide";
-import { ProteinChain } from "../ProteinChain";
+import { ProteinChain } from "@atomika-lab/biochem";
 import { Enzyme } from "./Enzyme";
-import { Environment, PHYSIOLOGICAL_CONDITIONS } from "../../core/Environment";
-import { ReactionMixture } from "../../core/ReactionMixture";
-import { ReactionResult, KineticSnapshot } from "../../core/ReactionResult";
-import { ReactionVessel, EnzymeKinetics } from "../../core/ReactionVessel";
-import { LawsOfPhysics } from "../../core/LawsOfPhysics";
+import { Environment, PHYSIOLOGICAL_CONDITIONS } from "@atomika-lab/core";
+import { ReactionMixture } from "@atomika-lab/biochem";
+import { ReactionResult, KineticSnapshot } from "@atomika-lab/biochem";
+import { ReactionVessel, EnzymeKinetics } from "@atomika-lab/biochem";
+import { LawsOfPhysics } from "@atomika-lab/core";
 
 /**
  * The Maltase enzyme.

@@ -1,7 +1,7 @@
 import { Saccharide } from "./Saccharide";
-import { Chirality } from "../../core/Chirality";
-import { ELEMENTS } from "../../Element";
-import { Atom } from "../../Atom";
+import { Chirality } from "@atomika-lab/core";
+import { ELEMENTS } from "@atomika-lab/core";
+import { Atom } from "@atomika-lab/core";
 
 /**
  * Anomeric configuration — the stereochemistry at C1 of a cyclic saccharide.

@@ -1,4 +1,4 @@
-import { Molecule } from "../../Molecule";
+import { Molecule } from "@atomika-lab/core";
 
 /**
  * A carbohydrate (saccharide).

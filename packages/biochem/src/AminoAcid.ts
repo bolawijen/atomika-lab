@@ -1,6 +1,6 @@
-import { Molecule } from "../Molecule";
-import { Atom } from "../Atom";
-import { Chirality } from "../core/Chirality";
+import { Molecule } from "@atomika-lab/core";
+import { Atom } from "@atomika-lab/core";
+import { Chirality } from "@atomika-lab/core";
 
 /**
  * A single amino acid, the building block of proteins.

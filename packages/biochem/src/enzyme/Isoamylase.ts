@@ -1,16 +1,16 @@
 import { Glucose } from "../saccharide/Glucose";
 import { Dextrin } from "../saccharide/Dextrin";
 import { Monosaccharide } from "../saccharide/Monosaccharide";
-import { ProteinChain } from "../ProteinChain";
+import { ProteinChain } from "@atomika-lab/biochem";
 import { Enzyme } from "./Enzyme";
 import { Saccharide } from "../saccharide/Saccharide";
 import { Polysaccharide } from "../saccharide/Polysaccharide";
 import { GlycosidicBondType } from "../saccharide/GlycosidicBondType";
-import { Environment, PHYSIOLOGICAL_CONDITIONS } from "../../core/Environment";
-import { ReactionMixture } from "../../core/ReactionMixture";
-import { ReactionResult, KineticSnapshot } from "../../core/ReactionResult";
-import { ReactionVessel, EnzymeKinetics } from "../../core/ReactionVessel";
-import { LawsOfPhysics } from "../../core/LawsOfPhysics";
+import { Environment, PHYSIOLOGICAL_CONDITIONS } from "@atomika-lab/core";
+import { ReactionMixture } from "@atomika-lab/biochem";
+import { ReactionResult, KineticSnapshot } from "@atomika-lab/biochem";
+import { ReactionVessel, EnzymeKinetics } from "@atomika-lab/biochem";
+import { LawsOfPhysics } from "@atomika-lab/core";
 
 /**
  * Isoamylase (EC 3.2.1.68) — a debranching enzyme.

@@ -1,7 +1,7 @@
-import { Saccharide } from "../saccharide/Saccharide";
-import { Environment } from "../Environment";
-import { ReactionMixture } from "../ReactionMixture";
-import { ReactionResult } from "../ReactionResult";
+import { Saccharide } from "@atomika-lab/biochem";
+import { Environment } from "@atomika-lab/core";
+import { ReactionMixture } from "@atomika-lab/biochem";
+import { ReactionResult } from "@atomika-lab/biochem";
 import { Enzyme } from "./Enzyme";
 
 /**

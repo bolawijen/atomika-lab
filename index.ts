@@ -1,25 +1,9 @@
-import { Atom } from "./src/Atom";
-import { ELEMENTS } from "./src/Element";
-import { Amylose } from "./src/bio/saccharide/Amylose";
-import { Amylopectin } from "./src/bio/saccharide/Amylopectin";
-import { Amylase } from "./src/bio/enzyme/Amylase";
-import { Isoamylase } from "./src/bio/enzyme/Isoamylase";
-import { Maltase } from "./src/bio/enzyme/Maltase";
-import { AminoAcid } from "./src/bio/AminoAcid";
-import { ProteinChain } from "./src/bio/ProteinChain";
-import { Glucose } from "./src/bio/saccharide/Glucose";
-import { Fructose } from "./src/bio/saccharide/Fructose";
-import { Sucrose } from "./src/bio/saccharide/Sucrose";
-import { Galactose } from "./src/bio/saccharide/Galactose";
-import { Lactose } from "./src/bio/saccharide/Lactose";
-import { Maltose } from "./src/bio/saccharide/Maltose";
-import { Dextrin } from "./src/bio/saccharide/Dextrin";
-import { Environment, PHYSIOLOGICAL_CONDITIONS } from "./src/core/Environment";
-import { Bioreactor } from "./src/bio/Bioreactor";
-import { Nucleotide, NitrogenousBase, NucleicAcidType } from "./src/bio/Nucleotide";
-import { NucleicAcidChain } from "./src/bio/NucleicAcidChain";
-import { Polymerase } from "./src/bio/Polymerase";
-import { Ribosome } from "./src/bio/Ribosome";
+import { Atom, ELEMENTS } from "@atomika-lab/core";
+import { Amylose, Amylopectin, Glucose, Fructose, Sucrose, Galactose, Lactose, Maltose, Dextrin } from "@atomika-lab/biochem";
+import { Amylase, Isoamylase, Maltase, AminoAcid, ProteinChain } from "@atomika-lab/biochem";
+import { Environment, PHYSIOLOGICAL_CONDITIONS } from "@atomika-lab/core";
+import { Bioreactor } from "@atomika-lab/biology";
+import { Nucleotide, NitrogenousBase, NucleicAcidType, NucleicAcidChain, Polymerase, Ribosome } from "@atomika-lab/biology";
 
 // --- Atom Demonstration ---
 console.log(`--- Atom Demonstration ---`);
@@ -59,31 +43,31 @@ const enzymeProtein = new ProteinChain([asp, ala, lys, asp, ala]);
 // Scenario A: Physiological conditions (37°C, pH 7, 60s)
 const normalEnv = new Environment(37, 7.0, 60);
 const normalResult = new Amylase(enzymeProtein).digest(new Amylose(10), normalEnv);
-console.log(`Normal (37°C, pH 7.0, 60s): ${normalResult.products.speciesCount} products, conversion: ${(normalResult.conversionRate * 100).toFixed(0)}%, remaining: ${normalResult.remainingSubstrateMass.toFixed(0)} Da, active: ${normalResult.isEnzymeStillActive}`);
+console.log(`Normal (37°C, pH 7.0, 60s): ${normalResult.reactionPath.length > 0 ? normalResult.products.speciesCount : 0} products, conversion: ${(normalResult.conversionRate * 100).toFixed(0)}%, remaining: ${normalResult.remainingSubstrateMass.toFixed(0)} Da, active: ${normalResult.isEnzymeStillActive}`);
 
 // Scenario B: Freezing (0°C) — enzyme inactivated (reversible)
 const coldEnv = new Environment(0, 7.0, 60);
 const coldResult = new Amylase(enzymeProtein).digest(new Amylose(10), coldEnv);
-console.log(`Frozen (0°C, pH 7.0, 60s): ${coldResult.products.speciesCount} products, conversion: ${(coldResult.conversionRate * 100).toFixed(0)}%, remaining: ${coldResult.remainingSubstrateMass.toFixed(0)} Da, active: ${coldResult.isEnzymeStillActive}`);
+console.log(`Frozen (0°C, pH 7.0, 60s): ${coldResult.reactionPath.length > 0 ? coldResult.products.speciesCount : 0} products, conversion: ${(coldResult.conversionRate * 100).toFixed(0)}%, remaining: ${coldResult.remainingSubstrateMass.toFixed(0)} Da, active: ${coldResult.isEnzymeStillActive}`);
 
 // Scenario C: Boiling (80°C) — irreversible denaturation
 const hotEnv = new Environment(80, 7.0, 60);
 const hotResult = new Amylase(enzymeProtein).digest(new Amylose(10), hotEnv);
-console.log(`Boiling (80°C, pH 7.0, 60s): ${hotResult.products.speciesCount} products, conversion: ${(hotResult.conversionRate * 100).toFixed(0)}%, remaining: ${hotResult.remainingSubstrateMass.toFixed(0)} Da, active: ${hotResult.isEnzymeStillActive}`);
+console.log(`Boiling (80°C, pH 7.0, 60s): ${hotResult.reactionPath.length > 0 ? hotResult.products.speciesCount : 0} products, conversion: ${(hotResult.conversionRate * 100).toFixed(0)}%, remaining: ${hotResult.remainingSubstrateMass.toFixed(0)} Da, active: ${hotResult.isEnzymeStillActive}`);
 
 // Scenario D: Acidic stomach (pH 2) — α-amylase inhibited
 const acidEnv = new Environment(37, 2.0, 60);
 const acidResult = new Amylase(enzymeProtein).digest(new Amylose(10), acidEnv);
-console.log(`Acidic (37°C, pH 2.0, 60s): ${acidResult.products.speciesCount} products, conversion: ${(acidResult.conversionRate * 100).toFixed(0)}%, remaining: ${acidResult.remainingSubstrateMass.toFixed(0)} Da, active: ${acidResult.isEnzymeStillActive}`);
+console.log(`Acidic (37°C, pH 2.0, 60s): ${acidResult.reactionPath.length > 0 ? acidResult.products.speciesCount : 0} products, conversion: ${(acidResult.conversionRate * 100).toFixed(0)}%, remaining: ${acidResult.remainingSubstrateMass.toFixed(0)} Da, active: ${acidResult.isEnzymeStillActive}`);
 
 // Scenario E: Short reaction (5s) vs long reaction (300s)
 const shortEnv = new Environment(37, 7.0, 5);
 const shortResult = new Amylase(enzymeProtein).digest(new Amylose(10), shortEnv);
-console.log(`Short (37°C, pH 7.0, 5s): ${shortResult.products.speciesCount} products, conversion: ${(shortResult.conversionRate * 100).toFixed(0)}%`);
+console.log(`Short (37°C, pH 7.0, 5s): ${shortResult.reactionPath.length > 0 ? shortResult.products.speciesCount : 0} products, conversion: ${(shortResult.conversionRate * 100).toFixed(0)}%`);
 
 const longEnv = new Environment(37, 7.0, 300);
 const longResult = new Amylase(enzymeProtein).digest(new Amylose(10), longEnv);
-console.log(`Long (37°C, pH 7.0, 300s): ${longResult.products.speciesCount} products, conversion: ${(longResult.conversionRate * 100).toFixed(0)}%`);
+console.log(`Long (37°C, pH 7.0, 300s): ${longResult.reactionPath.length > 0 ? longResult.products.speciesCount : 0} products, conversion: ${(longResult.conversionRate * 100).toFixed(0)}%`);
 console.log("\n");
 
 
@@ -129,22 +113,21 @@ console.log("\n--- Multi-Enzyme Bioreactor Demonstration ---");
 
 const digestiveEnzymeProtein = new ProteinChain([asp, ala, lys, asp, ala]);
 const bioreactor = new Bioreactor();
+bioreactor.addEnzyme(new Isoamylase(digestiveEnzymeProtein));
 bioreactor.addEnzyme(new Amylase(digestiveEnzymeProtein));
 bioreactor.addEnzyme(new Maltase(digestiveEnzymeProtein));
 
-const starchSubstrate = new Amylose(10);
-console.log(`Initial substrate: ${starchSubstrate} → ${starchSubstrate.molecularFormula}`);
+const branchedAmylopectin = new Amylopectin(30, [6, 12, 18, 24]);
+console.log(`Initial substrate: ${branchedAmylopectin}`);
 
-const digestiveEnv = new Environment(37, 7.0, 120);
-const digestiveResult = bioreactor.digest(starchSubstrate, digestiveEnv);
-console.log(`After 120s digestion: ${digestiveResult.products.speciesCount} molecular species`);
-console.log(`Conversion: ${(digestiveResult.conversionRate * 100).toFixed(0)}%`);
-console.log(`Remaining mass: ${digestiveResult.remainingSubstrateMass.toFixed(0)} Da`);
+const fullDigestion = bioreactor.digest(branchedAmylopectin, new Environment(37, 7.0, 120));
+console.log(`After 120s digestion: ${fullDigestion.reactionPath.length > 0 ? fullDigestion.products.speciesCount : 0} molecular species`);
+console.log(`Conversion: ${(fullDigestion.conversionRate * 100).toFixed(0)}%`);
+console.log(`Remaining mass: ${fullDigestion.remainingSubstrateMass.toFixed(0)} Da`);
 
-// Show kinetic history
-if (digestiveResult.reactionPath.length > 0) {
-  const first = digestiveResult.reactionPath[0];
-  const last = digestiveResult.reactionPath[digestiveResult.reactionPath.length - 1];
+if (fullDigestion.reactionPath.length > 0) {
+  const first = fullDigestion.reactionPath[0];
+  const last = fullDigestion.reactionPath[fullDigestion.reactionPath.length - 1];
   console.log(`Kinetic range: ${first.remainingBonds} → ${last.remainingBonds} cleavable bonds`);
 }
 
@@ -159,13 +142,7 @@ const cytosine = new Nucleotide(NitrogenousBase.CYTOSINE, NucleicAcidType.DNA);
 const guanine = new Nucleotide(NitrogenousBase.GUANINE, NucleicAcidType.DNA);
 console.log(`DNA bases: ${adenine}↔${adenine.complementaryBase}, ${thymine}↔${thymine.complementaryBase}, ${cytosine}↔${cytosine.complementaryBase}, ${guanine}↔${guanine.complementaryBase}`);
 
-// 2. DNA template strand
-const dnaTemplate = new NucleicAcidChain([
-  new Nucleotide(NitrogenousBase.ADENINE, NucleicAcidType.DNA),
-  new Nucleotide(NitrogenousBase.UGG, NucleicAcidType.DNA), // UGG not valid for DNA, fix below
-]);
-
-// Correct DNA template for "Met-Ala-Lys" → AUG GCU AAA (mRNA) → TAC CGA TTT (DNA template)
+// 2. DNA template strand for "Met-Ala-Lys" → AUG GCU AAA (mRNA) → TAC CGA TTT (DNA template)
 const codingDna = new NucleicAcidChain([
   new Nucleotide(NitrogenousBase.THYMINE, NucleicAcidType.DNA),
   new Nucleotide(NitrogenousBase.ADENINE, NucleicAcidType.DNA),
@@ -191,7 +168,7 @@ if (mrna) {
   console.log(`mRNA formula: ${mrna.molecularFormula} (${mrna.molecularMass.toFixed(0)} Da)`);
 
   // 4. Translation: mRNA → Protein
-  const ribosome = new Ribosome();
+  const ribosome = new Ribosome(polymeraseProtein);
   const translationEnv = new Environment(37, 7.2, 60);
   const translationResult = ribosome.translate(mrna, translationEnv);
   const protein = translationResult.products.getAll()[0] as ProteinChain | undefined;
@@ -205,31 +182,19 @@ if (mrna) {
 // --- Complex Polysaccharides & Branching Demonstration ---
 console.log("\n--- Complex Polysaccharides & Branching Demonstration ---");
 
-// Linear amylose vs branched amylopectin
 const linearAmylose = new Amylose(20);
 console.log(`Linear amylose: ${linearAmylose}, branches: ${linearAmylose.branchCount}`);
 
-const branchedAmylopectin = new Amylopectin(30, [6, 12, 18, 24]);
-console.log(`Amylopectin: ${branchedAmylopectin}`);
-console.log(`  Formula: ${branchedAmylopectin.molecularFormula}`);
-console.log(`  Mass: ${branchedAmylopectin.molecularMass.toFixed(0)} Da`);
-console.log(`  Branch points: ${branchedAmylopectin.branchCount}`);
+const branched = new Amylopectin(30, [6, 12, 18, 24]);
+console.log(`Amylopectin: ${branched}`);
+console.log(`  Formula: ${branched.molecularFormula}`);
+console.log(`  Mass: ${branched.molecularMass.toFixed(0)} Da`);
+console.log(`  Branch points: ${branched.branchCount}`);
 
-// Amylase alone cannot fully digest branched starch
-const branchingEnzymeProtein = new ProteinChain([asp, ala, lys, asp, ala]);
-const amylaseOnly = new Amylase(branchingEnzymeProtein);
-const amylaseResult = amylaseOnly.digest(branchedAmylopectin, new Environment(37, 7.0, 60));
-console.log(`\nAmylase alone on amylopectin: ${amylaseResult.products.speciesCount} products, conversion: ${(amylaseResult.conversionRate * 100).toFixed(0)}%`);
+const amylaseOnly = new Amylase(digestiveEnzymeProtein);
+const amylaseResult = amylaseOnly.digest(branched, new Environment(37, 7.0, 60));
+console.log(`\nAmylase alone on amylopectin: ${amylaseResult.reactionPath.length > 0 ? amylaseResult.products.speciesCount : 0} products, conversion: ${(amylaseResult.conversionRate * 100).toFixed(0)}%`);
 
-// Isoamylase debranches first, then amylase digests fully
-const isoamylase = new Isoamylase(branchingEnzymeProtein);
-const debranchResult = isoamylase.digest(branchedAmylopectin, new Environment(37, 7.0, 30));
-console.log(`Isoamylase debranching: ${debranchResult.products.speciesCount} linearized chains, branches cleaved: ${(debranchResult.conversionRate * 100).toFixed(0)}%`);
-
-// Sequential digestion: debranch → amylase → maltase
-const starchBioreactor = new Bioreactor();
-starchBioreactor.addEnzyme(isoamylase);
-starchBioreactor.addEnzyme(amylaseOnly);
-starchBioreactor.addEnzyme(new Maltase(branchingEnzymeProtein));
-const fullDigestion = starchBioreactor.digest(branchedAmylopectin, new Environment(37, 7.0, 120));
-console.log(`Full digestion (Isoamylase + Amylase + Maltase): ${fullDigestion.products.speciesCount} products`);
+const isoamylase = new Isoamylase(digestiveEnzymeProtein);
+const debranchResult = isoamylase.digest(branched, new Environment(37, 7.0, 30));
+console.log(`Isoamylase debranching: ${debranchResult.reactionPath.length > 0 ? debranchResult.products.speciesCount : 0} linearized chains, branches cleaved: ${(debranchResult.conversionRate * 100).toFixed(0)}%`);

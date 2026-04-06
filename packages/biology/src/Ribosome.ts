@@ -1,13 +1,7 @@
-import { AminoAcid } from "./AminoAcid";
-import { ProteinChain } from "./ProteinChain";
-import { NucleicAcidChain } from "./NucleicAcidChain";
-import { Nucleotide, NitrogenousBase } from "./Nucleotide";
-import { Environment, PHYSIOLOGICAL_CONDITIONS } from "../core/Environment";
-import { ReactionMixture } from "../core/ReactionMixture";
-import { ReactionResult, KineticSnapshot } from "../core/ReactionResult";
-import { ReactionVessel, EnzymeKinetics } from "../core/ReactionVessel";
-import { LawsOfPhysics } from "../core/LawsOfPhysics";
-import { ELEMENTS } from "../Element";
+import { AminoAcid, ProteinChain } from "@atomika-lab/biochem";
+import { Environment, PHYSIOLOGICAL_CONDITIONS, ELEMENTS } from "@atomika-lab/core";
+import { ReactionMixture, ReactionResult, KineticSnapshot, ReactionVessel, EnzymeKinetics } from "@atomika-lab/biochem";
+import { LawsOfPhysics } from "@atomika-lab/core";
 
 /**
  * Standard genetic code — maps RNA codons (triplets) to amino acids.

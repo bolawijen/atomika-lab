@@ -1,6 +1,6 @@
 import { Polysaccharide } from "../saccharide/Polysaccharide";
-import { ReactionMixture } from "../../core/ReactionMixture";
-import { KineticSnapshot } from "../../core/ReactionResult";
+import { ReactionMixture } from "@atomika-lab/biochem";
+import { KineticSnapshot } from "@atomika-lab/biochem";
 
 /**
  * Parameters governing the catalytic kinetics of an enzyme.

@@ -11,5 +11,5 @@ export { ChemicalReaction } from "./ChemicalReaction";
 export { HENRY_CONSTANTS, calculateHenrysLawConcentration, calculatePartialPressure, calculateTotalGasPressure } from "./GasSolubility";
 export { determinePhase } from "./PhaseCalculator";
 export { calculateGibbsFreeEnergy, calculateNernstPotential, isRedoxSpontaneous } from "./RedoxCalculator";
-export { calculateSahaIonization, calculateLorentzForce, calculateRadiativePower, calculatePeakWavelength } from "./PlasmaCalculator";
+export { calculateSahaIonization, calculateLorentzForce, calculateRadiativePowerLoss, calculatePeakEmissionWavelength, isPlasmaPhase } from "./PlasmaCalculator";
 export { CoordinationComplex, Denticity, type Ligand } from "./CoordinationComplex";

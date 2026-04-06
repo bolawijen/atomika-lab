@@ -1,14 +1,9 @@
-import { ProteinChain } from "./ProteinChain";
-import { Enzyme } from "./enzyme/Enzyme";
-import { Saccharide } from "./saccharide/Saccharide";
+import { Enzyme, ProteinChain, AminoAcid, Saccharide } from "@atomika-lab/biochem";
 import { NucleicAcidChain } from "./NucleicAcidChain";
 import { Nucleotide, NitrogenousBase, NucleicAcidType } from "./Nucleotide";
-import { Environment, PHYSIOLOGICAL_CONDITIONS } from "../core/Environment";
-import { ReactionMixture } from "../core/ReactionMixture";
-import { ReactionResult, KineticSnapshot } from "../core/ReactionResult";
-import { ReactionVessel, EnzymeKinetics } from "../core/ReactionVessel";
-import { LawsOfPhysics } from "../core/LawsOfPhysics";
-import { Molecule } from "../Molecule";
+import { Environment, PHYSIOLOGICAL_CONDITIONS, Molecule } from "@atomika-lab/core";
+import { ReactionMixture, ReactionResult, KineticSnapshot, ReactionVessel, EnzymeKinetics } from "@atomika-lab/biochem";
+import { LawsOfPhysics } from "@atomika-lab/core";
 
 /**
  * RNA Polymerase (EC 2.7.7.6).

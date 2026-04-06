@@ -1,7 +1,7 @@
-import { ProteinChain } from "../ProteinChain";
-import { AminoAcid } from "../AminoAcid";
+import { ProteinChain } from "@atomika-lab/biochem";
+import { AminoAcid } from "@atomika-lab/biochem";
 import { Saccharide } from "../saccharide/Saccharide";
-import { Molecule } from "../../Molecule";
+import { Molecule } from "@atomika-lab/core";
 
 /**
  * Enzymes are specialized protein chains that act as biological catalysts,

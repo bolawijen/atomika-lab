@@ -1,6 +1,6 @@
 import { Polysaccharide } from "./Polysaccharide";
 import { Monosaccharide, MolecularIdentity, AnomericState } from "./Monosaccharide";
-import { Chirality } from "../../core/Chirality";
+import { Chirality } from "@atomika-lab/core";
 import { GlycosidicBondType, GlycosidicBond } from "./GlycosidicBondType";
 
 /**

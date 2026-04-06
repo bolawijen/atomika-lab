@@ -1,18 +1,18 @@
-import { ProteinChain } from "../ProteinChain";
+import { ProteinChain } from "@atomika-lab/biochem";
 import { Enzyme } from "./Enzyme";
 import { Saccharide } from "../saccharide/Saccharide";
 import { Polysaccharide } from "../saccharide/Polysaccharide";
 import { GlycosidicBondType } from "../saccharide/GlycosidicBondType";
-import { Environment, PHYSIOLOGICAL_CONDITIONS } from "../../core/Environment";
-import { ReactionMixture } from "../../core/ReactionMixture";
-import { ReactionResult, KineticSnapshot } from "../../core/ReactionResult";
+import { Environment, PHYSIOLOGICAL_CONDITIONS } from "@atomika-lab/core";
+import { ReactionMixture } from "@atomika-lab/biochem";
+import { ReactionResult, KineticSnapshot } from "@atomika-lab/biochem";
 import { KineticsSimulator, KineticParameters } from "./KineticsSimulator";
 import { HydrolysisMechanism, HydrolysisResult } from "./HydrolysisMechanism";
-import { ELEMENTS } from "../../Element";
-import { StructuralFingerprint } from "../../core/StructuralFingerprint";
-import { Chirality } from "../../core/Chirality";
-import { LawsOfPhysics } from "../../core/LawsOfPhysics";
-import { AffinityModeler } from "../AffinityModeler";
+import { ELEMENTS } from "@atomika-lab/core";
+import { StructuralFingerprint } from "@atomika-lab/core";
+import { Chirality } from "@atomika-lab/core";
+import { LawsOfPhysics } from "@atomika-lab/core";
+import { AffinityModeler } from "@atomika-lab/biochem";
 
 /**
  * SMARTS pattern for α-1,4-glycosidic linkage — the target of α-amylase.
@@ -143,7 +143,7 @@ export class Amylase extends Enzyme {
     }
 
     // Trigger lazy affinity model initialization (non-blocking — fallback used if not ready)
-    this.affinity.ensureInitialized();
+    // Note: AffinityModeler now uses hash-based fingerprints by default
 
     const initialBondCount = validatedSubstrate.cleavableBondCount;
 

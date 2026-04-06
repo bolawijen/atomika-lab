@@ -1,5 +1,5 @@
-import { Molecule } from "../Molecule";
-import { Atom } from "../Atom";
+import { Molecule } from "@atomika-lab/core";
+import { Atom } from "@atomika-lab/core";
 import { Nucleotide, NitrogenousBase, NucleicAcidType } from "./Nucleotide";
 
 /**

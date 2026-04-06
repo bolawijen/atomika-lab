@@ -1,6 +1,4 @@
-import { Molecule } from "../Molecule";
-import { Atom } from "../Atom";
-import { ELEMENTS } from "../Element";
+import { Molecule, Atom, ELEMENTS } from "@atomika-lab/core";
 
 /**
  * Nitrogenous bases found in nucleic acids.

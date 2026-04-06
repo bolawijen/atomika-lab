@@ -1,7 +1,7 @@
 import { AminoAcid } from "./AminoAcid";
-import { Molecule } from "../Molecule";
-import { Atom } from "../Atom";
-import { ELEMENTS } from "../Element";
+import { Molecule } from "@atomika-lab/core";
+import { Atom } from "@atomika-lab/core";
+import { ELEMENTS } from "@atomika-lab/core";
 
 /**
  * A polypeptide chain — a sequence of amino acids linked by peptide bonds.

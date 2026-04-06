@@ -1,6 +1,6 @@
 import { Polysaccharide } from "./Polysaccharide";
 import { Monosaccharide, MolecularIdentity } from "./Monosaccharide";
-import { Chirality } from "../../core/Chirality";
+import { Chirality } from "@atomika-lab/core";
 import { AnomericState } from "./Monosaccharide";
 
 /**

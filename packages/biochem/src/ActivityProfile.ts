@@ -1,5 +1,5 @@
-import { Environment } from "../core/Environment";
-import { Atom } from "../Atom";
+import { Environment } from "@atomika-lab/core";
+import { Atom } from "@atomika-lab/core";
 
 /**
  * Encapsulates how an enzyme responds to its chemical environment.
