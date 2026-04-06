@@ -1,4 +1,6 @@
 import { Enzyme } from "@atomika-lab/biochem";
+import { Polymerase } from "./Polymerase";
+import { Rifampicin } from "@atomika-lab/pharmacology";
 
 /**
  * A bacterial cell hosting enzymatic machinery.
@@ -52,5 +54,27 @@ export class Bacteria {
    */
   isAlive(): boolean {
     return this.viability > 0.1;
+  }
+
+  /**
+   * Responds to drug exposure through passive diffusion and target binding.
+   *
+   * The drug molecule is a passive data source; the biological system
+   * drives the pharmacological process through thermodynamic interactions.
+   *
+   * @param drug The medicinal substance present in the environment.
+   */
+  exposedTo(drug: Rifampicin): void {
+    // Passive diffusion driven by lipophilicity (LogP > 0 implies membrane permeability)
+    if (drug.logP <= 0) return;
+
+    // Target recognition — structural complementarity
+    const polymerase = this.enzymes.find(e => e instanceof Polymerase) as Polymerase | undefined;
+    if (!polymerase) return;
+
+    // Reversible binding — driven by binding affinity (Kd)
+    polymerase.bindLigand(drug, drug.dissociationConstant);
+
+    this.updateViability();
   }
 }

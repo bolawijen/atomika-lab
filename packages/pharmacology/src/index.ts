@@ -1,2 +1,2 @@
-export { BaseDrug } from "./BaseDrug";
+export { Drug, TherapeuticCategory } from "./Drug";
 export { Rifampicin } from "./antibiotics/Rifampicin";

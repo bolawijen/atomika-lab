@@ -2,8 +2,9 @@ import { Atom, ELEMENTS } from "@atomika-lab/core";
 import { Amylose, Amylopectin, Glucose, Fructose, Sucrose, Galactose, Lactose, Maltose, Dextrin } from "@atomika-lab/biochem";
 import { Amylase, Isoamylase, Maltase, AminoAcid, ProteinChain } from "@atomika-lab/biochem";
 import { Environment, PHYSIOLOGICAL_CONDITIONS } from "@atomika-lab/core";
-import { Bioreactor } from "@atomika-lab/biology";
-import { Nucleotide, NitrogenousBase, NucleicAcidType, NucleicAcidChain, Polymerase, Ribosome } from "@atomika-lab/biology";
+import { Rifampicin } from "@atomika-lab/pharmacology";
+import { Bacteria, Polymerase, Ribosome } from "@atomika-lab/biology";
+import { Nucleotide, NitrogenousBase, NucleicAcidType, NucleicAcidChain } from "@atomika-lab/biology";
 
 // --- Atom Demonstration ---
 console.log(`--- Atom Demonstration ---`);
@@ -108,28 +109,21 @@ console.log(`Sucrose: ${sucrose.molecularFormula} (${sucrose.molecularMass.toFix
 console.log(`Lactose: ${lactose.molecularFormula} (${lactose.molecularMass.toFixed(2)} Da)`);
 
 
-// --- Multi-Enzyme Bioreactor Demonstration ---
-console.log("\n--- Multi-Enzyme Bioreactor Demonstration ---");
+// --- Pharmacology Demonstration ---
+console.log("\n--- Pharmacology Demonstration ---");
 
-const digestiveEnzymeProtein = new ProteinChain([asp, ala, lys, asp, ala]);
-const bioreactor = new Bioreactor();
-bioreactor.addEnzyme(new Isoamylase(digestiveEnzymeProtein));
-bioreactor.addEnzyme(new Amylase(digestiveEnzymeProtein));
-bioreactor.addEnzyme(new Maltase(digestiveEnzymeProtein));
+const bacteria = new Bacteria();
+bacteria.addEnzyme(new Polymerase(enzymeProtein));
 
-const branchedAmylopectin = new Amylopectin(30, [6, 12, 18, 24]);
-console.log(`Initial substrate: ${branchedAmylopectin}`);
+const rifampicin = new Rifampicin();
+console.log(`Drug: ${rifampicin} (${rifampicin.pharmacologicalClass})`);
+console.log(`  Kd: ${rifampicin.dissociationConstant} nM`);
+console.log(`  Clearance: ${rifampicin.clearanceRate} min⁻¹`);
+console.log(`  LogP: ${rifampicin.logP}`);
 
-const fullDigestion = bioreactor.digest(branchedAmylopectin, new Environment({ temperatureC: 37, pH: 7.0, durationInSeconds: 120 }));
-console.log(`After 120s digestion: ${fullDigestion.reactionPath.length > 0 ? fullDigestion.products.speciesCount : 0} molecular species`);
-console.log(`Conversion: ${(fullDigestion.conversionRate * 100).toFixed(0)}%`);
-console.log(`Remaining mass: ${fullDigestion.remainingSubstrateMass.toFixed(0)} Da`);
-
-if (fullDigestion.reactionPath.length > 0) {
-  const first = fullDigestion.reactionPath[0];
-  const last = fullDigestion.reactionPath[fullDigestion.reactionPath.length - 1];
-  console.log(`Kinetic range: ${first.remainingBonds} → ${last.remainingBonds} cleavable bonds`);
-}
+console.log(`Bacteria viability before exposure: ${(bacteria.getViability() * 100).toFixed(0)}%`);
+bacteria.exposedTo(rifampicin);
+console.log(`Bacteria viability after exposure: ${(bacteria.getViability() * 100).toFixed(0)}%`);
 
 
 // --- Genetic Foundation & Protein Synthesis Demonstration ---
@@ -182,6 +176,7 @@ if (mrna) {
 // --- Complex Polysaccharides & Branching Demonstration ---
 console.log("\n--- Complex Polysaccharides & Branching Demonstration ---");
 
+const digestiveEnzymeProtein = new ProteinChain([asp, ala, lys, asp, ala]);
 const linearAmylose = new Amylose(20);
 console.log(`Linear amylose: ${linearAmylose}, branches: ${linearAmylose.branchCount}`);
 

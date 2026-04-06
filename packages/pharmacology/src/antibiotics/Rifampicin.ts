@@ -1,38 +1,32 @@
-import { BaseDrug } from "@atomika-lab/pharmacology";
-import { Bacteria, Polymerase } from "@atomika-lab/biology";
+import { Drug, TherapeuticCategory } from "@atomika-lab/pharmacology";
 import { ELEMENTS, Atom } from "@atomika-lab/core";
-import { Enzyme } from "@atomika-lab/biochem";
 
 /**
- * Enzyme with an active site that can bind ligands.
- */
-interface LigandBindableEnzyme extends Enzyme {
-  bindLigand(ligand: object, affinity: number): void;
-}
-
-/**
- * Type guard for enzymes that support active site ligand binding.
- */
-function isLigandBindable(enzyme: Enzyme): enzyme is LigandBindableEnzyme {
-  return "bindLigand" in enzyme;
-}
-
-/**
- * Rifampicin — a bactericidal antibiotic that inhibits bacterial
- * DNA-dependent RNA polymerase by blocking the exit channel for
- * the nascent RNA chain.
+ * Rifampicin — a bactericidal antibiotic.
  *
  * Chemical formula: C₄₃H₅₈N₄O₁₂
  * Molecular weight: 822.94 Da
  *
- * Mechanism: Reversible binding to the RNA polymerase active site,
- * sterically blocking the RNA exit channel. The enzyme remains
- * structurally intact but catalytically inhibited.
+ * Mechanism: Reversible binding to bacterial RNA polymerase active site,
+ * sterically blocking the RNA exit channel. The enzyme remains structurally
+ * intact but catalytically inhibited.
+ *
+ * Pharmacological data:
+ * - Dissociation constant (Kd): 0.5 nM (high affinity)
+ * - Clearance rate: 0.02 min⁻¹ (hepatic)
+ * - LogP: 3.7 (lipophilic, crosses membranes easily)
  */
-export class Rifampicin extends BaseDrug {
-  readonly targetAffinity = 0.5; // nM (high affinity for bacterial RNAP)
-  readonly metabolismRate = 0.02; // min⁻¹ (hepatic clearance)
-  readonly therapeuticClass = "antibiotic";
+export class Rifampicin extends Drug {
+  /** Octanol-water partition coefficient — measures lipophilicity. */
+  readonly logP = 3.7;
+
+  constructor() {
+    super({
+      dissociationConstant: 0.5,
+      clearanceRate: 0.02,
+      pharmacologicalClass: TherapeuticCategory.Antibiotic,
+    });
+  }
 
   get atomicComposition(): ReadonlyMap<Atom, number> {
     return new Map([
@@ -45,23 +39,6 @@ export class Rifampicin extends BaseDrug {
 
   get count(): number {
     return 1;
-  }
-
-  /**
-   * Exerts antibacterial effect by inhibiting bacterial RNA polymerase.
-   * Reduces bacterial viability through competitive inhibition of transcription.
-   */
-  inhibit(target: Bacteria): void {
-    const enzymes = target.getEnzymes();
-
-    for (const enzyme of enzymes) {
-      if (isLigandBindable(enzyme)) {
-        // Reversible active site binding — enzyme remains structurally intact
-        enzyme.bindLigand(this, this.targetAffinity);
-      }
-    }
-
-    target.updateViability();
   }
 
   toString(): string {
