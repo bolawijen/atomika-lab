@@ -14,6 +14,11 @@ export abstract class Polysaccharide extends Saccharide {
   abstract monomers: Monosaccharide[];
 
   /**
+   * Cached atomic composition to avoid O(n) recalculation on repeated access.
+   */
+  private _cachedComposition: ReadonlyMap<Atom, number> | null = null;
+
+  /**
    * Number of monomer units in the chain.
    */
   get count(): number {
@@ -23,8 +28,11 @@ export abstract class Polysaccharide extends Saccharide {
   /**
    * Atomic composition derived from the sum of all monomer residues,
    * minus (n − 1) H₂O molecules lost during glycosidic bond condensation.
+   * Result is memoized to avoid repeated O(n) computation.
    */
   get atomicComposition(): ReadonlyMap<Atom, number> {
+    if (this._cachedComposition) return this._cachedComposition;
+
     const composition = new Map<Atom, number>();
 
     for (const monomer of this.monomers) {
@@ -42,6 +50,7 @@ export abstract class Polysaccharide extends Saccharide {
       composition.set(ELEMENTS.O, oCount - glycosidicBonds);
     }
 
+    this._cachedComposition = composition;
     return composition;
   }
 }
