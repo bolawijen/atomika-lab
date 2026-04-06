@@ -1,4 +1,4 @@
-import { Atom } from "./src/atom";
+import { Atom } from "./src/Atom";
 import { ELEMENTS } from "./src/Element";
 import { Amylose } from "./src/bio/saccharide/Amylose";
 import { Amylase } from "./src/bio/enzyme/Amylase";
