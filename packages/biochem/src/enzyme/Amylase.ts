@@ -33,7 +33,6 @@ const D_GLUCOSE_SMILES = "C([C@@H]1[C@H]([C@@H]([C@H]([C@H](O1)O)O)O)O)O";
  * yielding maltose, free monosaccharides, and limit dextrins as end products.
  *
  * Requires Ca²⁺ for structural integrity and Cl⁻ as an allosteric activator.
- * Stores kinetic parameters and catalytic mechanisms for hydrolysis.
  */
 export class Amylase extends Enzyme {
   /**
