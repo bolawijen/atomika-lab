@@ -24,8 +24,8 @@ export class NucleicAcidChain extends Molecule {
   }
 
   /**
-   * Atomic composition derived from the sum of all nucleotide residues,
-   * minus (n − 1) H₂O molecules lost during phosphodiester bond formation.
+   * Atomic composition of the polynucleotide, accounting for water molecules
+   * released during phosphodiester bond formation.
    */
   get atomicComposition(): ReadonlyMap<Atom, number> {
     const composition = new Map<Atom, number>();
