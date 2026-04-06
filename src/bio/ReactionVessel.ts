@@ -4,6 +4,17 @@ import { Monosaccharide } from "./saccharide/Monosaccharide";
 import { ReactionMixture } from "./ReactionMixture";
 import { KineticSnapshot } from "./ReactionResult";
 import { Environment } from "./Environment";
+import { Atom } from "../Atom";
+
+/**
+ * Thrown when atomic mass balance is violated during a simulation step.
+ */
+export class StoichiometricError extends Error {
+  constructor(element: string, expected: number, actual: number) {
+    super(`Stoichiometric imbalance: ${element} expected ${expected}, got ${actual}`);
+    this.name = "StoichiometricError";
+  }
+}
 
 /**
  * Parameters governing the catalytic kinetics of an enzyme.
@@ -33,12 +44,25 @@ export class ReactionVessel {
   private environment: Environment;
   private currentTemperature: number;
   private snapshots: KineticSnapshot[] = [];
+  private initialAtomCounts: Map<Atom, number> | null = null;
 
   /**
    * Volume of the reaction vessel in liters.
    * Used to convert molecule counts to molar concentrations.
    */
   readonly volumeInLiters: number;
+
+  /**
+   * Threshold below which Gillespie stochastic simulation is used
+   * instead of deterministic Michaelis-Menten kinetics.
+   */
+  private readonly GILLESPIE_THRESHOLD = 10;
+
+  /**
+   * Maximum fraction of substrate that can be consumed in a single step.
+   * Controls adaptive time-step sizing.
+   */
+  private readonly MAX_FRACTION_PER_STEP = 0.05;
 
   constructor(environment: Environment, volumeInLiters: number = 1e-15) {
     this.environment = environment;
@@ -196,5 +220,108 @@ export class ReactionVessel {
       }
     }
     return total;
+  }
+
+  // ── Scientific Integrity ─────────────────────────────────────────
+
+  /**
+   * Records the initial atomic composition of the reaction mixture.
+   * Must be called before the simulation starts to establish the mass balance baseline.
+   */
+  recordInitialComposition(mixture: Saccharide[]): void {
+    this.initialAtomCounts = this.#countAllAtoms(mixture);
+  }
+
+  /**
+   * Verifies that atomic mass is conserved between the initial composition
+   * and the current reaction mixture. Throws StoichiometricError if any
+   * element shows a discrepancy.
+   *
+   * This check catches mass loss from logic gaps, rounding errors,
+   * or incomplete product tracking in multi-enzyme systems.
+   */
+  verifyMassBalance(mixture: Saccharide[]): void {
+    if (!this.initialAtomCounts) return;
+
+    const currentCounts = this.#countAllAtoms(mixture);
+
+    for (const [atom, expected] of this.initialAtomCounts) {
+      const actual = currentCounts.get(atom) || 0;
+      if (actual !== expected) {
+        throw new StoichiometricError(atom.symbol, expected, actual);
+      }
+    }
+  }
+
+  /**
+   * Counts all atoms across every molecule in the mixture.
+   * Uses atomicComposition from each molecule and sums them.
+   */
+  #countAllAtoms(mixture: Saccharide[]): Map<Atom, number> {
+    const counts = new Map<Atom, number>();
+
+    for (const molecule of mixture) {
+      for (const [atom, count] of molecule.atomicComposition) {
+        counts.set(atom, (counts.get(atom) || 0) + count);
+      }
+    }
+
+    return counts;
+  }
+
+  /**
+   * Calculates an adaptive time-step size based on the current reaction rate.
+   *
+   * When the reaction rate is high, the step size is reduced to ensure
+   * that no more than MAX_FRACTION_PER_STEP (5%) of substrate is consumed
+   * in a single iteration, preventing numerical overshoot.
+   *
+   * @param reactionRate Bonds cleaved per second at current conditions.
+   * @param availableBonds Total cleavable bonds remaining.
+   * @returns Time-step duration in seconds, clamped to [0.001, 1.0].
+   */
+  calculateAdaptiveStepSize(reactionRate: number, availableBonds: number): number {
+    if (reactionRate <= 0 || availableBonds <= 0) return 1.0;
+
+    // Limit consumption to MAX_FRACTION_PER_STEP of available bonds per step
+    const maxBondsPerStep = availableBonds * this.MAX_FRACTION_PER_STEP;
+    const constrainedStep = maxBondsPerStep / reactionRate;
+
+    // Clamp to reasonable bounds
+    return Math.max(0.001, Math.min(1.0, constrainedStep));
+  }
+
+  /**
+   * Determines whether the system is in the low-concentration regime
+   * where stochastic (Gillespie) simulation should be used instead
+   * of deterministic Michaelis-Menten kinetics.
+   *
+   * @param substrateCount Number of substrate molecules present.
+   * @returns True if substrate count is below the Gillespie threshold.
+   */
+  isLowConcentrationRegime(substrateCount: number): boolean {
+    return substrateCount < this.GILLESPIE_THRESHOLD;
+  }
+
+  /**
+   * Gillespie stochastic simulation step — determines the number of
+   * reaction events in the next time interval using the direct method.
+   *
+   * At low concentrations, reactions occur as discrete stochastic events
+   * rather than continuous rates. This method samples from an exponential
+   * distribution to determine when the next reaction occurs.
+   *
+   * @param reactionRate The propensity (probability per unit time) of the reaction.
+   * @param timeInterval The duration to simulate.
+   * @returns Number of reaction events that occurred (0 or 1 for low rates).
+   */
+  gillespieStep(reactionRate: number, timeInterval: number): number {
+    if (reactionRate <= 0) return 0;
+
+    // Time to next reaction event: exponential distribution
+    const timeToNextReaction = -Math.log(Math.random()) / reactionRate;
+
+    // If the next reaction occurs within our time interval, count it
+    return timeToNextReaction < timeInterval ? 1 : 0;
   }
 }
