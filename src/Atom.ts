@@ -8,6 +8,16 @@ export interface AtomProps {
   mass: number;
   charge?: number;
   valence?: number;
+  /**
+   * Possible oxidation states for this element.
+   * E.g., Iron: [-2, -1, 0, 1, 2, 3, 4, 5, 6], common: [2, 3].
+   */
+  oxidationStates?: number[];
+  /**
+   * Common coordination numbers for this element.
+   * E.g., Iron: [4, 6], Copper: [4, 6].
+   */
+  coordinationNumbers?: number[];
 }
 
 /**
@@ -21,6 +31,10 @@ export class Atom {
   mass: number;
   charge: number;
   valence?: number;
+  /** Possible oxidation states for this element. */
+  readonly oxidationStates?: number[];
+  /** Common coordination numbers for this element. */
+  readonly coordinationNumbers?: number[];
 
   constructor(props: AtomProps) {
     this.name = props.name;
@@ -29,6 +43,8 @@ export class Atom {
     this.mass = props.mass;
     this.charge = props.charge ?? 0;
     this.valence = props.valence;
+    this.oxidationStates = props.oxidationStates;
+    this.coordinationNumbers = props.coordinationNumbers;
   }
 
   getNeutrons(): number {

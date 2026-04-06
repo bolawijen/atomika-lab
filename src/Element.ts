@@ -17,4 +17,14 @@ export const ELEMENTS = {
   P: new Atom({ name: "Phosphorus", symbol: "P", protonCount: 15, mass: 30.974, valence: 5 }),
   /** Sulfur — present in cysteine and methionine */
   S: new Atom({ name: "Sulfur", symbol: "S", protonCount: 16, mass: 32.06, valence: 2 }),
+  /** Calcium — co-factor for α-amylase, signaling ion */
+  Ca: new Atom({ name: "Calcium", symbol: "Ca", protonCount: 20, mass: 40.078, charge: 2, valence: 2, oxidationStates: [2], coordinationNumbers: [6, 7, 8] }),
+  /** Chlorine — chloride ion activates α-amylase */
+  Cl: new Atom({ name: "Chlorine", symbol: "Cl", protonCount: 17, mass: 35.45, charge: -1, valence: 1, oxidationStates: [-1, 1, 3, 5, 7], coordinationNumbers: [1] }),
+  /** Iron — redox-active metal (Fe²⁺/Fe³⁺) */
+  Fe: new Atom({ name: "Iron", symbol: "Fe", protonCount: 26, mass: 55.845, valence: 2, oxidationStates: [2, 3], coordinationNumbers: [4, 6] }),
+  /** Copper — redox-active metal (Cu⁺/Cu²⁺) */
+  Cu: new Atom({ name: "Copper", symbol: "Cu", protonCount: 29, mass: 63.546, valence: 2, oxidationStates: [1, 2], coordinationNumbers: [4, 6] }),
+  /** Zinc — common enzyme co-factor */
+  Zn: new Atom({ name: "Zinc", symbol: "Zn", protonCount: 30, mass: 65.38, valence: 2, oxidationStates: [2], coordinationNumbers: [4, 5, 6] }),
 } as const;
