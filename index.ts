@@ -160,7 +160,7 @@ console.log(`DNA formula: ${codingDna.molecularFormula} (${codingDna.molecularMa
 // 3. Transcription: DNA → mRNA
 const polymeraseProtein = new ProteinChain([asp, ala, lys, asp, ala]);
 const rnaPolymerase = new Polymerase(polymeraseProtein);
-const transcriptionEnv = new Environment(37, 7.5, 30);
+const transcriptionEnv = new Environment({ temperatureC: 37, pH: 7.5, durationInSeconds: 30 });
 const transcriptionResult = rnaPolymerase.digest(codingDna, transcriptionEnv);
 const mrna = transcriptionResult.products.getAll()[0] as NucleicAcidChain | undefined;
 if (mrna) {
@@ -168,8 +168,8 @@ if (mrna) {
   console.log(`mRNA formula: ${mrna.molecularFormula} (${mrna.molecularMass.toFixed(0)} Da)`);
 
   // 4. Translation: mRNA → Protein
-  const ribosome = new Ribosome(polymeraseProtein);
-  const translationEnv = new Environment(37, 7.2, 60);
+  const ribosome = new Ribosome(enzymeProtein);
+  const translationEnv = new Environment({ temperatureC: 37, pH: 7.2, durationInSeconds: 60 });
   const translationResult = ribosome.translate(mrna, translationEnv);
   const protein = translationResult.products.getAll()[0] as ProteinChain | undefined;
   if (protein) {
