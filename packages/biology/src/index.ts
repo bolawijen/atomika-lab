@@ -6,4 +6,5 @@ export { Nucleotide, NitrogenousBase, NucleicAcidType } from "./Nucleotide";
 export { NucleicAcidChain } from "./NucleicAcidChain";
 export { RDKitEngine } from "./RDKitEngine";
 export { Bioreactor } from "./Bioreactor";
+export type { IncubationTime, Viability } from "./Types";
 export { EnzymeComplex } from "./EnzymeComplex";

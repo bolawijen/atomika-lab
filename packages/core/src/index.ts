@@ -13,3 +13,9 @@ export { determinePhase } from "./PhaseCalculator";
 export { calculateGibbsFreeEnergy, calculateNernstPotential, isRedoxSpontaneous } from "./RedoxCalculator";
 export { calculateSahaIonization, calculateLorentzForce, calculateRadiativePowerLoss, calculatePeakEmissionWavelength, isPlasmaPhase } from "./PlasmaCalculator";
 export { CoordinationComplex, Denticity, type Ligand } from "./CoordinationComplex";
+export type {
+  MolarEnergy, IonizationEnergy, ThermalEnergy, AtomicMass, MolarMass,
+  Mass, BondLength, MolecularLength, Length, ThermodynamicTemperature,
+  CelsiusTemperature, Duration, AmountOfSubstance, AtmosphericPressure,
+  Pressure, Diffusivity,
+} from "./Types";
