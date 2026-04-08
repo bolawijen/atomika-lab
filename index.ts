@@ -124,13 +124,13 @@ console.log(`  Kd: ${rifampicin.dissociationConstant} nM`);
 console.log(`  Clearance: ${rifampicin.clearanceRate} min⁻¹`);
 console.log(`  LogP: ${rifampicin.logP}`);
 
-console.log(`\nGeneric Bacteria viability before exposure: ${(bacteria.getViability() * 100).toFixed(0)}%`);
+console.log(`\nGeneric Bacteria viability before exposure: ${(bacteria.viability * 100).toFixed(0)}%`);
 bacteria.exposedTo(rifampicin, normalEnv);
-console.log(`Generic Bacteria viability after exposure: ${(bacteria.getViability() * 100).toFixed(0)}%`);
+console.log(`Generic Bacteria viability after exposure: ${(bacteria.viability * 100).toFixed(0)}%`);
 
-console.log(`\nM. tuberculosis viability before exposure: ${(tb.getViability() * 100).toFixed(0)}%`);
+console.log(`\nM. tuberculosis viability before exposure: ${(tb.viability * 100).toFixed(0)}%`);
 tb.exposedTo(rifampicin, normalEnv);
-console.log(`M. tuberculosis viability after exposure: ${(tb.getViability() * 100).toFixed(0)}%`);
+console.log(`M. tuberculosis viability after exposure: ${(tb.viability * 100).toFixed(0)}%`);
 console.log(`  (Rifampicin LogP ${rifampicin.logP} >= ${tb.minLogPForPenetration} threshold → penetrates mycolic acid barrier)`);
 
 

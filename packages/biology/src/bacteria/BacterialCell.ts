@@ -1,7 +1,7 @@
 import { Enzyme } from "@atomika-lab/biochem";
 import { Polymerase } from "../Polymerase";
 import { Rifampicin } from "@atomika-lab/pharmacology";
-import { Environment, type Duration } from "@atomika-lab/core";
+import { Environment, type Duration, Molecule } from "@atomika-lab/core";
 import {
   CellWall,
   CellMembrane,
@@ -25,6 +25,7 @@ import type {
 } from "./BacterialStimuli";
 import { Ribosome } from "../Ribosome";
 import { NutrientCategory, type Nutrient } from "@atomika-lab/biochem";
+import { Cell, type AbsorptionRecord } from "../Cell";
 
 /**
  * A prokaryotic cell containing enzymatic machinery.
@@ -32,7 +33,7 @@ import { NutrientCategory, type Nutrient } from "@atomika-lab/biochem";
  * Bacterial cells express enzymes that catalyze metabolic reactions
  * and maintain viability under pharmacological stress.
  */
-export class BacterialCell {
+export class BacterialCell extends Cell {
   /**
    * Peptidoglycan cell wall providing structural integrity.
    */
@@ -86,7 +87,7 @@ export class BacterialCell {
   /**
    * Viability fraction (0–1). 1.0 = fully viable, 0.0 = non-viable.
    */
-  protected viability = 1.0;
+  protected override viabilityValue = 1.0;
 
   /**
    * Elapsed time since inoculation.
@@ -99,6 +100,7 @@ export class BacterialCell {
   protected uptakeHistory: NutrientUptake[] = [];
 
   constructor(params: { generationTime?: Duration } = {}) {
+    super();
     this.cellWall = new CellWall();
     this.cellMembrane = new CellMembrane();
     this.cytoplasm = new Cytoplasm();
@@ -130,24 +132,36 @@ export class BacterialCell {
   updateViability(): void {
     const activeFraction = this.enzymes.filter(e => !("isDenatured" in e && e.isDenatured)).length /
       Math.max(this.enzymes.length, 1);
-    this.viability = activeFraction;
+    this.viabilityValue = activeFraction;
   }
 
   /**
-   * Current viability fraction.
-   */
-  getViability(): number {
-    return this.viability;
-  }
-
-  /**
-   * Whether the bacterium remains viable.
+   * Absorbs a molecule from the environment via passive diffusion.
    *
-   * Viability threshold based on minimum metabolic activity
-   * required for colony formation.
+   * Driven by concentration gradient (environment → cytoplasm).
+   * Depends on molecule lipophilicity (logP) and membrane permeability.
+   *
+   * @param molecule The molecule to absorb.
+   * @param environment The environmental context.
+   * @returns Record of the absorption event.
    */
-  get isAlive(): boolean {
-    return this.viability > 0.1;
+  absorb(molecule: Molecule, environment: Environment): AbsorptionRecord {
+    // Passive diffusion — requires concentration gradient
+    const gradient = environment.nutrientConcentration - this.cytoplasm.nutrientConcentration;
+    if (gradient <= 0) return { moleculeType: molecule.constructor.name, amount: 0, absorbed: false };
+
+    // Membrane must be intact
+    if (!this.cellMembrane.isIntact) return { moleculeType: molecule.constructor.name, amount: 0, absorbed: false };
+
+    // Lipophilic molecules diffuse more readily
+    const permeability = molecule.logP > 0 ? 1.0 : 0.3;
+    const membranePermeability = this.cellMembrane.functionalIntegrity;
+    const amount = Math.min(gradient * permeability * membranePermeability * 0.1, 1.0);
+
+    // Add to cytoplasm
+    this.cytoplasm.addNutrient(amount);
+
+    return { moleculeType: molecule.constructor.name, amount, absorbed: amount > 0 };
   }
 
   /**
@@ -364,7 +378,7 @@ export class BacterialCell {
 
     // If reserves depleted, viability declines from starvation
     if (atp === 0 && !this.energyReserves.isSufficient) {
-      this.viability = Math.max(0, this.viability - 0.05);
+      this.viabilityValue = Math.max(0, this.viabilityValue - 0.05);
     }
 
     // Update cytoplasmic metabolic activity based on ATP production
@@ -379,7 +393,7 @@ export class BacterialCell {
    * Terminates cellular viability.
    */
   private die(): void {
-    this.viability = 0;
+    this.viabilityValue = 0;
     this.growthPhase = "death";
   }
 
