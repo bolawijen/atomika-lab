@@ -32,4 +32,4 @@ export { Amylopectin } from "./saccharide/Amylopectin";
 
 export type { BiochemicalEnergy, MolarConcentration, Acidity, RateConstant, Conversion } from "./Types";
 
-export { Lipid, FattyAcid, Cholesterol, SaturationLevel } from "./lipid";
+export { Lipid, FattyAcid, Cholesterol, SaturationLevel, NutrientCategory, type Nutrient } from "./lipid";

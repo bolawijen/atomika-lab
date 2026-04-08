@@ -290,7 +290,7 @@ export class EnergyReserves {
  * Nutrient uptake record — tracks absorbed molecules.
  */
 export interface NutrientUptake {
-  /** Nutrient identity. */
+  /** Nutrient category. */
   readonly nutrientType: string;
   /** Amount absorbed (arbitrary units). */
   readonly amount: number;

@@ -24,6 +24,7 @@ import type {
   EnvironmentalChangeEvent,
 } from "./BacterialStimuli";
 import { Ribosome } from "../Ribosome";
+import { NutrientCategory, type Nutrient } from "@atomika-lab/biochem";
 
 /**
  * A prokaryotic cell containing enzymatic machinery.
@@ -313,20 +314,19 @@ export class BacterialCell {
   /**
    * Absorbs nutrients from the environment via membrane transporters.
    *
-   * Small molecules (glucose, amino acids) diffuse through membrane channels
-   * and are transported into the cytoplasm via carrier proteins.
+   * Small molecules diffuse through membrane channels and are transported
+   * into the cytoplasm via carrier proteins.
    *
-   * @param nutrientType Identity of the nutrient (e.g., "glucose", "amino-acid").
+   * @param nutrient The nutrient molecule to uptake.
    * @param environment The environmental context providing nutrient availability.
    * @returns Record of the nutrient uptake event.
    */
-  uptakeNutrient(nutrientType: string, environment: Environment): NutrientUptake {
+  uptakeNutrient(nutrient: Nutrient, environment: Environment): NutrientUptake {
     // Uptake requires membrane integrity and thermal energy for transport
-    if (!this.cellMembrane.isIntact) return { nutrientType, amount: 0 };
-    if (environment.thermalEnergy <= 0) return { nutrientType, amount: 0 };
+    if (!this.cellMembrane.isIntact) return { nutrientType: nutrient.category, amount: 0 };
+    if (environment.thermalEnergy <= 0) return { nutrientType: nutrient.category, amount: 0 };
 
     // Uptake rate depends on nutrient concentration and membrane permeability
-    // Simplified: uptake proportional to thermal energy
     const uptakeRate = environment.thermalEnergy * 0.001;
     const amount = Math.min(uptakeRate, 1.0);
 
@@ -334,7 +334,7 @@ export class BacterialCell {
     this.energyReserves.replenish(amount);
 
     // Record uptake event
-    const uptake: NutrientUptake = { nutrientType, amount };
+    const uptake: NutrientUptake = { nutrientType: nutrient.category, amount };
     this.uptakeHistory.push(uptake);
 
     return uptake;

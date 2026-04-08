@@ -4,7 +4,7 @@ import { Rifampicin } from "@atomika-lab/pharmacology";
 import { Environment, type Duration } from "@atomika-lab/core";
 import { MycolicAcidLayer } from "./BacterialStructures";
 import type { NutrientUptake } from "./BacterialStructures";
-import { FattyAcid, Cholesterol } from "@atomika-lab/biochem";
+import { FattyAcid, Cholesterol, NutrientCategory, type Nutrient } from "@atomika-lab/biochem";
 
 /**
  * Mycobacterium tuberculosis — the causative agent of tuberculosis.
@@ -106,64 +106,66 @@ export class MycobacteriumTuberculosis extends BacterialCell {
   }
 
   /**
-   * Absorbs nutrients — prefers lipid substrates (fatty acids, cholesterol).
+   * Uptakes nutrient from the environment with species-specific preference.
    *
-   * M. tuberculosis can survive on host lipids during latent infection,
-   * a key adaptation for intracellular persistence in macrophages.
+   * M. tuberculosis is a lipid-dependent pathogen — it prefers fatty acids
+   * and cholesterol but can metabolize other carbon sources with reduced
+   * efficiency. Non-preferred nutrients are not rejected, just processed
+   * less efficiently.
    *
-   * @param nutrientType Identity of the nutrient.
+   * Relative efficiency by nutrient type:
+   * - Fatty acids: 100% (preferred)
+   * - Cholesterol: 60%
+   * - Amino acids: 50%
+   * - Glucose: 30%
+   * - Glycerol: 20%
+   *
+   * @param nutrient The nutrient molecule to uptake.
    * @param environment The environmental context.
    * @returns Record of the nutrient uptake event.
    */
-  override uptakeNutrient(nutrientType: string, environment: Environment): NutrientUptake {
-    // Prefers lipids — enhanced uptake for fatty acids and cholesterol
-    const isLipid = nutrientType.includes("fatty") ||
-                    nutrientType.includes("cholesterol") ||
-                    nutrientType.includes("lipid");
+  override uptakeNutrient(nutrient: Nutrient, environment: Environment): NutrientUptake {
+    if (!this.cellMembrane.isIntact) return { nutrientType: nutrient.category, amount: 0 };
+    if (environment.thermalEnergy <= 0) return { nutrientType: nutrient.category, amount: 0 };
 
-    if (!this.cellMembrane.isIntact) return { nutrientType, amount: 0 };
-    if (environment.thermalEnergy <= 0) return { nutrientType, amount: 0 };
-
-    // Lipid uptake enhanced due to mycolic acid affinity
-    const lipidBonus = isLipid ? 2.0 : 0.5;
-    const uptakeRate = environment.thermalEnergy * 0.001 * lipidBonus;
-    const amount = Math.min(uptakeRate, 1.0);
+    // Nutrient preference efficiency — M. tuberculosis prefers lipids
+    const efficiency = this.getNutrientEfficiency(nutrient);
+    const baseUptakeRate = environment.thermalEnergy * 0.001;
+    const amount = Math.min(baseUptakeRate * efficiency, 1.0);
 
     this.energyReserves.replenish(amount);
 
-    const uptake: NutrientUptake = { nutrientType, amount };
+    // Long-term penalty: suboptimal nutrition causes gradual viability decline
+    if (efficiency < 0.5) {
+      this.viability = Math.max(0, this.viability - 0.001);
+    }
+
+    const uptake: NutrientUptake = { nutrientType: nutrient.category, amount };
     this.uptakeHistory.push(uptake);
 
     return uptake;
   }
 
   /**
-   * Uptakes lipid nutrients from the environment.
+   * Returns metabolic efficiency for a given nutrient type.
    *
-   * M. tuberculosis is a lipid-dependent pathogen — it does not consume
-   * glucose but instead metabolizes fatty acids and cholesterol from
-   * host cell membranes during infection.
-   *
-   * @param lipid The lipid nutrient to uptake.
-   * @param environment The environmental context.
-   * @returns Record of the lipid uptake event.
+   * M. tuberculosis evolved to prefer host-derived lipids as carbon source.
    */
-  uptakeLipid(lipid: FattyAcid | Cholesterol, environment: Environment): NutrientUptake {
-    if (!this.cellMembrane.isIntact) return { nutrientType: lipid.toString(), amount: 0 };
-    if (environment.thermalEnergy <= 0) return { nutrientType: lipid.toString(), amount: 0 };
-
-    // Lipid uptake enhanced due to mycolic acid affinity
-    // Fatty acids are preferred over cholesterol for energy production
-    const lipidBonus = lipid instanceof FattyAcid ? 2.5 : 1.5;
-    const uptakeRate = environment.thermalEnergy * 0.001 * lipidBonus;
-    const amount = Math.min(uptakeRate, 1.0);
-
-    this.energyReserves.replenish(amount);
-
-    const uptake: NutrientUptake = { nutrientType: lipid.toString(), amount };
-    this.uptakeHistory.push(uptake);
-
-    return uptake;
+  private getNutrientEfficiency(nutrient: Nutrient): number {
+    switch (nutrient.category) {
+      case NutrientCategory.FATTY_ACID:
+        return 1.0;
+      case NutrientCategory.CHOLESTEROL:
+        return 0.6;
+      case NutrientCategory.AMINO_ACID:
+        return 0.5;
+      case NutrientCategory.GLUCOSE:
+        return 0.3;
+      case NutrientCategory.GLYCEROL:
+        return 0.2;
+      default:
+        return 0.3;
+    }
   }
 
   /**

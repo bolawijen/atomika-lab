@@ -3,6 +3,27 @@ import { Atom } from "@atomika-lab/core";
 import { ELEMENTS } from "@atomika-lab/core";
 
 /**
+ * Nutrient category — classifies the biochemical type of a nutrient molecule.
+ */
+export enum NutrientCategory {
+  FATTY_ACID = "fatty-acid",
+  CHOLESTEROL = "cholesterol",
+  AMINO_ACID = "amino-acid",
+  GLUCOSE = "glucose",
+  GLYCEROL = "glycerol",
+}
+
+/**
+ * Nutrient molecule — any molecule that can be metabolized for energy.
+ */
+export interface Nutrient {
+  /** Biochemical classification of the nutrient. */
+  readonly category: NutrientCategory;
+  /** Molecular representation. */
+  readonly molecule: Molecule;
+}
+
+/**
  * Lipid molecule — hydrophobic or amphiphilic biomolecule.
  *
  * Lipids serve as energy reserves, structural membrane components,
@@ -35,7 +56,19 @@ export enum SaturationLevel {
  * such as Mycobacterium tuberculosis. Fatty acids are obtained
  * from host cell membranes during infection.
  */
-export class FattyAcid extends Lipid {
+export class FattyAcid extends Lipid implements Nutrient {
+  /**
+   * Biochemical category — always fatty acid.
+   */
+  readonly category = NutrientCategory.FATTY_ACID;
+
+  /**
+   * Molecular representation — this instance.
+   */
+  get molecule(): Molecule {
+    return this;
+  }
+
   /**
    * Number of carbon atoms in the hydrocarbon chain.
    * Typical range: 12–24 for biological fatty acids.
@@ -109,7 +142,19 @@ export class FattyAcid extends Lipid {
  * Molecular formula: C₂₇H₄₆O
  * Molecular weight: 386.65 Da
  */
-export class Cholesterol extends Lipid {
+export class Cholesterol extends Lipid implements Nutrient {
+  /**
+   * Biochemical category — always cholesterol.
+   */
+  readonly category = NutrientCategory.CHOLESTEROL;
+
+  /**
+   * Molecular representation — this instance.
+   */
+  get molecule(): Molecule {
+    return this;
+  }
+
   /**
    * Number of carbon atoms in the sterol backbone.
    */

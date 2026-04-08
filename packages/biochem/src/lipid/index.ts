@@ -1,1 +1,1 @@
-export { Lipid, FattyAcid, Cholesterol, SaturationLevel } from "./Lipid";
+export { Lipid, FattyAcid, Cholesterol, SaturationLevel, NutrientCategory, type Nutrient } from "./Lipid";
