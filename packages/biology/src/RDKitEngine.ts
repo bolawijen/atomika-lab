@@ -1,4 +1,40 @@
 import * as initRDKitModule from "@rdkit/rdkit";
+import { Atom } from "@atomika-lab/core";
+
+/**
+ * RDKit molecule instance interface.
+ * Represents a molecular structure managed by the RDKit library.
+ */
+export interface RDKitMol {
+  get_substruct_matches(query: RDKitQmol): number[][];
+  get_descriptors(): Record<string, unknown>;
+  get_atom_with_idx(index: number): RDKitAtom | null;
+  get_morgan_fp(radius: number): Uint8Array;
+  delete(): void;
+}
+
+/**
+ * RDKit query molecule interface for substructure matching.
+ */
+export interface RDKitQmol {
+  delete(): void;
+}
+
+/**
+ * RDKit atom interface.
+ */
+export interface RDKitAtom {
+  get_chiral_tag(): string;
+}
+
+/**
+ * RDKit module interface.
+ */
+export interface RDKitModule {
+  get_mol(smiles: string): RDKitMol | null;
+  get_qmol(smarts: string): RDKitQmol | null;
+  tanimoto_similarity(fp1: Uint8Array, fp2: Uint8Array): number;
+}
 
 /**
  * Computational representation of molecular structures and stereochemistry.
@@ -12,7 +48,7 @@ import * as initRDKitModule from "@rdkit/rdkit";
  */
 export class RDKitEngine {
   private static instance: RDKitEngine | null = null;
-  private rdkit: any = null;
+  private rdkit: RDKitModule | null = null;
   private initialized = false;
 
   private constructor() {}
@@ -33,25 +69,25 @@ export class RDKitEngine {
    */
   private async initialize(): Promise<void> {
     if (this.initialized) return;
-    this.rdkit = await (initRDKitModule as any).default();
+    this.rdkit = await (initRDKitModule as unknown as RDKitModule);
     this.initialized = true;
   }
 
   /**
    * Creates an RDKit molecule from a SMILES string.
    */
-  createMolecule(smiles: string): any {
+  createMolecule(smiles: string): RDKitMol | null {
     if (!this.initialized) throw new Error("RDKit not initialized");
-    return this.rdkit.get_mol(smiles);
+    return this.rdkit!.get_mol(smiles);
   }
 
   /**
    * Finds all substructure matches for a SMARTS pattern in the given molecule.
    * Returns a sequence of atomic coordinates for each matched pattern.
    */
-  matchSmarts(mol: any, smartsPattern: string): number[][] {
+  matchSmarts(mol: RDKitMol, smartsPattern: string): number[][] {
     if (!this.initialized) throw new Error("RDKit not initialized");
-    const query = this.rdkit.get_qmol(smartsPattern);
+    const query = this.rdkit!.get_qmol(smartsPattern);
     if (!query) return [];
     const matches = mol.get_substruct_matches(query);
     query.delete();
@@ -62,10 +98,9 @@ export class RDKitEngine {
    * Computes the Morgan fingerprint (ECFP-like) for a molecule.
    * Returns a binary fingerprint as a Uint8Array.
    */
-  getMorganFingerprint(mol: any, radius: number = 2): Uint8Array {
+  getMorganFingerprint(mol: RDKitMol, radius: number = 2): Uint8Array {
     if (!this.initialized) throw new Error("RDKit not initialized");
-    const fp = mol.get_morgan_fp(radius);
-    return fp;
+    return mol.get_morgan_fp(radius);
   }
 
   /**
@@ -74,22 +109,22 @@ export class RDKitEngine {
    */
   tanimotoSimilarity(fp1: Uint8Array, fp2: Uint8Array): number {
     if (!this.initialized) throw new Error("RDKit not initialized");
-    return this.rdkit.tanimoto_similarity(fp1, fp2);
+    return this.rdkit!.tanimoto_similarity(fp1, fp2);
   }
 
   /**
    * Counts the number of chiral centers in the molecule.
    */
-  countChiralCenters(mol: any): number {
+  countChiralCenters(mol: RDKitMol): number {
     if (!this.initialized) throw new Error("RDKit not initialized");
     const descriptors = mol.get_descriptors();
-    return descriptors.NumChiralCenters || 0;
+    return (descriptors.NumChiralCenters as number) || 0;
   }
 
   /**
    * Checks whether the molecule has the specified chirality at a given atom index.
    */
-  getChiralTag(mol: any, atomIndex: number): string {
+  getChiralTag(mol: RDKitMol, atomIndex: number): string {
     if (!this.initialized) throw new Error("RDKit not initialized");
     const atom = mol.get_atom_with_idx(atomIndex);
     if (!atom) return "";
@@ -100,13 +135,13 @@ export class RDKitEngine {
    * Parses a SMILES string and returns the atomic composition as a map.
    * Uses RDKit's formula descriptor for accurate atom counting.
    */
-  getAtomicCompositionFromSmiles(smiles: string): Map<any, number> {
+  getAtomicCompositionFromSmiles(smiles: string): Map<Atom, number> {
     if (!this.initialized) throw new Error("RDKit not initialized");
-    const mol = this.rdkit.get_mol(smiles);
+    const mol = this.rdkit!.get_mol(smiles);
     if (!mol) return new Map();
 
     const descriptors = mol.get_descriptors();
-    const formula = descriptors.formula || "";
+    const formula = (descriptors.formula as string) || "";
     mol.delete();
 
     return this.#parseFormula(formula);
@@ -117,10 +152,10 @@ export class RDKitEngine {
    */
   getMolecularWeight(smiles: string): number {
     if (!this.initialized) throw new Error("RDKit not initialized");
-    const mol = this.rdkit.get_mol(smiles);
+    const mol = this.rdkit!.get_mol(smiles);
     if (!mol) return 0;
     const descriptors = mol.get_descriptors();
-    const weight = descriptors.amw || 0;
+    const weight = (descriptors.amw as number) || 0;
     mol.delete();
     return weight;
   }
@@ -131,10 +166,10 @@ export class RDKitEngine {
    */
   getLogP(smiles: string): number {
     if (!this.initialized) throw new Error("RDKit not initialized");
-    const mol = this.rdkit.get_mol(smiles);
+    const mol = this.rdkit!.get_mol(smiles);
     if (!mol) return 0;
     const descriptors = mol.get_descriptors();
-    const logP = descriptors.MolLogP || 0;
+    const logP = (descriptors.MolLogP as number) || 0;
     mol.delete();
     return logP;
   }
@@ -143,9 +178,9 @@ export class RDKitEngine {
    * Parses a chemical formula into an atom count map.
    * E.g., "C6H12O6" → Map{C: 6, H: 12, O: 6}
    */
-  #parseFormula(formula: string): Map<any, number> {
+  #parseFormula(formula: string): Map<Atom, number> {
     const { ELEMENTS } = require("../../Element");
-    const counts = new Map<any, number>();
+    const counts = new Map<Atom, number>();
 
     // Match element symbols followed by optional numbers
     const regex = /([A-Z][a-z]?)(\d*)/g;
@@ -157,8 +192,8 @@ export class RDKitEngine {
 
       // Find matching element in our registry
       for (const [, atom] of Object.entries(ELEMENTS)) {
-        if ((atom as any).symbol === symbol) {
-          counts.set(atom, (counts.get(atom) || 0) + count);
+        if ((atom as Atom).symbol === symbol) {
+          counts.set(atom as Atom, (counts.get(atom as Atom) || 0) + count);
           break;
         }
       }
