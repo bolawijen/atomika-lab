@@ -1,5 +1,5 @@
 import { AminoAcid } from "./AminoAcid";
-import { Molecule } from "@atomika-lab/core";
+import { BioMolecule, BiomoleculeCategory, MetabolicRole, CellularLocation } from "./BioMolecule";
 import { Atom } from "@atomika-lab/core";
 import { ELEMENTS } from "@atomika-lab/core";
 
@@ -7,7 +7,21 @@ import { ELEMENTS } from "@atomika-lab/core";
  * A polypeptide chain — a sequence of amino acids linked by peptide bonds.
  * Each peptide bond forms via condensation, releasing one H₂O molecule.
  */
-export class ProteinChain extends Molecule {
+export class ProteinChain extends BioMolecule {
+  /**
+   * Biochemical classification — always protein.
+   */
+  readonly biomoleculeCategory = BiomoleculeCategory.PROTEIN;
+
+  /**
+   * Primary metabolic role — catalytic and structural functions.
+   */
+  readonly metabolicRole = MetabolicRole.CATALYTIC;
+
+  /**
+   * Typical cellular location — dissolved in cytoplasm.
+   */
+  readonly cellularLocation = CellularLocation.CYTOPLASM;
   sequence: AminoAcid[];
 
   constructor(sequence: AminoAcid[] = []) {

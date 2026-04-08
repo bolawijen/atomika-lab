@@ -1,3 +1,4 @@
+import { BioMolecule } from "../BioMolecule";
 import { Glucose } from "../saccharide/Glucose";
 import { Dextrin } from "../saccharide/Dextrin";
 import { Monosaccharide } from "../saccharide/Monosaccharide";
@@ -72,7 +73,7 @@ export class Isoamylase extends Enzyme {
    * @param environment Reaction conditions (temperature, pH, duration).
    * @returns ReactionResult containing linearized polysaccharide products.
    */
-  digest(substrate: Saccharide, environment: Environment = PHYSIOLOGICAL_CONDITIONS): ReactionResult {
+  digest(substrate: BioMolecule, environment: Environment = PHYSIOLOGICAL_CONDITIONS): ReactionResult {
     const validatedSubstrate = this.#validateSubstrateSpecificity(substrate);
     if (!validatedSubstrate) {
       return this.#emptyResult();
@@ -139,7 +140,7 @@ export class Isoamylase extends Enzyme {
   /**
    * Validates that the substrate is a branched polysaccharide with α-1,6 linkages.
    */
-  #validateSubstrateSpecificity(substrate: Saccharide): Polysaccharide | null {
+  #validateSubstrateSpecificity(substrate: BioMolecule): Polysaccharide | null {
     if (!(substrate instanceof Polysaccharide)) return null;
     if (substrate.branchCount === 0) return null;
     return substrate;

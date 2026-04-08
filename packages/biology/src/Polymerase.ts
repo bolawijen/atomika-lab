@@ -1,4 +1,4 @@
-import { Enzyme, ProteinChain, AminoAcid, Saccharide } from "@atomika-lab/biochem";
+import { Enzyme, ProteinChain, AminoAcid, BioMolecule } from "@atomika-lab/biochem";
 import { NucleicAcidChain } from "./NucleicAcidChain";
 import { Nucleotide, NitrogenousBase, NucleicAcidType } from "./Nucleotide";
 import { Environment, PHYSIOLOGICAL_CONDITIONS, Molecule } from "@atomika-lab/core";
@@ -76,7 +76,7 @@ export class Polymerase extends Enzyme {
    * @param environment Reaction conditions (temperature, pH, duration, solutes).
    * RNA transcript formed by complementary base pairing with the DNA template.
    */
-  digest(substrate: Saccharide, environment: Environment = PHYSIOLOGICAL_CONDITIONS): ReactionResult {
+  digest(substrate: BioMolecule, environment: Environment = PHYSIOLOGICAL_CONDITIONS): ReactionResult {
     // Active site occupied — transcription blocked
     if (this.activeSiteOccupant) {
       return this.#emptyResult();
@@ -151,7 +151,7 @@ export class Polymerase extends Enzyme {
     );
   }
 
-  #validateSubstrate(substrate: Saccharide): NucleicAcidChain | null {
+  #validateSubstrate(substrate: BioMolecule): NucleicAcidChain | null {
     if (!(substrate instanceof NucleicAcidChain)) return null;
     if (substrate.type !== NucleicAcidType.DNA) return null;
     return substrate;

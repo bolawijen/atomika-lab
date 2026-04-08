@@ -1,5 +1,6 @@
 export { AminoAcid } from "./AminoAcid";
 export { ProteinChain } from "./ProteinChain";
+export { BioMolecule, BiomoleculeCategory, MetabolicRole, CellularLocation } from "./BioMolecule";
 export { ActivityProfile } from "./ActivityProfile";
 export { AffinityModeler } from "./AffinityModeler";
 export { ThermodynamicsCalculator } from "./ThermodynamicsCalculator";

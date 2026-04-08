@@ -1,6 +1,6 @@
 import { ProteinChain } from "@atomika-lab/biochem";
 import { AminoAcid } from "@atomika-lab/biochem";
-import { Saccharide } from "../saccharide/Saccharide";
+import { BioMolecule } from "../BioMolecule";
 import { Molecule } from "@atomika-lab/core";
 import { ReactionResult } from "../ReactionResult";
 import { Environment } from "@atomika-lab/core";
@@ -13,11 +13,11 @@ export abstract class Enzyme extends ProteinChain {
   /**
    * Catalytic transformation of the substrate into reaction products.
    *
-   * @param substrate The molecule(s) that the enzyme acts upon.
+   * @param substrate The biomolecule(s) that the enzyme acts upon.
    * @param environment Reaction conditions affecting catalytic rate.
    * Complete reaction outcome including products and kinetic metadata.
    */
-  abstract digest(substrate: Saccharide, environment?: Environment): ReactionResult;
+  abstract digest(substrate: BioMolecule, environment?: Environment): ReactionResult;
 
   /**
    * Creates an enzyme from a sequence of amino acids.

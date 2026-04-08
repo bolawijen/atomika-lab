@@ -1,3 +1,4 @@
+import { BioMolecule } from "../BioMolecule";
 import { Glucose } from "../saccharide/Glucose";
 import { Maltose } from "../saccharide/Maltose";
 import { Monosaccharide } from "../saccharide/Monosaccharide";
@@ -89,7 +90,7 @@ export class Maltase extends Enzyme {
    * @param environment Reaction conditions (temperature, pH, duration, solutes).
    * @returns ReactionResult containing the glucose products and kinetic history.
    */
-  digest(substrate: Saccharide, environment: Environment = PHYSIOLOGICAL_CONDITIONS): ReactionResult {
+  digest(substrate: BioMolecule, environment: Environment = PHYSIOLOGICAL_CONDITIONS): ReactionResult {
     const vessel = new ReactionVessel(environment);
     const kinetics: EnzymeKinetics = {
       kCat: this.KCAT,
@@ -166,7 +167,7 @@ export class Maltase extends Enzyme {
     );
   }
 
-  #validateSubstrateSpecificity(substrate: Saccharide): Maltose | null {
+  #validateSubstrateSpecificity(substrate: BioMolecule): Maltose | null {
     if (!(substrate instanceof Maltose)) return null;
     return substrate;
   }

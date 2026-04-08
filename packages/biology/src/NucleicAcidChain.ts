@@ -1,4 +1,4 @@
-import { Molecule } from "@atomika-lab/core";
+import { BioMolecule, BiomoleculeCategory, MetabolicRole, CellularLocation } from "@atomika-lab/biochem";
 import { Atom } from "@atomika-lab/core";
 import { Nucleotide, NitrogenousBase, NucleicAcidType } from "./Nucleotide";
 
@@ -6,7 +6,21 @@ import { Nucleotide, NitrogenousBase, NucleicAcidType } from "./Nucleotide";
  * A polynucleotide chain — a sequence of nucleotides linked by phosphodiester bonds.
  * Forms the structural basis of genetic material.
  */
-export class NucleicAcidChain extends Molecule {
+export class NucleicAcidChain extends BioMolecule {
+  /**
+   * Biochemical classification — always nucleic acid.
+   */
+  readonly biomoleculeCategory = BiomoleculeCategory.NUCLEIC_ACID;
+
+  /**
+   * Primary metabolic role — stores and transmits hereditary information.
+   */
+  readonly metabolicRole = MetabolicRole.GENETIC;
+
+  /**
+   * Typical cellular location — within the nucleus or nucleoid region.
+   */
+  readonly cellularLocation = CellularLocation.NUCLEUS;
   readonly sequence: Nucleotide[];
   readonly type: NucleicAcidType;
 

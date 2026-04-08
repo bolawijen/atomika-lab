@@ -1,4 +1,4 @@
-import { Molecule } from "@atomika-lab/core";
+import { BioMolecule, BiomoleculeCategory, MetabolicRole, CellularLocation } from "./BioMolecule";
 import { Atom } from "@atomika-lab/core";
 import { Chirality } from "@atomika-lab/core";
 
@@ -7,7 +7,21 @@ import { Chirality } from "@atomika-lab/core";
  * Each amino acid has a characteristic atomic composition.
  * Natural amino acids in proteins are L-isomers.
  */
-export class AminoAcid extends Molecule {
+export class AminoAcid extends BioMolecule {
+  /**
+   * Biochemical classification — always amino acid.
+   */
+  readonly biomoleculeCategory = BiomoleculeCategory.AMINO_ACID;
+
+  /**
+   * Primary metabolic role — building block for protein synthesis.
+   */
+  readonly metabolicRole = MetabolicRole.STRUCTURAL;
+
+  /**
+   * Typical cellular location — dissolved in cytoplasm.
+   */
+  readonly cellularLocation = CellularLocation.CYTOPLASM;
   name: string;
   threeLetterCode: string;
   oneLetterCode: string;

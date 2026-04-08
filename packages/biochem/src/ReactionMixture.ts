@@ -1,23 +1,23 @@
-import { Saccharide } from "./saccharide/Saccharide";
+import { BioMolecule } from "./BioMolecule";
 
 /**
  * The accumulated product mixture from an enzymatic hydrolysis reaction.
  * Tracks all species present in the reaction vessel.
  */
 export class ReactionMixture {
-  private products: Saccharide[] = [];
+  private products: BioMolecule[] = [];
 
   /**
    * Adds hydrolysis products to the reaction mixture.
    */
-  add(products: Saccharide[]): void {
+  add(products: BioMolecule[]): void {
     this.products.push(...products);
   }
 
   /**
    * All species present in the reaction vessel.
    */
-  getAll(): ReadonlyArray<Saccharide> {
+  getAll(): ReadonlyArray<BioMolecule> {
     return this.products;
   }
 

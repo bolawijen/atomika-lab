@@ -1,4 +1,10 @@
 export {
+  BioMolecule,
+  BiomoleculeCategory,
+  MetabolicRole,
+  CellularLocation,
+} from "@atomika-lab/biochem";
+export {
   BacterialCell,
   MycobacteriumTuberculosis,
   CellWall,

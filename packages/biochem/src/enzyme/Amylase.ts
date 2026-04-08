@@ -13,6 +13,7 @@ import { StructuralFingerprint } from "@atomika-lab/core";
 import { Chirality } from "@atomika-lab/core";
 import { LawsOfPhysics } from "@atomika-lab/core";
 import { AffinityModeler } from "@atomika-lab/biochem";
+import { BioMolecule } from "../BioMolecule";
 
 /**
  * SMARTS pattern for α-1,4-glycosidic linkage — the target of α-amylase.
@@ -135,7 +136,7 @@ export class Amylase extends Enzyme {
    * @param environment Reaction conditions (temperature, pH, duration, solutes).
    * @returns ReactionResult containing the product mixture, kinetic history, and metadata.
    */
-  digest(substrate: Saccharide, environment: Environment = PHYSIOLOGICAL_CONDITIONS): ReactionResult {
+  digest(substrate: BioMolecule, environment: Environment = PHYSIOLOGICAL_CONDITIONS): ReactionResult {
     const validatedSubstrate = this.#validateSubstrateSpecificity(substrate);
     if (!validatedSubstrate) {
       return this.#reportInertState();
@@ -314,7 +315,7 @@ export class Amylase extends Enzyme {
    * Validates substrate specificity: the substrate must be a polysaccharide
    * with α-1,4-glycosidic bonds and sufficient chain length.
    */
-  #validateSubstrateSpecificity(substrate: Saccharide): Polysaccharide | null {
+  #validateSubstrateSpecificity(substrate: BioMolecule): Polysaccharide | null {
     if (!(substrate instanceof Polysaccharide)) return null;
     if (substrate.bondType !== GlycosidicBondType.ALPHA_1_4) return null;
     if (substrate.count < 2) return null;

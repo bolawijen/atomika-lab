@@ -1,3 +1,4 @@
+import { BioMolecule, BiomoleculeCategory, MetabolicRole, CellularLocation } from "../BioMolecule";
 import { Molecule } from "@atomika-lab/core";
 import { Atom } from "@atomika-lab/core";
 import { ELEMENTS } from "@atomika-lab/core";
@@ -30,7 +31,22 @@ export interface Nutrient {
  * and signaling molecules. They are insoluble in water but soluble
  * in organic solvents.
  */
-export abstract class Lipid extends Molecule {
+export abstract class Lipid extends BioMolecule {
+  /**
+   * Biochemical classification — always lipid.
+   */
+  readonly biomoleculeCategory = BiomoleculeCategory.LIPID;
+
+  /**
+   * Primary metabolic role — energy storage and membrane structure.
+   */
+  readonly metabolicRole = MetabolicRole.STORAGE;
+
+  /**
+   * Typical cellular location — embedded in membranes.
+   */
+  readonly cellularLocation = CellularLocation.MEMBRANE;
+
   /**
    * Number of carbon atoms in the hydrocarbon backbone.
    */
