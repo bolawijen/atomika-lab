@@ -1,94 +1,104 @@
 import { AminoAcid, ProteinChain } from "@atomika-lab/biochem";
-import { Environment, PHYSIOLOGICAL_CONDITIONS, ELEMENTS } from "@atomika-lab/core";
+import { Environment, PHYSIOLOGICAL_CONDITIONS, ELEMENTS, Atom } from "@atomika-lab/core";
 import { ReactionMixture, ReactionResult, type KineticSnapshot, ReactionVessel, type EnzymeKinetics } from "@atomika-lab/biochem";
 import { LawsOfPhysics } from "@atomika-lab/core";
 import { NucleicAcidChain } from "./NucleicAcidChain";
 
 /**
+ * Amino acid composition record with atomic stoichiometry.
+ */
+interface AminoAcidComposition {
+  name: string;
+  threeLetter: string;
+  oneLetter: string;
+  composition: Map<Atom, number>;
+}
+
+/**
  * Standard genetic code — maps RNA codons (triplets) to amino acids.
  */
-const GENETIC_CODE: ReadonlyMap<string, { name: string; threeLetter: string; oneLetter: string; composition: Map<any, number> }> = new Map([
-  // Phenylalanine
-  ["UUU", { name: "Phenylalanine", threeLetter: "Phe", oneLetter: "F", composition: new Map() }],
-  ["UUC", { name: "Phenylalanine", threeLetter: "Phe", oneLetter: "F", composition: new Map() }],
-  // Leucine
-  ["UUA", { name: "Leucine", threeLetter: "Leu", oneLetter: "L", composition: new Map() }],
-  ["UUG", { name: "Leucine", threeLetter: "Leu", oneLetter: "L", composition: new Map() }],
-  ["CUU", { name: "Leucine", threeLetter: "Leu", oneLetter: "L", composition: new Map() }],
-  ["CUC", { name: "Leucine", threeLetter: "Leu", oneLetter: "L", composition: new Map() }],
-  ["CUA", { name: "Leucine", threeLetter: "Leu", oneLetter: "L", composition: new Map() }],
-  ["CUG", { name: "Leucine", threeLetter: "Leu", oneLetter: "L", composition: new Map() }],
-  // Isoleucine
-  ["AUU", { name: "Isoleucine", threeLetter: "Ile", oneLetter: "I", composition: new Map() }],
-  ["AUC", { name: "Isoleucine", threeLetter: "Ile", oneLetter: "I", composition: new Map() }],
-  ["AUA", { name: "Isoleucine", threeLetter: "Ile", oneLetter: "I", composition: new Map() }],
-  // Methionine (Start)
-  ["AUG", { name: "Methionine", threeLetter: "Met", oneLetter: "M", composition: new Map() }],
-  // Valine
-  ["GUU", { name: "Valine", threeLetter: "Val", oneLetter: "V", composition: new Map() }],
-  ["GUC", { name: "Valine", threeLetter: "Val", oneLetter: "V", composition: new Map() }],
-  ["GUA", { name: "Valine", threeLetter: "Val", oneLetter: "V", composition: new Map() }],
-  ["GUG", { name: "Valine", threeLetter: "Val", oneLetter: "V", composition: new Map() }],
-  // Serine
-  ["UCU", { name: "Serine", threeLetter: "Ser", oneLetter: "S", composition: new Map() }],
-  ["UCC", { name: "Serine", threeLetter: "Ser", oneLetter: "S", composition: new Map() }],
-  ["UCA", { name: "Serine", threeLetter: "Ser", oneLetter: "S", composition: new Map() }],
-  ["UCG", { name: "Serine", threeLetter: "Ser", oneLetter: "S", composition: new Map() }],
-  ["AGU", { name: "Serine", threeLetter: "Ser", oneLetter: "S", composition: new Map() }],
-  ["AGC", { name: "Serine", threeLetter: "Ser", oneLetter: "S", composition: new Map() }],
-  // Proline
-  ["CCU", { name: "Proline", threeLetter: "Pro", oneLetter: "P", composition: new Map() }],
-  ["CCC", { name: "Proline", threeLetter: "Pro", oneLetter: "P", composition: new Map() }],
-  ["CCA", { name: "Proline", threeLetter: "Pro", oneLetter: "P", composition: new Map() }],
-  ["CCG", { name: "Proline", threeLetter: "Pro", oneLetter: "P", composition: new Map() }],
-  // Threonine
-  ["ACU", { name: "Threonine", threeLetter: "Thr", oneLetter: "T", composition: new Map() }],
-  ["ACC", { name: "Threonine", threeLetter: "Thr", oneLetter: "T", composition: new Map() }],
-  ["ACA", { name: "Threonine", threeLetter: "Thr", oneLetter: "T", composition: new Map() }],
-  ["ACG", { name: "Threonine", threeLetter: "Thr", oneLetter: "T", composition: new Map() }],
-  // Alanine
-  ["GCU", { name: "Alanine", threeLetter: "Ala", oneLetter: "A", composition: new Map() }],
-  ["GCC", { name: "Alanine", threeLetter: "Ala", oneLetter: "A", composition: new Map() }],
-  ["GCA", { name: "Alanine", threeLetter: "Ala", oneLetter: "A", composition: new Map() }],
-  ["GCG", { name: "Alanine", threeLetter: "Ala", oneLetter: "A", composition: new Map() }],
-  // Tyrosine
-  ["UAU", { name: "Tyrosine", threeLetter: "Tyr", oneLetter: "Y", composition: new Map() }],
-  ["UAC", { name: "Tyrosine", threeLetter: "Tyr", oneLetter: "Y", composition: new Map() }],
-  // Histidine
-  ["CAU", { name: "Histidine", threeLetter: "His", oneLetter: "H", composition: new Map() }],
-  ["CAC", { name: "Histidine", threeLetter: "His", oneLetter: "H", composition: new Map() }],
-  // Glutamine
-  ["CAA", { name: "Glutamine", threeLetter: "Gln", oneLetter: "Q", composition: new Map() }],
-  ["CAG", { name: "Glutamine", threeLetter: "Gln", oneLetter: "Q", composition: new Map() }],
-  // Asparagine
-  ["AAU", { name: "Asparagine", threeLetter: "Asn", oneLetter: "N", composition: new Map() }],
-  ["AAC", { name: "Asparagine", threeLetter: "Asn", oneLetter: "N", composition: new Map() }],
-  // Lysine
-  ["AAA", { name: "Lysine", threeLetter: "Lys", oneLetter: "K", composition: new Map() }],
-  ["AAG", { name: "Lysine", threeLetter: "Lys", oneLetter: "K", composition: new Map() }],
-  // Aspartic Acid
-  ["GAU", { name: "Aspartic Acid", threeLetter: "Asp", oneLetter: "D", composition: new Map() }],
-  ["GAC", { name: "Aspartic Acid", threeLetter: "Asp", oneLetter: "D", composition: new Map() }],
-  // Glutamic Acid
-  ["GAA", { name: "Glutamic Acid", threeLetter: "Glu", oneLetter: "E", composition: new Map() }],
-  ["GAG", { name: "Glutamic Acid", threeLetter: "Glu", oneLetter: "E", composition: new Map() }],
-  // Cysteine
-  ["UGU", { name: "Cysteine", threeLetter: "Cys", oneLetter: "C", composition: new Map() }],
-  ["UGC", { name: "Cysteine", threeLetter: "Cys", oneLetter: "C", composition: new Map() }],
-  // Tryptophan
-  ["UGG", { name: "Tryptophan", threeLetter: "Trp", oneLetter: "W", composition: new Map() }],
-  // Arginine
-  ["CGU", { name: "Arginine", threeLetter: "Arg", oneLetter: "R", composition: new Map() }],
-  ["CGC", { name: "Arginine", threeLetter: "Arg", oneLetter: "R", composition: new Map() }],
-  ["CGA", { name: "Arginine", threeLetter: "Arg", oneLetter: "R", composition: new Map() }],
-  ["CGG", { name: "Arginine", threeLetter: "Arg", oneLetter: "R", composition: new Map() }],
-  ["AGA", { name: "Arginine", threeLetter: "Arg", oneLetter: "R", composition: new Map() }],
-  ["AGG", { name: "Arginine", threeLetter: "Arg", oneLetter: "R", composition: new Map() }],
-  // Glycine
-  ["GGU", { name: "Glycine", threeLetter: "Gly", oneLetter: "G", composition: new Map() }],
-  ["GGC", { name: "Glycine", threeLetter: "Gly", oneLetter: "G", composition: new Map() }],
-  ["GGA", { name: "Glycine", threeLetter: "Gly", oneLetter: "G", composition: new Map() }],
-  ["GGG", { name: "Glycine", threeLetter: "Gly", oneLetter: "G", composition: new Map() }],
+const GENETIC_CODE: ReadonlyMap<string, AminoAcidComposition> = new Map([
+  // Phenylalanine (C9H11NO2)
+  ["UUU", { name: "Phenylalanine", threeLetter: "Phe", oneLetter: "F", composition: new Map([[ELEMENTS.C, 9], [ELEMENTS.H, 11], [ELEMENTS.N, 1], [ELEMENTS.O, 2]]) }],
+  ["UUC", { name: "Phenylalanine", threeLetter: "Phe", oneLetter: "F", composition: new Map([[ELEMENTS.C, 9], [ELEMENTS.H, 11], [ELEMENTS.N, 1], [ELEMENTS.O, 2]]) }],
+  // Leucine (C6H13NO2)
+  ["UUA", { name: "Leucine", threeLetter: "Leu", oneLetter: "L", composition: new Map([[ELEMENTS.C, 6], [ELEMENTS.H, 13], [ELEMENTS.N, 1], [ELEMENTS.O, 2]]) }],
+  ["UUG", { name: "Leucine", threeLetter: "Leu", oneLetter: "L", composition: new Map([[ELEMENTS.C, 6], [ELEMENTS.H, 13], [ELEMENTS.N, 1], [ELEMENTS.O, 2]]) }],
+  ["CUU", { name: "Leucine", threeLetter: "Leu", oneLetter: "L", composition: new Map([[ELEMENTS.C, 6], [ELEMENTS.H, 13], [ELEMENTS.N, 1], [ELEMENTS.O, 2]]) }],
+  ["CUC", { name: "Leucine", threeLetter: "Leu", oneLetter: "L", composition: new Map([[ELEMENTS.C, 6], [ELEMENTS.H, 13], [ELEMENTS.N, 1], [ELEMENTS.O, 2]]) }],
+  ["CUA", { name: "Leucine", threeLetter: "Leu", oneLetter: "L", composition: new Map([[ELEMENTS.C, 6], [ELEMENTS.H, 13], [ELEMENTS.N, 1], [ELEMENTS.O, 2]]) }],
+  ["CUG", { name: "Leucine", threeLetter: "Leu", oneLetter: "L", composition: new Map([[ELEMENTS.C, 6], [ELEMENTS.H, 13], [ELEMENTS.N, 1], [ELEMENTS.O, 2]]) }],
+  // Isoleucine (C6H13NO2)
+  ["AUU", { name: "Isoleucine", threeLetter: "Ile", oneLetter: "I", composition: new Map([[ELEMENTS.C, 6], [ELEMENTS.H, 13], [ELEMENTS.N, 1], [ELEMENTS.O, 2]]) }],
+  ["AUC", { name: "Isoleucine", threeLetter: "Ile", oneLetter: "I", composition: new Map([[ELEMENTS.C, 6], [ELEMENTS.H, 13], [ELEMENTS.N, 1], [ELEMENTS.O, 2]]) }],
+  ["AUA", { name: "Isoleucine", threeLetter: "Ile", oneLetter: "I", composition: new Map([[ELEMENTS.C, 6], [ELEMENTS.H, 13], [ELEMENTS.N, 1], [ELEMENTS.O, 2]]) }],
+  // Methionine (C5H11NO2S)
+  ["AUG", { name: "Methionine", threeLetter: "Met", oneLetter: "M", composition: new Map([[ELEMENTS.C, 5], [ELEMENTS.H, 11], [ELEMENTS.N, 1], [ELEMENTS.O, 2], [ELEMENTS.S, 1]]) }],
+  // Valine (C5H11NO2)
+  ["GUU", { name: "Valine", threeLetter: "Val", oneLetter: "V", composition: new Map([[ELEMENTS.C, 5], [ELEMENTS.H, 11], [ELEMENTS.N, 1], [ELEMENTS.O, 2]]) }],
+  ["GUC", { name: "Valine", threeLetter: "Val", oneLetter: "V", composition: new Map([[ELEMENTS.C, 5], [ELEMENTS.H, 11], [ELEMENTS.N, 1], [ELEMENTS.O, 2]]) }],
+  ["GUA", { name: "Valine", threeLetter: "Val", oneLetter: "V", composition: new Map([[ELEMENTS.C, 5], [ELEMENTS.H, 11], [ELEMENTS.N, 1], [ELEMENTS.O, 2]]) }],
+  ["GUG", { name: "Valine", threeLetter: "Val", oneLetter: "V", composition: new Map([[ELEMENTS.C, 5], [ELEMENTS.H, 11], [ELEMENTS.N, 1], [ELEMENTS.O, 2]]) }],
+  // Serine (C3H7NO3)
+  ["UCU", { name: "Serine", threeLetter: "Ser", oneLetter: "S", composition: new Map([[ELEMENTS.C, 3], [ELEMENTS.H, 7], [ELEMENTS.N, 1], [ELEMENTS.O, 3]]) }],
+  ["UCC", { name: "Serine", threeLetter: "Ser", oneLetter: "S", composition: new Map([[ELEMENTS.C, 3], [ELEMENTS.H, 7], [ELEMENTS.N, 1], [ELEMENTS.O, 3]]) }],
+  ["UCA", { name: "Serine", threeLetter: "Ser", oneLetter: "S", composition: new Map([[ELEMENTS.C, 3], [ELEMENTS.H, 7], [ELEMENTS.N, 1], [ELEMENTS.O, 3]]) }],
+  ["UCG", { name: "Serine", threeLetter: "Ser", oneLetter: "S", composition: new Map([[ELEMENTS.C, 3], [ELEMENTS.H, 7], [ELEMENTS.N, 1], [ELEMENTS.O, 3]]) }],
+  ["AGU", { name: "Serine", threeLetter: "Ser", oneLetter: "S", composition: new Map([[ELEMENTS.C, 3], [ELEMENTS.H, 7], [ELEMENTS.N, 1], [ELEMENTS.O, 3]]) }],
+  ["AGC", { name: "Serine", threeLetter: "Ser", oneLetter: "S", composition: new Map([[ELEMENTS.C, 3], [ELEMENTS.H, 7], [ELEMENTS.N, 1], [ELEMENTS.O, 3]]) }],
+  // Proline (C5H9NO2)
+  ["CCU", { name: "Proline", threeLetter: "Pro", oneLetter: "P", composition: new Map([[ELEMENTS.C, 5], [ELEMENTS.H, 9], [ELEMENTS.N, 1], [ELEMENTS.O, 2]]) }],
+  ["CCC", { name: "Proline", threeLetter: "Pro", oneLetter: "P", composition: new Map([[ELEMENTS.C, 5], [ELEMENTS.H, 9], [ELEMENTS.N, 1], [ELEMENTS.O, 2]]) }],
+  ["CCA", { name: "Proline", threeLetter: "Pro", oneLetter: "P", composition: new Map([[ELEMENTS.C, 5], [ELEMENTS.H, 9], [ELEMENTS.N, 1], [ELEMENTS.O, 2]]) }],
+  ["CCG", { name: "Proline", threeLetter: "Pro", oneLetter: "P", composition: new Map([[ELEMENTS.C, 5], [ELEMENTS.H, 9], [ELEMENTS.N, 1], [ELEMENTS.O, 2]]) }],
+  // Threonine (C4H9NO3)
+  ["ACU", { name: "Threonine", threeLetter: "Thr", oneLetter: "T", composition: new Map([[ELEMENTS.C, 4], [ELEMENTS.H, 9], [ELEMENTS.N, 1], [ELEMENTS.O, 3]]) }],
+  ["ACC", { name: "Threonine", threeLetter: "Thr", oneLetter: "T", composition: new Map([[ELEMENTS.C, 4], [ELEMENTS.H, 9], [ELEMENTS.N, 1], [ELEMENTS.O, 3]]) }],
+  ["ACA", { name: "Threonine", threeLetter: "Thr", oneLetter: "T", composition: new Map([[ELEMENTS.C, 4], [ELEMENTS.H, 9], [ELEMENTS.N, 1], [ELEMENTS.O, 3]]) }],
+  ["ACG", { name: "Threonine", threeLetter: "Thr", oneLetter: "T", composition: new Map([[ELEMENTS.C, 4], [ELEMENTS.H, 9], [ELEMENTS.N, 1], [ELEMENTS.O, 3]]) }],
+  // Alanine (C3H7NO2)
+  ["GCU", { name: "Alanine", threeLetter: "Ala", oneLetter: "A", composition: new Map([[ELEMENTS.C, 3], [ELEMENTS.H, 7], [ELEMENTS.N, 1], [ELEMENTS.O, 2]]) }],
+  ["GCC", { name: "Alanine", threeLetter: "Ala", oneLetter: "A", composition: new Map([[ELEMENTS.C, 3], [ELEMENTS.H, 7], [ELEMENTS.N, 1], [ELEMENTS.O, 2]]) }],
+  ["GCA", { name: "Alanine", threeLetter: "Ala", oneLetter: "A", composition: new Map([[ELEMENTS.C, 3], [ELEMENTS.H, 7], [ELEMENTS.N, 1], [ELEMENTS.O, 2]]) }],
+  ["GCG", { name: "Alanine", threeLetter: "Ala", oneLetter: "A", composition: new Map([[ELEMENTS.C, 3], [ELEMENTS.H, 7], [ELEMENTS.N, 1], [ELEMENTS.O, 2]]) }],
+  // Tyrosine (C9H11NO3)
+  ["UAU", { name: "Tyrosine", threeLetter: "Tyr", oneLetter: "Y", composition: new Map([[ELEMENTS.C, 9], [ELEMENTS.H, 11], [ELEMENTS.N, 1], [ELEMENTS.O, 3]]) }],
+  ["UAC", { name: "Tyrosine", threeLetter: "Tyr", oneLetter: "Y", composition: new Map([[ELEMENTS.C, 9], [ELEMENTS.H, 11], [ELEMENTS.N, 1], [ELEMENTS.O, 3]]) }],
+  // Histidine (C6H9N3O2)
+  ["CAU", { name: "Histidine", threeLetter: "His", oneLetter: "H", composition: new Map([[ELEMENTS.C, 6], [ELEMENTS.H, 9], [ELEMENTS.N, 3], [ELEMENTS.O, 2]]) }],
+  ["CAC", { name: "Histidine", threeLetter: "His", oneLetter: "H", composition: new Map([[ELEMENTS.C, 6], [ELEMENTS.H, 9], [ELEMENTS.N, 3], [ELEMENTS.O, 2]]) }],
+  // Glutamine (C5H10N2O3)
+  ["CAA", { name: "Glutamine", threeLetter: "Gln", oneLetter: "Q", composition: new Map([[ELEMENTS.C, 5], [ELEMENTS.H, 10], [ELEMENTS.N, 2], [ELEMENTS.O, 3]]) }],
+  ["CAG", { name: "Glutamine", threeLetter: "Gln", oneLetter: "Q", composition: new Map([[ELEMENTS.C, 5], [ELEMENTS.H, 10], [ELEMENTS.N, 2], [ELEMENTS.O, 3]]) }],
+  // Asparagine (C4H8N2O3)
+  ["AAU", { name: "Asparagine", threeLetter: "Asn", oneLetter: "N", composition: new Map([[ELEMENTS.C, 4], [ELEMENTS.H, 8], [ELEMENTS.N, 2], [ELEMENTS.O, 3]]) }],
+  ["AAC", { name: "Asparagine", threeLetter: "Asn", oneLetter: "N", composition: new Map([[ELEMENTS.C, 4], [ELEMENTS.H, 8], [ELEMENTS.N, 2], [ELEMENTS.O, 3]]) }],
+  // Lysine (C6H14N2O2)
+  ["AAA", { name: "Lysine", threeLetter: "Lys", oneLetter: "K", composition: new Map([[ELEMENTS.C, 6], [ELEMENTS.H, 14], [ELEMENTS.N, 2], [ELEMENTS.O, 2]]) }],
+  ["AAG", { name: "Lysine", threeLetter: "Lys", oneLetter: "K", composition: new Map([[ELEMENTS.C, 6], [ELEMENTS.H, 14], [ELEMENTS.N, 2], [ELEMENTS.O, 2]]) }],
+  // Aspartic Acid (C4H7NO4)
+  ["GAU", { name: "Aspartic Acid", threeLetter: "Asp", oneLetter: "D", composition: new Map([[ELEMENTS.C, 4], [ELEMENTS.H, 7], [ELEMENTS.N, 1], [ELEMENTS.O, 4]]) }],
+  ["GAC", { name: "Aspartic Acid", threeLetter: "Asp", oneLetter: "D", composition: new Map([[ELEMENTS.C, 4], [ELEMENTS.H, 7], [ELEMENTS.N, 1], [ELEMENTS.O, 4]]) }],
+  // Glutamic Acid (C5H9NO4)
+  ["GAA", { name: "Glutamic Acid", threeLetter: "Glu", oneLetter: "E", composition: new Map([[ELEMENTS.C, 5], [ELEMENTS.H, 9], [ELEMENTS.N, 1], [ELEMENTS.O, 4]]) }],
+  ["GAG", { name: "Glutamic Acid", threeLetter: "Glu", oneLetter: "E", composition: new Map([[ELEMENTS.C, 5], [ELEMENTS.H, 9], [ELEMENTS.N, 1], [ELEMENTS.O, 4]]) }],
+  // Cysteine (C3H7NO2S)
+  ["UGU", { name: "Cysteine", threeLetter: "Cys", oneLetter: "C", composition: new Map([[ELEMENTS.C, 3], [ELEMENTS.H, 7], [ELEMENTS.N, 1], [ELEMENTS.O, 2], [ELEMENTS.S, 1]]) }],
+  ["UGC", { name: "Cysteine", threeLetter: "Cys", oneLetter: "C", composition: new Map([[ELEMENTS.C, 3], [ELEMENTS.H, 7], [ELEMENTS.N, 1], [ELEMENTS.O, 2], [ELEMENTS.S, 1]]) }],
+  // Tryptophan (C11H12N2O2)
+  ["UGG", { name: "Tryptophan", threeLetter: "Trp", oneLetter: "W", composition: new Map([[ELEMENTS.C, 11], [ELEMENTS.H, 12], [ELEMENTS.N, 2], [ELEMENTS.O, 2]]) }],
+  // Arginine (C6H14N4O2)
+  ["CGU", { name: "Arginine", threeLetter: "Arg", oneLetter: "R", composition: new Map([[ELEMENTS.C, 6], [ELEMENTS.H, 14], [ELEMENTS.N, 4], [ELEMENTS.O, 2]]) }],
+  ["CGC", { name: "Arginine", threeLetter: "Arg", oneLetter: "R", composition: new Map([[ELEMENTS.C, 6], [ELEMENTS.H, 14], [ELEMENTS.N, 4], [ELEMENTS.O, 2]]) }],
+  ["CGA", { name: "Arginine", threeLetter: "Arg", oneLetter: "R", composition: new Map([[ELEMENTS.C, 6], [ELEMENTS.H, 14], [ELEMENTS.N, 4], [ELEMENTS.O, 2]]) }],
+  ["CGG", { name: "Arginine", threeLetter: "Arg", oneLetter: "R", composition: new Map([[ELEMENTS.C, 6], [ELEMENTS.H, 14], [ELEMENTS.N, 4], [ELEMENTS.O, 2]]) }],
+  ["AGA", { name: "Arginine", threeLetter: "Arg", oneLetter: "R", composition: new Map([[ELEMENTS.C, 6], [ELEMENTS.H, 14], [ELEMENTS.N, 4], [ELEMENTS.O, 2]]) }],
+  ["AGG", { name: "Arginine", threeLetter: "Arg", oneLetter: "R", composition: new Map([[ELEMENTS.C, 6], [ELEMENTS.H, 14], [ELEMENTS.N, 4], [ELEMENTS.O, 2]]) }],
+  // Glycine (C2H5NO2)
+  ["GGU", { name: "Glycine", threeLetter: "Gly", oneLetter: "G", composition: new Map([[ELEMENTS.C, 2], [ELEMENTS.H, 5], [ELEMENTS.N, 1], [ELEMENTS.O, 2]]) }],
+  ["GGC", { name: "Glycine", threeLetter: "Gly", oneLetter: "G", composition: new Map([[ELEMENTS.C, 2], [ELEMENTS.H, 5], [ELEMENTS.N, 1], [ELEMENTS.O, 2]]) }],
+  ["GGA", { name: "Glycine", threeLetter: "Gly", oneLetter: "G", composition: new Map([[ELEMENTS.C, 2], [ELEMENTS.H, 5], [ELEMENTS.N, 1], [ELEMENTS.O, 2]]) }],
+  ["GGG", { name: "Glycine", threeLetter: "Gly", oneLetter: "G", composition: new Map([[ELEMENTS.C, 2], [ELEMENTS.H, 5], [ELEMENTS.N, 1], [ELEMENTS.O, 2]]) }],
   // Stop codons
   ["UAA", { name: "Stop", threeLetter: "Stop", oneLetter: "*", composition: new Map() }],
   ["UAG", { name: "Stop", threeLetter: "Stop", oneLetter: "*", composition: new Map() }],
