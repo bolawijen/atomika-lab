@@ -8,6 +8,10 @@ import {
   Cytoplasm,
   Nucleoid,
   Plasmid,
+  EnergyReserves,
+} from "./BacterialStructures";
+import type {
+  NutrientUptake,
 } from "./BacterialStructures";
 import type {
   EnvironmentalEvent,
@@ -59,6 +63,11 @@ export class BacterialCell {
   readonly plasmids: Plasmid[];
 
   /**
+   * Energy reserves — glycogen and polyhydroxybutyrate granules.
+   */
+  readonly energyReserves: EnergyReserves;
+
+  /**
    * Generation time — species-specific doubling time.
    */
   readonly generationTime: Duration;
@@ -76,12 +85,17 @@ export class BacterialCell {
   /**
    * Viability fraction (0–1). 1.0 = fully viable, 0.0 = non-viable.
    */
-  private viability = 1.0;
+  protected viability = 1.0;
 
   /**
    * Elapsed time since inoculation.
    */
   protected elapsedDuration = 0;
+
+  /**
+   * History of nutrient uptake events.
+   */
+  protected uptakeHistory: NutrientUptake[] = [];
 
   constructor(params: { generationTime?: Duration } = {}) {
     this.cellWall = new CellWall();
@@ -90,6 +104,8 @@ export class BacterialCell {
     this.nucleoid = new Nucleoid();
     this.ribosomes = [];
     this.plasmids = [];
+    this.energyReserves = new EnergyReserves();
+    this.uptakeHistory = [];
     this.generationTime = params.generationTime ?? (1200 as Duration);
   }
 
@@ -292,6 +308,64 @@ export class BacterialCell {
     }
 
     return daughter;
+  }
+
+  /**
+   * Absorbs nutrients from the environment via membrane transporters.
+   *
+   * Small molecules (glucose, amino acids) diffuse through membrane channels
+   * and are transported into the cytoplasm via carrier proteins.
+   *
+   * @param nutrientType Identity of the nutrient (e.g., "glucose", "amino-acid").
+   * @param environment The environmental context providing nutrient availability.
+   * @returns Record of the nutrient uptake event.
+   */
+  uptakeNutrient(nutrientType: string, environment: Environment): NutrientUptake {
+    // Uptake requires membrane integrity and thermal energy for transport
+    if (!this.cellMembrane.isIntact) return { nutrientType, amount: 0 };
+    if (environment.thermalEnergy <= 0) return { nutrientType, amount: 0 };
+
+    // Uptake rate depends on nutrient concentration and membrane permeability
+    // Simplified: uptake proportional to thermal energy
+    const uptakeRate = environment.thermalEnergy * 0.001;
+    const amount = Math.min(uptakeRate, 1.0);
+
+    // Replenish energy reserves from absorbed nutrients
+    this.energyReserves.replenish(amount);
+
+    // Record uptake event
+    const uptake: NutrientUptake = { nutrientType, amount };
+    this.uptakeHistory.push(uptake);
+
+    return uptake;
+  }
+
+  /**
+   * Catabolic metabolism — converts stored nutrients to ATP.
+   *
+   * Glycolysis, TCA cycle, and oxidative phosphorylation break down
+   * carbon sources to produce adenosine triphosphate (ATP), the
+   * universal energy currency of living cells.
+   *
+   * @returns Metabolic energy produced in attomoles.
+   */
+  metabolize(): number {
+    if (!this.isAlive) return 0;
+
+    // Produce ATP from energy reserves
+    const atp = this.energyReserves.produceATP();
+
+    // If reserves depleted, viability declines from starvation
+    if (atp === 0 && !this.energyReserves.isSufficient) {
+      this.viability = Math.max(0, this.viability - 0.05);
+    }
+
+    // Update cytoplasmic metabolic activity based on ATP production
+    if (atp > 0) {
+      this.cytoplasm.inhibit(-atp * 0.01); // negative inhibition = activation
+    }
+
+    return atp;
   }
 
   /**

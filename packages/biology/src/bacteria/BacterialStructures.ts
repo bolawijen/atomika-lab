@@ -228,3 +228,70 @@ export class MycolicAcidLayer {
     this.cordFactorDensity = params.cordFactorDensity ?? 0.5;
   }
 }
+
+/**
+ * Energy reserves stored within the bacterial cell.
+ *
+ * Glycogen granules and polyhydroxybutyrate (PHB) serve as
+ * carbon and energy reserves during starvation periods.
+ */
+export class EnergyReserves {
+  /**
+   * Glycogen granules — polysaccharide energy reserve.
+   * Measured in arbitrary units (0 = depleted, 1 = full).
+   */
+  private glycogenLevel = 0.5;
+
+  /**
+   * Polyhydroxybutyrate granules — carbon reserve.
+   * Measured in arbitrary units (0 = depleted, 1 = full).
+   */
+  private phbLevel = 0.3;
+
+  /**
+   * Total energy reserve index (0–1).
+   */
+  get totalReserve(): number {
+    return (this.glycogenLevel + this.phbLevel) / 2;
+  }
+
+  /**
+   * Whether reserves are sufficient for active metabolism.
+   */
+  get isSufficient(): boolean {
+    return this.totalReserve > 0.1;
+  }
+
+  /**
+   * Consumes energy reserves to produce ATP.
+   *
+   * @returns Metabolic energy produced in attomoles.
+   */
+  produceATP(): number {
+    if (!this.isSufficient) return 0;
+    const consumption = 0.01;
+    this.glycogenLevel = Math.max(0, this.glycogenLevel - consumption);
+    this.phbLevel = Math.max(0, this.phbLevel - consumption);
+    return this.totalReserve * 10; // attomoles
+  }
+
+  /**
+   * Replenishes energy reserves from absorbed nutrients.
+   *
+   * @param amount Nutrient quantity absorbed.
+   */
+  replenish(amount: number): void {
+    this.glycogenLevel = Math.min(1, this.glycogenLevel + amount * 0.6);
+    this.phbLevel = Math.min(1, this.phbLevel + amount * 0.4);
+  }
+}
+
+/**
+ * Nutrient uptake record — tracks absorbed molecules.
+ */
+export interface NutrientUptake {
+  /** Nutrient identity. */
+  readonly nutrientType: string;
+  /** Amount absorbed (arbitrary units). */
+  readonly amount: number;
+}

@@ -7,6 +7,7 @@ export {
   Nucleoid,
   Plasmid,
   MycolicAcidLayer,
+  EnergyReserves,
 } from "./bacteria";
 export type {
   EnvironmentalEvent,
@@ -17,6 +18,7 @@ export type {
   RibosomeInhibitionEvent,
   MetabolicInhibitionEvent,
   EnvironmentalChangeEvent,
+  NutrientUptake,
 } from "./bacteria";
 export { Polymerase } from "./Polymerase";
 export { Ribosome } from "./Ribosome";
@@ -25,4 +27,4 @@ export { NucleicAcidChain } from "./NucleicAcidChain";
 export { RDKitEngine } from "./RDKitEngine";
 export { Bioreactor } from "./Bioreactor";
 export { EnzymeComplex } from "./EnzymeComplex";
-export type { GenerationTime, IncubationTime, Viability } from "./Types";
+export type { GenerationTime, IncubationTime, Viability, MetabolicEnergy, NutrientConcentration } from "./Types";

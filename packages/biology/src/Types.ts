@@ -25,3 +25,17 @@ export type IncubationTime = number & { readonly __unit: "min" };
  * Dimensionless ratio from 0 (all dead) to 1 (all alive).
  */
 export type Viability = number & { readonly __unit: "fraction" };
+
+/**
+ * Metabolic energy — ATP available for cellular processes.
+ *
+ * Measured in attomoles (amol). Represents usable energy reserves.
+ */
+export type MetabolicEnergy = number & { readonly __unit: "amol" };
+
+/**
+ * Nutrient concentration — available small molecules for uptake.
+ *
+ * Measured in millimolar (mM).
+ */
+export type NutrientConcentration = number & { readonly __unit: "mM" };
