@@ -26,6 +26,18 @@ export abstract class Molecule {
   abstract get atomicComposition(): ReadonlyMap<Atom, number>;
 
   /**
+   * Octanol-water partition coefficient — measures lipophilicity.
+   *
+   * LogP determines how readily a molecule dissolves in lipids vs water.
+   * High LogP (> 0): lipophilic, prefers lipid environments.
+   * Low LogP (< 0): hydrophilic, prefers aqueous environments.
+   *
+   * This physical property governs passive diffusion through biological
+   * membranes, drug absorption, and nutrient uptake by lipid-dependent pathogens.
+   */
+  abstract get logP(): number;
+
+  /**
    * Melting point in degrees Celsius at 1 atm pressure.
    * Below this temperature, the pure substance is solid.
    */

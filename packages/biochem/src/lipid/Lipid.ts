@@ -85,6 +85,14 @@ export class FattyAcid extends Lipid implements Nutrient {
    */
   readonly doubleBondCount: number;
 
+  /**
+   * Octanol-water partition coefficient — fatty acids are lipophilic.
+   * Long-chain fatty acids have LogP 4–8 depending on chain length.
+   */
+  override get logP(): number {
+    return 3.5 + this.carbonCount * 0.25 - this.doubleBondCount * 0.3;
+  }
+
   constructor(params: {
     carbonCount: number;
     saturationLevel: SaturationLevel;
@@ -159,6 +167,13 @@ export class Cholesterol extends Lipid implements Nutrient {
    * Number of carbon atoms in the sterol backbone.
    */
   readonly carbonCount = 27;
+
+  /**
+   * Octanol-water partition coefficient — cholesterol is highly lipophilic.
+   */
+  override get logP(): number {
+    return 8.7; // Cholesterol is extremely lipophilic
+  }
 
   /**
    * Molecular formula: C₂₇H₄₆O

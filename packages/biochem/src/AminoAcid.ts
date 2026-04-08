@@ -38,6 +38,14 @@ export class AminoAcid extends Molecule {
     return this._atomicComposition;
   }
 
+  /**
+   * Octanol-water partition coefficient — amino acids are generally hydrophilic.
+   * Varies by side chain: hydrophobic amino acids have higher LogP.
+   */
+  override get logP(): number {
+    return -2.0; // Average for amino acids
+  }
+
   override toString(): string {
     return this.threeLetterCode;
   }

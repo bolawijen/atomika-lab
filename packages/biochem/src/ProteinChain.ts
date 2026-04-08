@@ -58,4 +58,12 @@ export class ProteinChain extends Molecule {
   override toString(): string {
     return this.sequence.map(aa => aa.oneLetterCode).join('');
   }
+
+  /**
+   * Octanol-water partition coefficient — proteins vary widely.
+   * Large proteins are generally hydrophilic due to surface residues.
+   */
+  override get logP(): number {
+    return -1.0; // Average for proteins
+  }
 }

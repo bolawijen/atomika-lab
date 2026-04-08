@@ -97,4 +97,12 @@ export class Nucleotide extends Molecule {
   override toString(): string {
     return this.base;
   }
+
+  /**
+   * Octanol-water partition coefficient — nucleotides are hydrophilic.
+   * Phosphate groups make them highly water-soluble.
+   */
+  override get logP(): number {
+    return -4.0; // Nucleotides are very hydrophilic
+  }
 }

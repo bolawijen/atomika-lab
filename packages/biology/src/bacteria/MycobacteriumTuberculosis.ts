@@ -106,37 +106,40 @@ export class MycobacteriumTuberculosis extends BacterialCell {
   }
 
   /**
-   * Uptakes nutrient from the environment with species-specific preference.
+   * Absorbs nutrient from the environment via passive diffusion through
+   * the mycolic acid layer and cell membrane.
    *
-   * M. tuberculosis is a lipid-dependent pathogen — it prefers fatty acids
-   * and cholesterol but can metabolize other carbon sources with reduced
-   * efficiency. Non-preferred nutrients are not rejected, just processed
-   * less efficiently.
+   * M. tuberculosis is a lipid-dependent pathogen — lipids dissolve through
+   * the mycolic acid wall naturally (like dissolves like). Non-lipid nutrients
+   * have reduced permeability due to the hydrophobic barrier.
    *
-   * Relative efficiency by nutrient type:
-   * - Fatty acids: 100% (preferred)
-   * - Cholesterol: 60%
-   * - Amino acids: 50%
-   * - Glucose: 30%
-   * - Glycerol: 20%
+   * Uptake is driven by concentration gradient — no energy cost.
    *
-   * @param nutrient The nutrient molecule to uptake.
+   * @param nutrient The nutrient molecule to absorb.
    * @param environment The environmental context.
    * @returns Record of the nutrient uptake event.
    */
   override uptakeNutrient(nutrient: Nutrient, environment: Environment): NutrientUptake {
-    if (!this.cellMembrane.isIntact) return { nutrientType: nutrient.category, amount: 0 };
-    if (environment.thermalEnergy <= 0) return { nutrientType: nutrient.category, amount: 0 };
+    // Passive diffusion — requires concentration gradient
+    const gradient = environment.nutrientConcentration - this.cytoplasm.nutrientConcentration;
+    if (gradient <= 0) return { nutrientType: nutrient.category, amount: 0 };
 
-    // Nutrient preference efficiency — M. tuberculosis prefers lipids
-    const efficiency = this.getNutrientEfficiency(nutrient);
-    const baseUptakeRate = environment.thermalEnergy * 0.001;
-    const amount = Math.min(baseUptakeRate * efficiency, 1.0);
+    // Mycolic acid layer acts as lipophilicity filter
+    // Lipids perme easily; non-lipids face reduced permeability
+    const mycolicPermeability = this.mycolicAcidLayer.canPermeate(nutrient.molecule) ? 1.0 : 0.2;
+    const membranePermeability = this.cellMembrane.functionalIntegrity;
+    const totalPermeability = mycolicPermeability * membranePermeability;
 
+    const amount = Math.min(gradient * totalPermeability * 0.1, 1.0);
+
+    // Add nutrient to cytoplasm
+    this.cytoplasm.addNutrient(amount);
+
+    // Replenish energy reserves from absorbed nutrients
     this.energyReserves.replenish(amount);
 
-    // Long-term penalty: suboptimal nutrition causes gradual viability decline
-    if (efficiency < 0.5) {
+    // Long-term penalty: suboptimal nutrition (non-lipid) causes gradual viability decline
+    if (mycolicPermeability < 1.0) {
       this.viability = Math.max(0, this.viability - 0.001);
     }
 
@@ -144,28 +147,6 @@ export class MycobacteriumTuberculosis extends BacterialCell {
     this.uptakeHistory.push(uptake);
 
     return uptake;
-  }
-
-  /**
-   * Returns metabolic efficiency for a given nutrient type.
-   *
-   * M. tuberculosis evolved to prefer host-derived lipids as carbon source.
-   */
-  private getNutrientEfficiency(nutrient: Nutrient): number {
-    switch (nutrient.category) {
-      case NutrientCategory.FATTY_ACID:
-        return 1.0;
-      case NutrientCategory.CHOLESTEROL:
-        return 0.6;
-      case NutrientCategory.AMINO_ACID:
-        return 0.5;
-      case NutrientCategory.GLUCOSE:
-        return 0.3;
-      case NutrientCategory.GLYCEROL:
-        return 0.2;
-      default:
-        return 0.3;
-    }
   }
 
   /**

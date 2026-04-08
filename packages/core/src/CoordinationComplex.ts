@@ -111,4 +111,12 @@ export class CoordinationComplex extends Molecule {
 
     return `[${this.metalIon.symbol}${ligandStr}]${chargeStr}`;
   }
+
+  /**
+   * Octanol-water partition coefficient — coordination complexes are typically hydrophilic.
+   * Charged complexes have negative LogP.
+   */
+  override get logP(): number {
+    return this.overallCharge !== 0 ? -3.0 : -1.0;
+  }
 }

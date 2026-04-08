@@ -10,4 +10,12 @@ export abstract class Saccharide extends Molecule {
    * Monosaccharides have count 1, disaccharides 2, polysaccharides ≥ 3.
    */
   abstract get count(): number;
+
+  /**
+   * Octanol-water partition coefficient — saccharides are hydrophilic.
+   * Multiple hydroxyl groups make them water-soluble.
+   */
+  override get logP(): number {
+    return -3.0; // Typical for carbohydrates
+  }
 }

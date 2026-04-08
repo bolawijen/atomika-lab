@@ -56,6 +56,14 @@ export class NucleicAcidChain extends Molecule {
     return this.sequence.map(n => n.base).join("");
   }
 
+  /**
+   * Octanol-water partition coefficient — nucleic acids are highly hydrophilic.
+   * Phosphate backbone makes them very water-soluble.
+   */
+  override get logP(): number {
+    return -5.0; // Nucleic acids are very hydrophilic
+  }
+
   #getAtomBySymbol(symbol: string): Atom {
     const elements = new Map<string, Atom>();
     for (const [atom] of this.sequence[0]?.atomicComposition || new Map()) {

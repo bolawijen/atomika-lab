@@ -64,8 +64,16 @@ export class Monosaccharide extends Saccharide {
   /**
    * Number of monomer units — a monosaccharide is a single unit.
    */
-  get count(): number {
+  override get count(): number {
     return 1;
+  }
+
+  /**
+   * Octanol-water partition coefficient — monosaccharides are hydrophilic.
+   * Hexoses have negative LogP due to multiple hydroxyl groups.
+   */
+  override get logP(): number {
+    return -3.2; // Typical for hexoses like glucose
   }
 
   /**

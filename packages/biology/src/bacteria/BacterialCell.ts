@@ -312,23 +312,30 @@ export class BacterialCell {
   }
 
   /**
-   * Absorbs nutrients from the environment via membrane transporters.
+   * Absorbs nutrients from the environment via passive diffusion.
    *
-   * Small molecules diffuse through membrane channels and are transported
-   * into the cytoplasm via carrier proteins.
+   * Nutrients flow down their concentration gradient through the cell
+   * membrane into the cytoplasm. No energy is expended — molecules
+   * move spontaneously from high to low concentration.
    *
-   * @param nutrient The nutrient molecule to uptake.
-   * @param environment The environmental context providing nutrient availability.
+   * @param nutrient The nutrient molecule to absorb.
+   * @param environment The environmental context providing concentration gradient.
    * @returns Record of the nutrient uptake event.
    */
   uptakeNutrient(nutrient: Nutrient, environment: Environment): NutrientUptake {
-    // Uptake requires membrane integrity and thermal energy for transport
-    if (!this.cellMembrane.isIntact) return { nutrientType: nutrient.category, amount: 0 };
-    if (environment.thermalEnergy <= 0) return { nutrientType: nutrient.category, amount: 0 };
+    // Passive diffusion — requires concentration gradient
+    const gradient = environment.nutrientConcentration - this.cytoplasm.nutrientConcentration;
+    if (gradient <= 0) return { nutrientType: nutrient.category, amount: 0 };
 
-    // Uptake rate depends on nutrient concentration and membrane permeability
-    const uptakeRate = environment.thermalEnergy * 0.001;
-    const amount = Math.min(uptakeRate, 1.0);
+    // Membrane must be intact for diffusion
+    if (!this.cellMembrane.isIntact) return { nutrientType: nutrient.category, amount: 0 };
+
+    // Amount proportional to gradient and membrane permeability
+    const permeability = this.cellMembrane.functionalIntegrity;
+    const amount = Math.min(gradient * permeability * 0.1, 1.0);
+
+    // Add nutrient to cytoplasm
+    this.cytoplasm.addNutrient(amount);
 
     // Replenish energy reserves from absorbed nutrients
     this.energyReserves.replenish(amount);

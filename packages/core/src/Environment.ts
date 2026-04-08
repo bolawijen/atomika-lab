@@ -53,6 +53,15 @@ export class Environment {
    */
   readonly solutes: ReadonlyMap<Atom, number>;
 
+  /**
+   * Nutrient concentration in the surrounding medium (arbitrary units, 0–1).
+   *
+   * Represents the availability of nutrient molecules for passive diffusion
+   * into cells. Higher concentration drives faster uptake via steeper
+   * concentration gradients.
+   */
+  readonly nutrientConcentration: number;
+
   constructor(params: {
     temperatureC: number;
     pH: number;
@@ -61,6 +70,7 @@ export class Environment {
     pressureAtm?: number;
     magneticFieldTesla?: number;
     electricFieldVoltsPerMeter?: number;
+    nutrientConcentration?: number;
   }) {
     this.temperatureC = params.temperatureC;
     this.pH = params.pH;
@@ -69,6 +79,7 @@ export class Environment {
     this.pressureAtm = params.pressureAtm ?? 1.0;
     this.magneticFieldTesla = params.magneticFieldTesla ?? 0;
     this.electricFieldVoltsPerMeter = params.electricFieldVoltsPerMeter ?? 0;
+    this.nutrientConcentration = params.nutrientConcentration ?? 0.5;
   }
 
   /**

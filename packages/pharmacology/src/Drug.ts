@@ -26,6 +26,11 @@ export abstract class Drug extends Molecule {
   /** Pharmacological classification. */
   readonly pharmacologicalClass: TherapeuticCategory;
 
+  /**
+   * Octanol-water partition coefficient — measures lipophilicity.
+   */
+  abstract override get logP(): number;
+
   constructor(params: {
     dissociationConstant: number;
     clearanceRate: number;

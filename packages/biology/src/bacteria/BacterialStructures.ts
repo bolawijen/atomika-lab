@@ -111,6 +111,12 @@ export class Cytoplasm {
   private ph = 7.2;
 
   /**
+   * Current nutrient level inside the cell (arbitrary units).
+   * Used for concentration gradient calculations.
+   */
+  private nutrientLevel = 0.5;
+
+  /**
    * Current metabolic activity level.
    */
   get activityLevel(): number {
@@ -122,6 +128,22 @@ export class Cytoplasm {
    */
   get intracellularPh(): number {
     return this.ph;
+  }
+
+  /**
+   * Current nutrient concentration inside the cell.
+   */
+  get nutrientConcentration(): number {
+    return this.nutrientLevel;
+  }
+
+  /**
+   * Adds nutrient to the cytoplasm via passive diffusion.
+   *
+   * @param amount Nutrient quantity absorbed.
+   */
+  addNutrient(amount: number): void {
+    this.nutrientLevel = Math.min(1, this.nutrientLevel + amount);
   }
 
   /**
@@ -217,6 +239,12 @@ export class MycolicAcidLayer {
   readonly cordFactorDensity: number;
 
   /**
+   * Minimum LogP required for a molecule to permeate this layer.
+   * Molecules below this threshold are too hydrophilic to dissolve.
+   */
+  readonly minLogPThreshold = 2.0;
+
+  /**
    * Hydrophobicity index (0–1). Higher values indicate stronger barrier.
    */
   get hydrophobicity(): number {
@@ -226,6 +254,19 @@ export class MycolicAcidLayer {
   constructor(params: { thickness?: number; cordFactorDensity?: number }) {
     this.thickness = params.thickness ?? 30;
     this.cordFactorDensity = params.cordFactorDensity ?? 0.5;
+  }
+
+  /**
+   * Whether a molecule can permeate through the mycolic acid layer.
+   *
+   * Permeability is determined by lipophilicity — molecules with
+   * sufficient LogP dissolve into the waxy layer and pass through.
+   *
+   * @param molecule The molecule attempting to permeate.
+   * @returns True if the molecule is lipophilic enough to permeate.
+   */
+  canPermeate(molecule: { logP: number }): boolean {
+    return molecule.logP >= this.minLogPThreshold;
   }
 }
 

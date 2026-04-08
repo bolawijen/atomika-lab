@@ -18,7 +18,7 @@ import { ELEMENTS, Atom } from "@atomika-lab/core";
  */
 export class Rifampicin extends Drug {
   /** Octanol-water partition coefficient — measures lipophilicity. */
-  readonly logP = 3.7;
+  override readonly logP = 3.7;
 
   constructor() {
     super({
