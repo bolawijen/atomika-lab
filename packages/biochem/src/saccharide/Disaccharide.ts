@@ -7,10 +7,10 @@ import { GlycosidicBondType } from "./GlycosidicBondType";
  * monosaccharide units linked by a single glycosidic bond.
  */
 export abstract class Disaccharide extends OligoSaccharide {
-  abstract readonly monomers: ReadonlyArray<Monosaccharide>;
-  abstract readonly bondType: GlycosidicBondType;
+  abstract override readonly monomers: ReadonlyArray<Monosaccharide>;
+  abstract override readonly bondType: GlycosidicBondType;
 
-  get count(): number {
+  override get count(): number {
     return 2;
   }
 }

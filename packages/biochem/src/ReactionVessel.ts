@@ -2,7 +2,7 @@ import { Polysaccharide } from "./saccharide/Polysaccharide";
 import { Saccharide } from "./saccharide/Saccharide";
 import { Monosaccharide } from "./saccharide/Monosaccharide";
 import { ReactionMixture } from "./ReactionMixture";
-import { KineticSnapshot } from "./ReactionResult";
+import type { KineticSnapshot } from "./ReactionResult";
 import { Environment, Atom, PhysicalConstants } from "@atomika-lab/core";
 
 /**
@@ -156,12 +156,12 @@ export class ReactionVessel {
   /**
    * Records the current state of the reaction mixture along the reaction path.
    */
-  recordProgression(mixture: Saccharide[], products: ReactionMixture, timeInSeconds: number): KineticSnapshot {
+  recordProgression(mixture: Saccharide[], products: ReactionMixture, timeInSeconds: number, temperatureC?: number): KineticSnapshot {
     const snapshot = {
       timeInSeconds,
       remainingBonds: this.#totalCleavableBondsInMixture(mixture),
       productCount: products.speciesCount,
-      temperatureC: this.currentTemperature,
+      temperatureC: temperatureC ?? this.currentTemperature,
     };
     this.registerState(snapshot);
     return snapshot;

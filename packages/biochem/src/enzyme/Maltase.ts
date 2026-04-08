@@ -6,8 +6,8 @@ import { ProteinChain } from "@atomika-lab/biochem";
 import { Enzyme } from "./Enzyme";
 import { Environment, PHYSIOLOGICAL_CONDITIONS } from "@atomika-lab/core";
 import { ReactionMixture } from "@atomika-lab/biochem";
-import { ReactionResult, KineticSnapshot } from "@atomika-lab/biochem";
-import { ReactionVessel, EnzymeKinetics } from "@atomika-lab/biochem";
+import { ReactionResult, type KineticSnapshot } from "@atomika-lab/biochem";
+import { ReactionVessel, type EnzymeKinetics } from "@atomika-lab/biochem";
 import { LawsOfPhysics } from "@atomika-lab/core";
 
 /**

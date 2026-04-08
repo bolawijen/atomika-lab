@@ -13,7 +13,7 @@ export class NucleicAcidChain extends Molecule {
   constructor(sequence: Nucleotide[]) {
     super();
     this.sequence = sequence;
-    this.type = sequence.length > 0 ? sequence[0].type : NucleicAcidType.DNA;
+    this.type = sequence.length > 0 ? sequence[0]!.type : NucleicAcidType.DNA;
   }
 
   /**
@@ -27,7 +27,7 @@ export class NucleicAcidChain extends Molecule {
    * Atomic composition of the polynucleotide, accounting for water molecules
    * released during phosphodiester bond formation.
    */
-  get atomicComposition(): ReadonlyMap<Atom, number> {
+  override get atomicComposition(): ReadonlyMap<Atom, number> {
     const composition = new Map<Atom, number>();
 
     for (const nucleotide of this.sequence) {
@@ -52,7 +52,7 @@ export class NucleicAcidChain extends Molecule {
    * Primary structure representation using standard nucleobase notation
    * (A, T, C, G for DNA; A, U, C, G for RNA).
    */
-  toString(): string {
+  override toString(): string {
     return this.sequence.map(n => n.base).join("");
   }
 

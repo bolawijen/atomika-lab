@@ -30,7 +30,7 @@ export class ProteinChain extends Molecule {
    * Atomic composition of the polypeptide, accounting for water molecules
    * released during peptide bond formation.
    */
-  get atomicComposition(): ReadonlyMap<Atom, number> {
+  override get atomicComposition(): ReadonlyMap<Atom, number> {
     const composition = new Map<Atom, number>();
 
     // Sum all amino acid compositions
@@ -55,7 +55,7 @@ export class ProteinChain extends Molecule {
   /**
    * One-letter code sequence of the polypeptide.
    */
-  toString(): string {
+  override toString(): string {
     return this.sequence.map(aa => aa.oneLetterCode).join('');
   }
 }

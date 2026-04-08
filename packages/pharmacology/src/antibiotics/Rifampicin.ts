@@ -28,7 +28,7 @@ export class Rifampicin extends Drug {
     });
   }
 
-  get atomicComposition(): ReadonlyMap<Atom, number> {
+  override get atomicComposition(): ReadonlyMap<Atom, number> {
     return new Map([
       [ELEMENTS.C, 43],
       [ELEMENTS.H, 58],
@@ -41,7 +41,7 @@ export class Rifampicin extends Drug {
     return 1;
   }
 
-  toString(): string {
+  override toString(): string {
     return "Rifampicin";
   }
 }

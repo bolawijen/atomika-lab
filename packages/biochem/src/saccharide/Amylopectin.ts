@@ -1,7 +1,7 @@
 import { Polysaccharide } from "./Polysaccharide";
 import { Monosaccharide, MolecularIdentity, AnomericState } from "./Monosaccharide";
 import { Chirality } from "@atomika-lab/core";
-import { GlycosidicBondType, GlycosidicBond } from "./GlycosidicBondType";
+import { GlycosidicBondType, type GlycosidicBond } from "./GlycosidicBondType";
 
 /**
  * Amylopectin — a branched polysaccharide and the major component of starch.
@@ -36,7 +36,7 @@ export class Amylopectin extends Polysaccharide {
     );
   }
 
-  toString(): string {
+  override toString(): string {
     return `Amylopectin(n=${this.count}, branches=${this.branchCount})`;
   }
 }

@@ -1,4 +1,4 @@
-import { Molecule } from "@atomika-lab/core";
+import { Molecule, Atom } from "@atomika-lab/core";
 
 /**
  * Pharmacological classification of medicinal substances.
@@ -16,7 +16,7 @@ export enum TherapeuticCategory {
  * Medicinal substance with defined pharmacological properties.
  * Base class for all therapeutic agents — provides common ADME behavior.
  */
-export class Drug extends Molecule {
+export abstract class Drug extends Molecule {
   /** Dissociation constant Kd (nM) for the drug-target complex. */
   readonly dissociationConstant: number;
 

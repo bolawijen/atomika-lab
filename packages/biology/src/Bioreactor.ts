@@ -1,9 +1,6 @@
-import { Saccharide } from "./saccharide/Saccharide";
+import { Saccharide, Enzyme, type KineticSnapshot } from "@atomika-lab/biochem";
 import { Environment } from "@atomika-lab/core";
-import { ReactionMixture } from "@atomika-lab/biochem";
-import { ReactionResult, KineticSnapshot } from "@atomika-lab/biochem";
-import { Enzyme } from "./enzyme/Enzyme";
-import { ReactionVessel } from "@atomika-lab/biochem";
+import { ReactionMixture, ReactionResult, ReactionVessel } from "@atomika-lab/biochem";
 
 /**
  * A multi-enzyme system in which multiple catalytic species act
@@ -47,7 +44,7 @@ export class Bioreactor {
       const consumedIndices = new Set<number>();
 
       for (let i = 0; i < reactionMixture.length; i++) {
-        const molecule = reactionMixture[i];
+        const molecule = reactionMixture[i]!;
         for (const enzyme of this.enzymes) {
           if (!("digest" in enzyme)) continue;
           if (consumedIndices.has(i)) continue;

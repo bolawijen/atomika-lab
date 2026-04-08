@@ -3,7 +3,6 @@ export { ProteinChain } from "./ProteinChain";
 export { ActivityProfile } from "./ActivityProfile";
 export { AffinityModeler } from "./AffinityModeler";
 export { ThermodynamicsCalculator } from "./ThermodynamicsCalculator";
-export { ReactionVessel, StoichiometricError } from "./ReactionVessel";
 export { ReactionMixture } from "./ReactionMixture";
 export { ReactionResult, type KineticSnapshot } from "./ReactionResult";
 
@@ -13,6 +12,7 @@ export { Maltase } from "./enzyme/Maltase";
 export { Isoamylase } from "./enzyme/Isoamylase";
 export { KineticsSimulator, type KineticParameters } from "./enzyme/KineticsSimulator";
 export { HydrolysisMechanism, type HydrolysisResult } from "./enzyme/HydrolysisMechanism";
+export { ReactionVessel, StoichiometricError, type EnzymeKinetics } from "./ReactionVessel";
 
 export { Saccharide } from "./saccharide/Saccharide";
 export { Monosaccharide, MolecularIdentity, AnomericState } from "./saccharide/Monosaccharide";

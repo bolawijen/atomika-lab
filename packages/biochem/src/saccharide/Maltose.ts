@@ -19,7 +19,7 @@ export class Maltose extends Disaccharide {
     ]);
   }
 
-  toString(): string {
+  override toString(): string {
     return "Maltose";
   }
 }

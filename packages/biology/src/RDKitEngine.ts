@@ -1,4 +1,4 @@
-import initRDKitModule from "@rdkit/rdkit";
+import * as initRDKitModule from "@rdkit/rdkit";
 
 /**
  * Computational representation of molecular structures and stereochemistry.
@@ -33,7 +33,7 @@ export class RDKitEngine {
    */
   private async initialize(): Promise<void> {
     if (this.initialized) return;
-    this.rdkit = await initRDKitModule();
+    this.rdkit = await (initRDKitModule as any).default();
     this.initialized = true;
   }
 

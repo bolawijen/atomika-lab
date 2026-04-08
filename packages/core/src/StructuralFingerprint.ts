@@ -1,5 +1,3 @@
-import { RDKitEngine } from "./RDKitEngine";
-
 /**
  * A simplified structural signature for molecular recognition.
  *
@@ -7,9 +5,9 @@ import { RDKitEngine } from "./RDKitEngine";
  * into a numeric fingerprint. Used to compute the "fit" between
  * an enzyme's active site and a substrate molecule.
  *
- * When RDKit is available, uses Morgan fingerprints (ECFP-like) for
- * chemically accurate similarity calculation. Falls back to a simple
- * polynomial hash otherwise.
+ * When an RDKit-compatible engine is provided, uses Morgan fingerprints
+ * (ECFP-like) for chemically accurate similarity calculation. Falls back
+ * to a simple polynomial hash otherwise.
  */
 export class StructuralFingerprint {
   /** Simple hash for fallback mode. */
@@ -21,7 +19,7 @@ export class StructuralFingerprint {
     // Simple polynomial rolling hash for feature vector
     let result = 0;
     for (let i = 0; i < components.length; i++) {
-      result = result * 31 + components[i];
+      result = result * 31 + components[i]!;
     }
     this.hash = result;
     this.morganFp = morganFp || null;
@@ -37,7 +35,7 @@ export class StructuralFingerprint {
    * @param rdkit Optional RDKit engine for Tanimoto similarity calculation.
    * Similarity score reflecting molecular fit (0–1).
    */
-  compatibilityWith(other: StructuralFingerprint, rdkit?: RDKitEngine): number {
+  compatibilityWith(other: StructuralFingerprint, rdkit?: { tanimotoSimilarity(a: Uint8Array, b: Uint8Array): number }): number {
     // Use RDKit Morgan fingerprint Tanimoto similarity if available
     if (this.morganFp && other.morganFp && rdkit) {
       try {

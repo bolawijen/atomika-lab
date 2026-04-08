@@ -2,7 +2,7 @@ import { Saccharide } from "./Saccharide";
 import { Monosaccharide } from "./Monosaccharide";
 import { ELEMENTS } from "@atomika-lab/core";
 import { Atom } from "@atomika-lab/core";
-import { GlycosidicBondType, GlycosidicBond } from "./GlycosidicBondType";
+import { GlycosidicBondType, type GlycosidicBond } from "./GlycosidicBondType";
 
 /**
  * An oligosaccharide — a short chain of 2–10 monosaccharide units
@@ -59,7 +59,7 @@ export abstract class OligoSaccharide extends Saccharide {
    * Atomic composition derived from the sum of all monomer residues,
    * minus (n − 1) H₂O molecules lost during glycosidic bond condensation.
    */
-  get atomicComposition(): ReadonlyMap<Atom, number> {
+  override get atomicComposition(): ReadonlyMap<Atom, number> {
     const composition = new Map<Atom, number>();
 
     for (const monomer of this.monomers) {

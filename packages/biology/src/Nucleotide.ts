@@ -62,7 +62,7 @@ export class Nucleotide extends Molecule {
    * Standard stoichiometry for the deoxyribonucleotide (DNA) or
    * ribonucleotide (RNA) form of each nitrogenous base.
    */
-  get atomicComposition(): ReadonlyMap<Atom, number> {
+  override get atomicComposition(): ReadonlyMap<Atom, number> {
     // Deoxyribose: C5H10O4, Ribose: C5H10O5, Phosphate: PO4
     // Base compositions (approximate):
     // A: C5H5N5, C: C4H5N3O, G: C5H5N5O, T: C5H6N2O2, U: C4H4N2O2
@@ -94,7 +94,7 @@ export class Nucleotide extends Molecule {
     return 1;
   }
 
-  toString(): string {
+  override toString(): string {
     return this.base;
   }
 }

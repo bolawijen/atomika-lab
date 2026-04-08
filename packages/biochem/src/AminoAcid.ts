@@ -34,11 +34,11 @@ export class AminoAcid extends Molecule {
     this._atomicComposition = atomicComposition;
   }
 
-  get atomicComposition(): ReadonlyMap<Atom, number> {
+  override get atomicComposition(): ReadonlyMap<Atom, number> {
     return this._atomicComposition;
   }
 
-  toString(): string {
+  override toString(): string {
     return this.threeLetterCode;
   }
 }

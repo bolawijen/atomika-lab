@@ -2,13 +2,14 @@ import { Maltose } from "../saccharide/Maltose";
 import { Dextrin } from "../saccharide/Dextrin";
 import { Monosaccharide } from "../saccharide/Monosaccharide";
 import { Polysaccharide } from "../saccharide/Polysaccharide";
+import { Saccharide } from "../saccharide/Saccharide";
 
 /**
  * The result of hydrolyzing a set of oligosaccharide molecules.
  */
 export interface HydrolysisResult {
   /** Fragments that still contain cleavable bonds. */
-  unhydrolyzedFragments: Polysaccharide[];
+  unhydrolyzedFragments: Saccharide[];
   /** Disaccharide products released from hydrolysis. */
   maltose: Maltose[];
   /** Free monosaccharide units released from hydrolysis. */
@@ -36,7 +37,7 @@ export class HydrolysisMechanism {
    * across the given oligosaccharide mixture.
    */
   execute(mixture: Polysaccharide[], budget: number): HydrolysisResult {
-    const unhydrolyzedFragments: Polysaccharide[] = [];
+    const unhydrolyzedFragments: Saccharide[] = [];
     const maltose: Maltose[] = [];
     const freeMonosaccharides: Monosaccharide[] = [];
     let bondsCleaved = 0;
@@ -61,14 +62,14 @@ export class HydrolysisMechanism {
    * Processes a single oligosaccharide during hydrolysis.
    * Disaccharides are released as maltose; longer chains are cleaved.
    */
-  #processOligomer(oligomer: Polysaccharide): { remainingOligomers: Polysaccharide[], maltose: Maltose[], freeMonosaccharides: Monosaccharide[], bondsCleaved: number } {
+  #processOligomer(oligomer: Polysaccharide): { remainingOligomers: Saccharide[], maltose: Maltose[], freeMonosaccharides: Monosaccharide[], bondsCleaved: number } {
     if (oligomer.count === this.MIN_HYDROLYZABLE_COUNT) {
       return { remainingOligomers: [], maltose: [new Maltose()], freeMonosaccharides: [], bondsCleaved: 0 };
     }
 
     const [proximal, distal] = this.#cleaveGlycosidicBond(oligomer);
     const maltose: Maltose[] = [];
-    const remainingOligomers: Polysaccharide[] = [];
+    const remainingOligomers: Saccharide[] = [];
     const freeMonosaccharides: Monosaccharide[] = [];
 
     this.#classifyFragment(proximal, maltose, remainingOligomers, freeMonosaccharides);
@@ -103,9 +104,9 @@ export class HydrolysisMechanism {
    * or a free monosaccharide.
    */
   #classifyFragment(
-    fragment: Polysaccharide,
+    fragment: Dextrin,
     maltose: Maltose[],
-    remainingOligomers: Polysaccharide[],
+    remainingOligomers: Saccharide[],
     freeMonosaccharides: Monosaccharide[],
   ): void {
     if (fragment.count === this.MIN_HYDROLYZABLE_COUNT) {
@@ -113,7 +114,7 @@ export class HydrolysisMechanism {
     } else if (fragment.count > this.MIN_HYDROLYZABLE_COUNT) {
       remainingOligomers.push(fragment);
     } else {
-      freeMonosaccharides.push(fragment.monomers[0]);
+      freeMonosaccharides.push(fragment.monomers[0]!);
     }
   }
 }

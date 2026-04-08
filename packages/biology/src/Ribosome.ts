@@ -1,7 +1,8 @@
 import { AminoAcid, ProteinChain } from "@atomika-lab/biochem";
 import { Environment, PHYSIOLOGICAL_CONDITIONS, ELEMENTS } from "@atomika-lab/core";
-import { ReactionMixture, ReactionResult, KineticSnapshot, ReactionVessel, EnzymeKinetics } from "@atomika-lab/biochem";
+import { ReactionMixture, ReactionResult, type KineticSnapshot, ReactionVessel, type EnzymeKinetics } from "@atomika-lab/biochem";
 import { LawsOfPhysics } from "@atomika-lab/core";
+import { NucleicAcidChain } from "./NucleicAcidChain";
 
 /**
  * Standard genetic code — maps RNA codons (triplets) to amino acids.
@@ -188,7 +189,7 @@ export class Ribosome {
         const codonStart = codonsTranslated * 3;
         const codon = mrna.sequence
           .slice(codonStart, codonStart + 3)
-          .map(n => n.base)
+          .map((n: { base: string }) => n.base)
           .join("");
 
         let aminoAcidInfo = GENETIC_CODE.get(codon);
@@ -264,6 +265,6 @@ export class Ribosome {
   #randomMisincorporation(correctInfo: { name: string; threeLetter: string; oneLetter: string; composition: Map<any, number> }): { name: string; threeLetter: string; oneLetter: string; composition: Map<any, number> } {
     const allAminoAcids = Array.from(GENETIC_CODE.values()).filter(aa => aa.oneLetter !== "*");
     const wrongAAs = allAminoAcids.filter(aa => aa.oneLetter !== correctInfo.oneLetter);
-    return wrongAAs[Math.floor(Math.random() * wrongAAs.length)];
+    return wrongAAs[Math.floor(Math.random() * wrongAAs.length)]!;
   }
 }

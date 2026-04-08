@@ -2,7 +2,7 @@ import { Enzyme, ProteinChain, AminoAcid, Saccharide } from "@atomika-lab/bioche
 import { NucleicAcidChain } from "./NucleicAcidChain";
 import { Nucleotide, NitrogenousBase, NucleicAcidType } from "./Nucleotide";
 import { Environment, PHYSIOLOGICAL_CONDITIONS, Molecule } from "@atomika-lab/core";
-import { ReactionMixture, ReactionResult, KineticSnapshot, ReactionVessel, EnzymeKinetics } from "@atomika-lab/biochem";
+import { ReactionMixture, ReactionResult, type KineticSnapshot, ReactionVessel, type EnzymeKinetics } from "@atomika-lab/biochem";
 import { LawsOfPhysics } from "@atomika-lab/core";
 
 /**
@@ -48,7 +48,12 @@ export class Polymerase extends Enzyme {
   /**
    * Enthalpy of phosphodiester bond formation (kJ/mol).
    */
-  private readonly DELTA_H = -20;
+  private readonly DELTA_H = -10;
+
+  /**
+   * Temperature threshold for thermal denaturation (°C).
+   */
+  private readonly DENATURATION_THRESHOLD = 65;
 
   /**
    * Maximum simulation steps.
@@ -114,7 +119,7 @@ export class Polymerase extends Enzyme {
 
       const toAdd = Math.min(nucleotidesThisStep, dnaTemplate.count - nucleotidesAdded);
       for (let i = 0; i < toAdd; i++) {
-        const templateBase = dnaTemplate.sequence[nucleotidesAdded].base;
+        const templateBase = dnaTemplate.sequence[nucleotidesAdded]!.base;
         let complementaryBase = this.#getComplementaryRNA(templateBase);
 
         // Transcription error: occasional nucleotide substitution
@@ -173,7 +178,7 @@ export class Polymerase extends Enzyme {
       NitrogenousBase.GUANINE,
     ];
     const wrongBases = bases.filter(b => b !== correctBase);
-    return wrongBases[Math.floor(Math.random() * wrongBases.length)];
+    return wrongBases[Math.floor(Math.random() * wrongBases.length)]!;
   }
 
   #checkThermalDenaturation(environment: Environment): void {

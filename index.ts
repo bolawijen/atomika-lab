@@ -3,7 +3,7 @@ import { Amylose, Amylopectin, Glucose, Fructose, Sucrose, Galactose, Lactose, M
 import { Amylase, Isoamylase, Maltase, AminoAcid, ProteinChain } from "@atomika-lab/biochem";
 import { Environment, PHYSIOLOGICAL_CONDITIONS } from "@atomika-lab/core";
 import { Rifampicin } from "@atomika-lab/pharmacology";
-import { Bacteria, MycobacteriumTuberculosis, Polymerase, Ribosome } from "@atomika-lab/biology";
+import { BacterialCell, MycobacteriumTuberculosis, Polymerase, Ribosome } from "@atomika-lab/biology";
 import { Nucleotide, NitrogenousBase, NucleicAcidType, NucleicAcidChain } from "@atomika-lab/biology";
 
 // --- Atom Demonstration ---
@@ -112,7 +112,7 @@ console.log(`Lactose: ${lactose.molecularFormula} (${lactose.molecularMass.toFix
 // --- Pharmacology Demonstration ---
 console.log("\n--- Pharmacology Demonstration ---");
 
-const bacteria = new Bacteria();
+const bacteria = new BacterialCell();
 bacteria.addEnzyme(new Polymerase(enzymeProtein));
 
 const tb = new MycobacteriumTuberculosis({});
@@ -170,7 +170,7 @@ if (mrna) {
   console.log(`mRNA formula: ${mrna.molecularFormula} (${mrna.molecularMass.toFixed(0)} Da)`);
 
   // 4. Translation: mRNA → Protein
-  const ribosome = new Ribosome(enzymeProtein);
+  const ribosome = new Ribosome();
   const translationEnv = new Environment({ temperatureC: 37, pH: 7.2, durationInSeconds: 60 });
   const translationResult = ribosome.translate(mrna, translationEnv);
   const protein = translationResult.products.getAll()[0] as ProteinChain | undefined;

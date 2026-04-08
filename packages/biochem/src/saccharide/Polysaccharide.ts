@@ -2,7 +2,7 @@ import { Saccharide } from "./Saccharide";
 import { Monosaccharide } from "./Monosaccharide";
 import { ELEMENTS } from "@atomika-lab/core";
 import { Atom } from "@atomika-lab/core";
-import { GlycosidicBondType, GlycosidicBond } from "./GlycosidicBondType";
+import { GlycosidicBondType, type GlycosidicBond } from "./GlycosidicBondType";
 
 /**
  * A polysaccharide (complex carbohydrate).
@@ -67,7 +67,7 @@ export abstract class Polysaccharide extends Saccharide {
    * minus (n − 1) H₂O molecules lost during glycosidic bond condensation.
    * Result is computed once and cached, safe because monomers are immutable.
    */
-  get atomicComposition(): ReadonlyMap<Atom, number> {
+  override get atomicComposition(): ReadonlyMap<Atom, number> {
     if (this._cachedComposition) return this._cachedComposition;
 
     const composition = new Map<Atom, number>();

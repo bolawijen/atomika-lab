@@ -22,7 +22,7 @@ export class Amylose extends Polysaccharide {
     );
   }
 
-  toString(): string {
+  override toString(): string {
     return `Amylose(n=${this.count})`;
   }
 }

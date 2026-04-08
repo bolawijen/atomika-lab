@@ -1,5 +1,0 @@
-- jgn ngefix code. tugas kau hanya review code dan collecting issue
-- review code terhadap chemical domain purity, pastikan hanya term kimia internasional yang dipakai
-- pastikan jsdoc class hanya berisi "what" dari class sesuai definisi kimianya
-- kalo ada issue baru, jgn edit issue lama, buatlah file issue baru aja
-- hapus file issue yang direview jika udah reviewnya

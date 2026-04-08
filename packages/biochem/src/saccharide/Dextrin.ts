@@ -20,7 +20,7 @@ export class Dextrin extends OligoSaccharide {
     this.monomers = Object.freeze(monomers);
   }
 
-  toString(): string {
+  override toString(): string {
     return `Dextrin(n=${this.count})`;
   }
 }

@@ -1,4 +1,4 @@
-import { Saccharide } from "../saccharide/Saccharide";
+import { Saccharide } from "./saccharide/Saccharide";
 
 /**
  * The accumulated product mixture from an enzymatic hydrolysis reaction.

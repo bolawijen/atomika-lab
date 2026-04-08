@@ -1,4 +1,4 @@
-import { Saccharide } from "../saccharide/Saccharide";
+import { Saccharide } from "./saccharide/Saccharide";
 import { ReactionMixture } from "./ReactionMixture";
 
 /**

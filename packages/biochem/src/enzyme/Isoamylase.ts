@@ -8,8 +8,8 @@ import { Polysaccharide } from "../saccharide/Polysaccharide";
 import { GlycosidicBondType } from "../saccharide/GlycosidicBondType";
 import { Environment, PHYSIOLOGICAL_CONDITIONS } from "@atomika-lab/core";
 import { ReactionMixture } from "@atomika-lab/biochem";
-import { ReactionResult, KineticSnapshot } from "@atomika-lab/biochem";
-import { ReactionVessel, EnzymeKinetics } from "@atomika-lab/biochem";
+import { ReactionResult, type KineticSnapshot } from "@atomika-lab/biochem";
+import { ReactionVessel, type EnzymeKinetics } from "@atomika-lab/biochem";
 import { LawsOfPhysics } from "@atomika-lab/core";
 
 /**
@@ -44,6 +44,11 @@ export class Isoamylase extends Enzyme {
    * Enthalpy of reaction (kJ/mol).
    */
   private readonly DELTA_H = -15;
+
+  /**
+   * Temperature threshold for thermal denaturation (°C).
+   */
+  private readonly DENATURATION_THRESHOLD = 65;
 
   /**
    * Maximum simulation steps.
@@ -161,8 +166,8 @@ export class Isoamylase extends Enzyme {
   #executeDebranching(
     mixture: Polysaccharide[],
     budget: number,
-  ): { linearized: Polysaccharide[], remaining: Polysaccharide[], branchesCleaved: number } {
-    const linearized: Polysaccharide[] = [];
+  ): { linearized: Dextrin[], remaining: Polysaccharide[], branchesCleaved: number } {
+    const linearized: Dextrin[] = [];
     const remaining: Polysaccharide[] = [];
     let branchesCleaved = 0;
 

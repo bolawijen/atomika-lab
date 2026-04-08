@@ -68,7 +68,7 @@ export class CoordinationComplex extends Molecule {
    * Atomic composition of the entire coordination complex,
    * including the metal ion and all ligand molecules.
    */
-  get atomicComposition(): ReadonlyMap<Atom, number> {
+  override get atomicComposition(): ReadonlyMap<Atom, number> {
     const composition = new Map<Atom, number>();
 
     // Add metal ion
@@ -95,7 +95,7 @@ export class CoordinationComplex extends Molecule {
    * Chemical formula in standard notation.
    * E.g., "[Fe(CN)₆]⁴⁻"
    */
-  toString(): string {
+  override toString(): string {
     const ligandStr = this.ligands
       .map(l => {
         const name = l.molecule.toString();

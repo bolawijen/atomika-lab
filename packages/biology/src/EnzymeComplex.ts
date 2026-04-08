@@ -1,8 +1,6 @@
-import { Saccharide } from "@atomika-lab/biochem";
+import { Saccharide, Enzyme } from "@atomika-lab/biochem";
 import { Environment } from "@atomika-lab/core";
-import { ReactionMixture } from "@atomika-lab/biochem";
-import { ReactionResult } from "@atomika-lab/biochem";
-import { Enzyme } from "./Enzyme";
+import { ReactionMixture, ReactionResult } from "@atomika-lab/biochem";
 
 /**
  * A kinetic snapshot taken at one time step during a multi-enzyme reaction.
@@ -59,7 +57,7 @@ export class EnzymeComplex {
 
       // Each enzyme acts on the current mixture simultaneously this tick
       for (const enzyme of this.enzymes) {
-        if (!(enzyme instanceof { digest: Function })) continue;
+        if (!("digest" in enzyme)) continue;
         const result = (enzyme as any).digest(this.#combineMixture(reactionMixture), environment);
         if (result && result.products) {
           for (const product of result.products.getAll()) {
@@ -85,8 +83,8 @@ export class EnzymeComplex {
   }
 
   #combineMixture(mixture: Saccharide[]): Saccharide {
-    if (mixture.length === 1) return mixture[0];
-    return mixture[0];
+    if (mixture.length === 1) return mixture[0]!;
+    return mixture[0]!;
   }
 
   #countRemainingBonds(mixture: Saccharide[]): number {

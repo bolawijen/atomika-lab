@@ -19,7 +19,7 @@ export class Sucrose extends Disaccharide {
     ]);
   }
 
-  toString(): string {
+  override toString(): string {
     return "Sucrose";
   }
 }

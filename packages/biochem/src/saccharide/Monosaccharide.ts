@@ -72,7 +72,7 @@ export class Monosaccharide extends Saccharide {
    * Atomic composition: C₆H₁₂O₆ for all hexoses.
    * Isomers share the same formula but differ in stereochemistry.
    */
-  get atomicComposition(): ReadonlyMap<Atom, number> {
+  override get atomicComposition(): ReadonlyMap<Atom, number> {
     return new Map([
       [ELEMENTS.C, 6],
       [ELEMENTS.H, 12],
@@ -90,7 +90,7 @@ export class Monosaccharide extends Saccharide {
       : AnomericState.ALPHA;
   }
 
-  toString(): string {
+  override toString(): string {
     return this.identity;
   }
 }

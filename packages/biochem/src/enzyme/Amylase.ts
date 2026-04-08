@@ -5,9 +5,9 @@ import { Polysaccharide } from "../saccharide/Polysaccharide";
 import { GlycosidicBondType } from "../saccharide/GlycosidicBondType";
 import { Environment, PHYSIOLOGICAL_CONDITIONS } from "@atomika-lab/core";
 import { ReactionMixture } from "@atomika-lab/biochem";
-import { ReactionResult, KineticSnapshot } from "@atomika-lab/biochem";
-import { KineticsSimulator, KineticParameters } from "./KineticsSimulator";
-import { HydrolysisMechanism, HydrolysisResult } from "./HydrolysisMechanism";
+import { ReactionResult, type KineticSnapshot } from "@atomika-lab/biochem";
+import { KineticsSimulator, type KineticParameters } from "./KineticsSimulator";
+import { HydrolysisMechanism, type HydrolysisResult } from "./HydrolysisMechanism";
 import { ELEMENTS } from "@atomika-lab/core";
 import { StructuralFingerprint } from "@atomika-lab/core";
 import { Chirality } from "@atomika-lab/core";
@@ -211,7 +211,7 @@ export class Amylase extends Enzyme {
       productMixture.add(result.maltose);
       productMixture.add(result.freeMonosaccharides);
       bondsCleaved += result.bondsCleaved;
-      reactionMixture = result.unhydrolyzedFragments;
+      reactionMixture = result.unhydrolyzedFragments as Polysaccharide[];
 
       // Apply thermal drift from reaction enthalpy
       currentTemp += LawsOfPhysics.calculateThermalDrift(

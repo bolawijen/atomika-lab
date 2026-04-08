@@ -19,7 +19,7 @@ export class Lactose extends Disaccharide {
     ]);
   }
 
-  toString(): string {
+  override toString(): string {
     return "Lactose";
   }
 }
