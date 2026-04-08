@@ -1,4 +1,4 @@
-import { Saccharide, Enzyme, type KineticSnapshot } from "@atomika-lab/biochem";
+import { BioMolecule, Enzyme, type KineticSnapshot } from "@atomika-lab/biochem";
 import { Environment } from "@atomika-lab/core";
 import { ReactionMixture, ReactionResult, ReactionVessel } from "@atomika-lab/biochem";
 
@@ -26,13 +26,13 @@ export class Bioreactor {
    * once on the current state of the reaction mixture, simulating
    * simultaneous rather than sequential action.
    *
-   * @param substrate The initial saccharide substrate.
+   * @param substrate The initial biomolecule substrate.
    * @param environment Reaction conditions shared by all enzymes.
    * @returns ReactionResult with full kinetic history.
    */
-  digest(substrate: Saccharide, environment: Environment): ReactionResult {
+  digest(substrate: BioMolecule, environment: Environment): ReactionResult {
     const vessel = new ReactionVessel(environment);
-    let reactionMixture: Saccharide[] = [substrate];
+    let reactionMixture: BioMolecule[] = [substrate];
     const totalSteps = Math.min(Math.ceil(environment.durationInSeconds), 10000);
     let currentTemp = environment.temperatureC;
 
@@ -40,17 +40,16 @@ export class Bioreactor {
       vessel.recordProgression(reactionMixture, this.#asMixture(reactionMixture), step, currentTemp);
 
       // Each enzyme acts on the current mixture simultaneously this tick
-      const newProducts: Saccharide[] = [];
+      const newProducts: BioMolecule[] = [];
       const consumedIndices = new Set<number>();
 
       for (let i = 0; i < reactionMixture.length; i++) {
         const molecule = reactionMixture[i]!;
         for (const enzyme of this.enzymes) {
-          if (!("digest" in enzyme)) continue;
           if (consumedIndices.has(i)) continue;
-          if (!this.#isCompatibleSubstrate(molecule, enzyme)) continue;
+          if (!this.#isCompatibleSubstrate(molecule)) continue;
 
-          const result = (enzyme as any).digest(molecule, environment);
+          const result = enzyme.digest(molecule, environment);
           if (result && result.products) {
             consumedIndices.add(i);
             for (const product of result.products.getAll()) {
@@ -78,24 +77,24 @@ export class Bioreactor {
     );
   }
 
-  #asMixture(molecules: Saccharide[]): ReactionMixture {
+  #asMixture(molecules: BioMolecule[]): ReactionMixture {
     const mixture = new ReactionMixture();
     mixture.add(molecules);
     return mixture;
   }
 
   /**
-   * Checks whether a molecule is a compatible substrate for the enzyme.
+   * Checks whether a molecule has structural features that make it
+   * a potential substrate for enzymatic cleavage.
+   *
+   * Uses structural type checking — molecules with cleavable bonds
+   * or glycosidic bond types are compatible substrates.
    */
-  #isCompatibleSubstrate(molecule: Saccharide, enzyme: Enzyme): boolean {
-    if ("bondType" in molecule) {
-      return true;
-    }
-    return molecule.constructor.name.includes("Maltose")
-      || molecule.constructor.name.includes("Glucose");
+  #isCompatibleSubstrate(molecule: BioMolecule): boolean {
+    return "bondType" in molecule || "cleavableBondCount" in molecule;
   }
 
-  #totalMass(mixture: Saccharide[]): number {
+  #totalMass(mixture: BioMolecule[]): number {
     let total = 0;
     for (const molecule of mixture) {
       total += molecule.molecularMass;

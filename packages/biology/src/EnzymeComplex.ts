@@ -1,4 +1,4 @@
-import { Saccharide, Enzyme } from "@atomika-lab/biochem";
+import { BioMolecule, Enzyme } from "@atomika-lab/biochem";
 import { Environment } from "@atomika-lab/core";
 import { ReactionMixture, ReactionResult } from "@atomika-lab/biochem";
 
@@ -37,13 +37,13 @@ export class EnzymeComplex {
    * once on the current state of the reaction mixture, simulating
    * simultaneous rather than sequential action.
    *
-   * @param substrate The initial saccharide substrate.
+   * @param substrate The initial biomolecule substrate.
    * @param environment Reaction conditions shared by all enzymes.
    * @returns ReactionResult with full kinetic history.
    */
-  digest(substrate: Saccharide, environment: Environment): ReactionResult {
+  digest(substrate: BioMolecule, environment: Environment): ReactionResult {
     const history: KineticSnapshot[] = [];
-    let reactionMixture: Saccharide[] = [substrate];
+    let reactionMixture: BioMolecule[] = [substrate];
     const productMixture = new ReactionMixture();
     const totalSteps = Math.min(Math.ceil(environment.durationInSeconds), 10000);
 
@@ -57,8 +57,7 @@ export class EnzymeComplex {
 
       // Each enzyme acts on the current mixture simultaneously this tick
       for (const enzyme of this.enzymes) {
-        if (!("digest" in enzyme)) continue;
-        const result = (enzyme as any).digest(this.#combineMixture(reactionMixture), environment);
+        const result = enzyme.digest(this.#combineMixture(reactionMixture), environment);
         if (result && result.products) {
           for (const product of result.products.getAll()) {
             productMixture.add([product]);
@@ -82,22 +81,22 @@ export class EnzymeComplex {
     );
   }
 
-  #combineMixture(mixture: Saccharide[]): Saccharide {
+  #combineMixture(mixture: BioMolecule[]): BioMolecule {
     if (mixture.length === 1) return mixture[0]!;
     return mixture[0]!;
   }
 
-  #countRemainingBonds(mixture: Saccharide[]): number {
+  #countRemainingBonds(mixture: BioMolecule[]): number {
     let total = 0;
     for (const molecule of mixture) {
       if ("cleavableBondCount" in molecule) {
-        total += (molecule as any).cleavableBondCount;
+        total += (molecule as { cleavableBondCount: number }).cleavableBondCount;
       }
     }
     return total;
   }
 
-  #totalMass(mixture: Saccharide[]): number {
+  #totalMass(mixture: BioMolecule[]): number {
     let total = 0;
     for (const molecule of mixture) {
       total += molecule.molecularMass;

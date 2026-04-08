@@ -1,3 +1,4 @@
+import { BioMolecule } from "./BioMolecule";
 import { Polysaccharide } from "./saccharide/Polysaccharide";
 import { Saccharide } from "./saccharide/Saccharide";
 import { Monosaccharide } from "./saccharide/Monosaccharide";
@@ -156,7 +157,7 @@ export class ReactionVessel {
   /**
    * Records the current state of the reaction mixture along the reaction path.
    */
-  recordProgression(mixture: Saccharide[], products: ReactionMixture, timeInSeconds: number, temperatureC?: number): KineticSnapshot {
+  recordProgression(mixture: BioMolecule[], products: ReactionMixture, timeInSeconds: number, temperatureC?: number): KineticSnapshot {
     const snapshot = {
       timeInSeconds,
       remainingBonds: this.#totalCleavableBondsInMixture(mixture),
@@ -221,7 +222,7 @@ export class ReactionVessel {
     return total;
   }
 
-  #totalCleavableBondsInMixture(mixture: Saccharide[]): number {
+  #totalCleavableBondsInMixture(mixture: BioMolecule[]): number {
     let total = 0;
     for (const molecule of mixture) {
       if ("cleavableBondCount" in molecule) {
