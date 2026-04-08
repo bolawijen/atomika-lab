@@ -1,13 +1,26 @@
 import { PhysicalConstants } from "./PhysicalConstants";
+import {
+  calculateGibbsFreeEnergy,
+  calculateNernstPotential,
+} from "./RedoxCalculator";
+import {
+  calculateSahaIonization,
+  calculateLorentzForce,
+  calculateRadiativePowerLoss,
+  calculatePeakEmissionWavelength,
+} from "./PlasmaCalculator";
+import {
+  calculateIdealGasVolume,
+  calculateVanDerWaalsPressure,
+  calculateBoilingPointAtPressure,
+} from "./PhaseCalculator";
 
 /**
  * Fundamental physical laws governing chemical systems.
  *
- * Provides calculations for thermodynamics (Arrhenius kinetics, Gibbs free energy,
- * Nernst electrochemical potential), gas behavior (ideal and real gas equations),
- * plasma physics (Saha ionization, Lorentz force), radiation (Stefan-Boltzmann,
- * Wien's displacement), phase transitions (Clausius-Clapeyron), and thermal
- * energy transfer during chemical reactions.
+ * Re-exports calculator module functions as a unified namespace for
+ * thermodynamics, gas behavior, plasma physics, radiation, and phase
+ * transitions.
  */
 export const LawsOfPhysics = {
   // ── Thermodynamics ──────────────────────────────────────────────
@@ -35,8 +48,7 @@ export const LawsOfPhysics = {
    * @param standardPotential Standard cell potential E° (V).
    * @returns Gibbs Free Energy (kJ/mol).
    */
-  calculateGibbsFreeEnergy: (electronsTransferred: number, standardPotential: number): number =>
-    -(electronsTransferred * PhysicalConstants.FARADAY * standardPotential) / 1000,
+  calculateGibbsFreeEnergy,
 
   /**
    * Nernst equation: E = E° - (RT/nF) × ln(Q)
@@ -47,17 +59,7 @@ export const LawsOfPhysics = {
    * @param reactionQuotient Reaction quotient Q.
    * @returns Cell potential under non-standard conditions (V).
    */
-  calculateNernstPotential: (
-    standardPotential: number,
-    electronsTransferred: number,
-    temperatureK: number,
-    reactionQuotient: number,
-  ): number => {
-    if (reactionQuotient <= 0) return standardPotential;
-    const nernstTerm = (PhysicalConstants.GAS_CONSTANT * temperatureK) /
-      (electronsTransferred * PhysicalConstants.FARADAY);
-    return standardPotential - nernstTerm * Math.log(reactionQuotient);
-  },
+  calculateNernstPotential,
 
   // ── Gas Laws ────────────────────────────────────────────────────
 
@@ -69,8 +71,7 @@ export const LawsOfPhysics = {
    * @param pressureAtm Pressure in atmospheres.
    * @returns Volume in liters.
    */
-  calculateIdealGasVolume: (moles: number, temperatureK: number, pressureAtm: number = 1.0): number =>
-    (moles * PhysicalConstants.GAS_CONSTANT_L_ATM * temperatureK) / pressureAtm,
+  calculateIdealGasVolume,
 
   /**
    * Van der Waals equation for real gases: P = nRT/(V-nb) - an²/V²
@@ -82,18 +83,7 @@ export const LawsOfPhysics = {
    * @param vanDerWaalsB Volume exclusion parameter (L/mol).
    * @returns Pressure (atm).
    */
-  calculateVanDerWaalsPressure: (
-    moles: number,
-    volume: number,
-    temperatureK: number,
-    vanDerWaalsA: number,
-    vanDerWaalsB: number,
-  ): number => {
-    const idealTerm = (moles * PhysicalConstants.GAS_CONSTANT_L_ATM * temperatureK) /
-      (volume - moles * vanDerWaalsB);
-    const correctionTerm = (vanDerWaalsA * moles * moles) / (volume * volume);
-    return idealTerm - correctionTerm;
-  },
+  calculateVanDerWaalsPressure,
 
   // ── Plasma Physics ──────────────────────────────────────────────
 
@@ -106,21 +96,7 @@ export const LawsOfPhysics = {
    * @param electronDensity Free electron density (m⁻³).
    * @returns Ionization fraction (0–1).
    */
-  calculateSahaIonization: (
-    ionizationEnergy: number,
-    temperatureK: number,
-    electronDensity: number = 1e20,
-  ): number => {
-    const kT = PhysicalConstants.BOLTZMANN_EV * temperatureK;
-    const thermalWavelength = Math.pow(
-      2 * Math.PI * PhysicalConstants.ELECTRON_MASS *
-      kT * PhysicalConstants.ELEMENTARY_CHARGE /
-      (PhysicalConstants.PLANCK * PhysicalConstants.PLANCK),
-      1.5
-    );
-    const ionizationRatio = (2 / electronDensity) * thermalWavelength * Math.exp(-ionizationEnergy / kT);
-    return ionizationRatio / (1 + ionizationRatio);
-  },
+  calculateSahaIonization,
 
   /**
    * Lorentz Force: F = q(E + v × B)
@@ -131,23 +107,7 @@ export const LawsOfPhysics = {
    * @param magneticField Magnetic field vector [Bx, By, Bz] (T).
    * @returns Force vector [Fx, Fy, Fz] (N).
    */
-  calculateLorentzForce: (
-    charge: number,
-    velocity: [number, number, number],
-    electricField: [number, number, number],
-    magneticField: [number, number, number],
-  ): [number, number, number] => {
-    const crossProduct: [number, number, number] = [
-      velocity[1] * magneticField[2] - velocity[2] * magneticField[1],
-      velocity[2] * magneticField[0] - velocity[0] * magneticField[2],
-      velocity[0] * magneticField[1] - velocity[1] * magneticField[0],
-    ];
-    return [
-      charge * (electricField[0] + crossProduct[0]),
-      charge * (electricField[1] + crossProduct[1]),
-      charge * (electricField[2] + crossProduct[2]),
-    ];
-  },
+  calculateLorentzForce,
 
   // ── Radiation ───────────────────────────────────────────────────
 
@@ -159,8 +119,7 @@ export const LawsOfPhysics = {
    * @param emissivity Emissivity (0–1).
    * @returns Radiated power (W).
    */
-  calculateRadiativePower: (temperatureK: number, surfaceArea: number, emissivity: number = 0.9): number =>
-    emissivity * PhysicalConstants.STEFAN_BOLTZMANN * surfaceArea * Math.pow(temperatureK, 4),
+  calculateRadiativePower: calculateRadiativePowerLoss,
 
   /**
    * Wien's Displacement Law: λ_max = b/T
@@ -168,8 +127,7 @@ export const LawsOfPhysics = {
    * @param temperatureK Temperature in Kelvin.
    * @returns Peak emission wavelength (nm).
    */
-  calculatePeakWavelength: (temperatureK: number): number =>
-    (PhysicalConstants.WIEN_DISPLACEMENT / temperatureK) * 1e9,
+  calculatePeakWavelength: calculatePeakEmissionWavelength,
 
   // ── Phase Transitions ───────────────────────────────────────────
 
@@ -181,19 +139,7 @@ export const LawsOfPhysics = {
    * @param pressureAtm Current pressure (atm).
    * @returns Boiling point at given pressure (°C).
    */
-  calculateBoilingPointAtPressure: (
-    normalBoilingPointC: number,
-    enthalpyOfVaporization: number,
-    pressureAtm: number,
-  ): number => {
-    const T1 = normalBoilingPointC + PhysicalConstants.ABSOLUTE_ZERO_OFFSET;
-    const dHvap = enthalpyOfVaporization * 1000;
-    const lnPressureRatio = Math.log(pressureAtm / PhysicalConstants.STANDARD_PRESSURE_ATM);
-    const inverseT2 = 1 / T1 - (PhysicalConstants.GAS_CONSTANT / dHvap) * lnPressureRatio;
-    if (inverseT2 <= 0) return normalBoilingPointC;
-    const T2 = 1 / inverseT2;
-    return T2 - PhysicalConstants.ABSOLUTE_ZERO_OFFSET;
-  },
+  calculateBoilingPointAtPressure,
 
   // ── Temperature Conversion ──────────────────────────────────────
 
