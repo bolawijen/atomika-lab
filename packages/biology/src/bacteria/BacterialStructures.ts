@@ -51,6 +51,43 @@ export class CellWall {
 }
 
 /**
+ * Porin channel — protein pore allowing passive entry of small hydrophilic molecules.
+ *
+ * Porins form water-filled channels in the cell envelope, enabling
+ * diffusion of molecules below a size threshold. Larger molecules
+ * are excluded by steric hindrance.
+ */
+export class PorinChannel {
+  /**
+   * Pore diameter in ångströms.
+   * Typical bacterial porins: 10–20 Å.
+   */
+  readonly poreSize: number;
+
+  /**
+   * Maximum molecular diameter that can pass through (Å).
+   * Approximated from molecular mass.
+   */
+  private readonly MAX_MOLECULAR_DIAMETER = 15; // Å
+
+  constructor(params: { poreSize?: number } = {}) {
+    this.poreSize = params.poreSize ?? 12;
+  }
+
+  /**
+   * Whether a molecule can pass through based on size exclusion.
+   *
+   * @param molecule The molecule attempting to pass.
+   * @returns True if the molecule is small enough to fit through the pore.
+   */
+  canPass(molecule: { molecularMass: number }): boolean {
+    // Approximate molecular diameter from mass (spherical assumption)
+    const approximateDiameter = 2 * Math.pow((3 * molecule.molecularMass) / (4 * Math.PI * 1.35 * 6.022e23), 1/3) * 1e8;
+    return approximateDiameter <= this.MAX_MOLECULAR_DIAMETER;
+  }
+}
+
+/**
  * Lipid bilayer with selective permeability and transport proteins.
  *
  * Target of polymyxins, detergents, and oxidative stress.
@@ -66,8 +103,14 @@ export class CellMembrane {
    */
   readonly lipidComposition: "gram-negative" | "gram-positive";
 
-  constructor(params: { lipidComposition?: "gram-negative" | "gram-positive" } = {}) {
+  /**
+   * Porin channels — passive entry for small hydrophilic molecules.
+   */
+  readonly porins: PorinChannel[];
+
+  constructor(params: { lipidComposition?: "gram-negative" | "gram-positive"; porins?: PorinChannel[] } = {}) {
     this.lipidComposition = params.lipidComposition ?? "gram-negative";
+    this.porins = params.porins ?? [new PorinChannel()];
   }
 
   /**

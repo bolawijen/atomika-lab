@@ -8,6 +8,7 @@ export {
   Plasmid,
   MycolicAcidLayer,
   EnergyReserves,
+  PorinChannel,
 } from "./bacteria";
 export type {
   EnvironmentalEvent,

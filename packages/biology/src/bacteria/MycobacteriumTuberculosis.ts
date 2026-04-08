@@ -1,5 +1,6 @@
 import { BacterialCell } from "./BacterialCell";
 import { Polymerase } from "../Polymerase";
+import { ProteinChain } from "@atomika-lab/biochem";
 import { Rifampicin } from "@atomika-lab/pharmacology";
 import { Environment, type Duration } from "@atomika-lab/core";
 import { MycolicAcidLayer } from "./BacterialStructures";
@@ -17,6 +18,14 @@ export class MycobacteriumTuberculosis extends BacterialCell {
    * Mycolic acid layer — thick waxy coating unique to this species.
    */
   readonly mycolicAcidLayer: MycolicAcidLayer;
+
+  /**
+   * RNA Polymerase — core transcriptional machinery.
+   *
+   * Essential for DNA → mRNA transcription. Permanent resident of the cell,
+   * not a transient enzyme. Primary target of Rifampicin antibiotic.
+   */
+  readonly rnaPolymerase: Polymerase;
 
   /**
    * Minimum LogP required for a molecule to penetrate the cell wall.
@@ -56,6 +65,7 @@ export class MycobacteriumTuberculosis extends BacterialCell {
       thickness: params.mycolicAcidThickness ?? 30,
       cordFactorDensity: params.cordFactorDensity ?? 0.5,
     });
+    this.rnaPolymerase = new Polymerase(new ProteinChain());
   }
 
   /**
@@ -109,9 +119,8 @@ export class MycobacteriumTuberculosis extends BacterialCell {
    * Absorbs nutrient from the environment via passive diffusion through
    * the mycolic acid layer and cell membrane.
    *
-   * M. tuberculosis is a lipid-dependent pathogen — lipids dissolve through
-   * the mycolic acid wall naturally (like dissolves like). Non-lipid nutrients
-   * have reduced permeability due to the hydrophobic barrier.
+   * Lipids dissolve through the mycolic acid wall naturally (like dissolves like).
+   * Non-lipid nutrients must pass through porin channels by size exclusion.
    *
    * Uptake is driven by concentration gradient — no energy cost.
    *
@@ -124,12 +133,23 @@ export class MycobacteriumTuberculosis extends BacterialCell {
     const gradient = environment.nutrientConcentration - this.cytoplasm.nutrientConcentration;
     if (gradient <= 0) return { nutrientType: nutrient.category, amount: 0 };
 
-    // Mycolic acid layer acts as lipophilicity filter
-    // Lipids perme easily; non-lipids face reduced permeability
-    const mycolicPermeability = this.mycolicAcidLayer.canPermeate(nutrient.molecule) ? 1.0 : 0.2;
-    const membranePermeability = this.cellMembrane.functionalIntegrity;
-    const totalPermeability = mycolicPermeability * membranePermeability;
+    let permeability: number;
 
+    // Lipids: dissolve through mycolic acid layer
+    if (this.mycolicAcidLayer.canPermeate(nutrient.molecule)) {
+      permeability = this.mycolicAcidLayer.hydrophobicity;
+    } else {
+      // Non-lipids: must fit through porin channels
+      const porin = this.cellMembrane.porins.find(p => p.canPass(nutrient.molecule));
+      if (!porin) {
+        // Too large or incompatible — rejected
+        return { nutrientType: nutrient.category, amount: 0 };
+      }
+      permeability = porin.poreSize / 20; // normalized permeability
+    }
+
+    const membranePermeability = this.cellMembrane.functionalIntegrity;
+    const totalPermeability = permeability * membranePermeability;
     const amount = Math.min(gradient * totalPermeability * 0.1, 1.0);
 
     // Add nutrient to cytoplasm
@@ -138,8 +158,8 @@ export class MycobacteriumTuberculosis extends BacterialCell {
     // Replenish energy reserves from absorbed nutrients
     this.energyReserves.replenish(amount);
 
-    // Long-term penalty: suboptimal nutrition (non-lipid) causes gradual viability decline
-    if (mycolicPermeability < 1.0) {
+    // Long-term penalty: non-lipid nutrition causes gradual viability decline
+    if (!this.mycolicAcidLayer.canPermeate(nutrient.molecule)) {
       this.viability = Math.max(0, this.viability - 0.001);
     }
 
@@ -182,5 +202,23 @@ export class MycobacteriumTuberculosis extends BacterialCell {
    */
   override metabolize(): number {
     return this.metabolizeLipids();
+  }
+
+  /**
+   * Responds to drug exposure with mycolic acid barrier consideration.
+   *
+   * @param drug The medicinal substance present in the environment.
+   * @param environment The thermal and chemical context of exposure.
+   */
+  override exposedTo(drug: Rifampicin, environment: Environment): void {
+    // Drug must overcome mycolic acid barrier
+    const canPenetrate = drug.logP >= this.minLogPForPenetration
+      && environment.thermalEnergy > 0;
+    if (!canPenetrate) return;
+
+    // Direct targeting of owned RNA Polymerase
+    this.rnaPolymerase.bindLigand(drug, drug.dissociationConstant);
+
+    this.updateViability();
   }
 }

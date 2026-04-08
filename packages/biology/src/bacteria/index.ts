@@ -8,8 +8,9 @@ export {
   Plasmid,
   MycolicAcidLayer,
   EnergyReserves,
+  PorinChannel,
+  type NutrientUptake,
 } from "./BacterialStructures";
-export type { NutrientUptake } from "./BacterialStructures";
 export type {
   EnvironmentalEvent,
   CellWallDamageEvent,
