@@ -2,10 +2,9 @@ import { BacterialCell } from "./BacterialCell";
 import { Polymerase } from "../Polymerase";
 import { ProteinChain } from "@atomika-lab/biochem";
 import { Rifampicin } from "@atomika-lab/pharmacology";
-import { Environment, type Duration } from "@atomika-lab/core";
+import { Environment, type Duration, Molecule } from "@atomika-lab/core";
 import { MycolicAcidLayer } from "./BacterialStructures";
-import type { NutrientUptake } from "./BacterialStructures";
-import { FattyAcid, Cholesterol, NutrientCategory, type Nutrient } from "@atomika-lab/biochem";
+import { Cell, type AbsorptionRecord } from "../Cell";
 
 /**
  * Mycobacterium tuberculosis — the causative agent of tuberculosis.
@@ -116,7 +115,7 @@ export class MycobacteriumTuberculosis extends BacterialCell {
   }
 
   /**
-   * Absorbs nutrient from the environment via passive diffusion through
+   * Absorbs molecules from the environment via passive diffusion through
    * the mycolic acid layer and cell membrane.
    *
    * Lipids dissolve through the mycolic acid wall naturally (like dissolves like).
@@ -124,26 +123,26 @@ export class MycobacteriumTuberculosis extends BacterialCell {
    *
    * Uptake is driven by concentration gradient — no energy cost.
    *
-   * @param nutrient The nutrient molecule to absorb.
+   * @param molecule The molecule to absorb.
    * @param environment The environmental context.
-   * @returns Record of the nutrient uptake event.
+   * @returns Record of the absorption event.
    */
-  override uptakeNutrient(nutrient: Nutrient, environment: Environment): NutrientUptake {
+  override absorb(molecule: Molecule, environment: Environment): AbsorptionRecord {
     // Passive diffusion — requires concentration gradient
     const gradient = environment.nutrientConcentration - this.cytoplasm.nutrientConcentration;
-    if (gradient <= 0) return { nutrientType: nutrient.category, amount: 0 };
+    if (gradient <= 0) return { moleculeType: molecule.constructor.name, amount: 0, absorbed: false };
 
     let permeability: number;
 
     // Lipids: dissolve through mycolic acid layer
-    if (this.mycolicAcidLayer.canPermeate(nutrient.molecule)) {
+    if (this.mycolicAcidLayer.canPermeate(molecule)) {
       permeability = this.mycolicAcidLayer.hydrophobicity;
     } else {
       // Non-lipids: must fit through porin channels
-      const porin = this.cellMembrane.porins.find(p => p.canPass(nutrient.molecule));
+      const porin = this.cellMembrane.porins.find(p => p.canPass(molecule));
       if (!porin) {
         // Too large or incompatible — rejected
-        return { nutrientType: nutrient.category, amount: 0 };
+        return { moleculeType: molecule.constructor.name, amount: 0, absorbed: false };
       }
       permeability = porin.poreSize / 20; // normalized permeability
     }
@@ -152,21 +151,18 @@ export class MycobacteriumTuberculosis extends BacterialCell {
     const totalPermeability = permeability * membranePermeability;
     const amount = Math.min(gradient * totalPermeability * 0.1, 1.0);
 
-    // Add nutrient to cytoplasm
+    // Add to cytoplasm
     this.cytoplasm.addNutrient(amount);
 
     // Replenish energy reserves from absorbed nutrients
     this.energyReserves.replenish(amount);
 
     // Long-term penalty: non-lipid nutrition causes gradual viability decline
-    if (!this.mycolicAcidLayer.canPermeate(nutrient.molecule)) {
+    if (!this.mycolicAcidLayer.canPermeate(molecule)) {
       this.viabilityValue = Math.max(0, this.viabilityValue - 0.001);
     }
 
-    const uptake: NutrientUptake = { nutrientType: nutrient.category, amount };
-    this.uptakeHistory.push(uptake);
-
-    return uptake;
+    return { moleculeType: molecule.constructor.name, amount, absorbed: amount > 0 };
   }
 
   /**

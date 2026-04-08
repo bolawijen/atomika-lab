@@ -369,13 +369,3 @@ export class EnergyReserves {
     this.phbLevel = Math.min(1, this.phbLevel + amount * 0.4);
   }
 }
-
-/**
- * Nutrient uptake record — tracks absorbed molecules.
- */
-export interface NutrientUptake {
-  /** Nutrient category. */
-  readonly nutrientType: string;
-  /** Amount absorbed (arbitrary units). */
-  readonly amount: number;
-}

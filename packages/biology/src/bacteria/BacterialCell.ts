@@ -11,9 +11,6 @@ import {
   EnergyReserves,
 } from "./BacterialStructures";
 import type {
-  NutrientUptake,
-} from "./BacterialStructures";
-import type {
   EnvironmentalEvent,
   CellWallDamageEvent,
   MembraneDamageEvent,
@@ -24,7 +21,6 @@ import type {
   EnvironmentalChangeEvent,
 } from "./BacterialStimuli";
 import { Ribosome } from "../Ribosome";
-import { NutrientCategory, type Nutrient } from "@atomika-lab/biochem";
 import { Cell, type AbsorptionRecord } from "../Cell";
 
 /**
@@ -94,11 +90,6 @@ export class BacterialCell extends Cell {
    */
   protected elapsedDuration = 0;
 
-  /**
-   * History of nutrient uptake events.
-   */
-  protected uptakeHistory: NutrientUptake[] = [];
-
   constructor(params: { generationTime?: Duration } = {}) {
     super();
     this.cellWall = new CellWall();
@@ -108,7 +99,6 @@ export class BacterialCell extends Cell {
     this.ribosomes = [];
     this.plasmids = [];
     this.energyReserves = new EnergyReserves();
-    this.uptakeHistory = [];
     this.generationTime = params.generationTime ?? (1200 as Duration);
   }
 
@@ -323,42 +313,6 @@ export class BacterialCell extends Cell {
     }
 
     return daughter;
-  }
-
-  /**
-   * Absorbs nutrients from the environment via passive diffusion.
-   *
-   * Nutrients flow down their concentration gradient through the cell
-   * membrane into the cytoplasm. No energy is expended — molecules
-   * move spontaneously from high to low concentration.
-   *
-   * @param nutrient The nutrient molecule to absorb.
-   * @param environment The environmental context providing concentration gradient.
-   * @returns Record of the nutrient uptake event.
-   */
-  uptakeNutrient(nutrient: Nutrient, environment: Environment): NutrientUptake {
-    // Passive diffusion — requires concentration gradient
-    const gradient = environment.nutrientConcentration - this.cytoplasm.nutrientConcentration;
-    if (gradient <= 0) return { nutrientType: nutrient.category, amount: 0 };
-
-    // Membrane must be intact for diffusion
-    if (!this.cellMembrane.isIntact) return { nutrientType: nutrient.category, amount: 0 };
-
-    // Amount proportional to gradient and membrane permeability
-    const permeability = this.cellMembrane.functionalIntegrity;
-    const amount = Math.min(gradient * permeability * 0.1, 1.0);
-
-    // Add nutrient to cytoplasm
-    this.cytoplasm.addNutrient(amount);
-
-    // Replenish energy reserves from absorbed nutrients
-    this.energyReserves.replenish(amount);
-
-    // Record uptake event
-    const uptake: NutrientUptake = { nutrientType: nutrient.category, amount };
-    this.uptakeHistory.push(uptake);
-
-    return uptake;
   }
 
   /**

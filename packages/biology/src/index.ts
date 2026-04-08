@@ -25,7 +25,6 @@ export type {
   RibosomeInhibitionEvent,
   MetabolicInhibitionEvent,
   EnvironmentalChangeEvent,
-  NutrientUptake,
 } from "./bacteria";
 export { Polymerase } from "./Polymerase";
 export { Ribosome } from "./Ribosome";
