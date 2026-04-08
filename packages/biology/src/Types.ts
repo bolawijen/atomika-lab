@@ -1,9 +1,16 @@
 /**
- * Biological quantity types for @atomika-lab/biology.
+ * Biological quantities in living organisms.
  *
- * Branded types prevent accidental unit mismatches in calculations.
- * Each type carries its unit as a phantom type at compile time.
+ * Cell viability and incubation time — the measurable properties
+ * that characterize living systems and their responses to external agents.
  */
+
+/**
+ * Generation time — doubling time for bacterial population growth.
+ *
+ * Measured in hours (h). Species-specific: E. coli ~20 min, M. tuberculosis ~24 h.
+ */
+export type GenerationTime = number & { readonly __unit: "h" };
 
 /**
  * Incubation time — extended time interval for biological processes.

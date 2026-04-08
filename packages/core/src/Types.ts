@@ -1,8 +1,8 @@
 /**
- * Fundamental physical quantity types for @atomika-lab/core.
+ * Fundamental physical quantities in chemical systems.
  *
- * Branded types prevent accidental unit mismatches in calculations.
- * Each type carries its unit as a phantom type at compile time.
+ * Energy, mass, length, temperature, pressure, and diffusivity —
+ * the measurable properties that govern chemical transformations.
  */
 
 /**

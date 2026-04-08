@@ -1,8 +1,8 @@
 /**
- * Biochemical quantity types for @atomika-lab/biochem.
+ * Biochemical quantities in living systems.
  *
- * Branded types prevent accidental unit mismatches in calculations.
- * Each type carries its unit as a phantom type at compile time.
+ * Metabolic energy, solution concentration, acidity, and reaction rate —
+ * the measurable properties that govern enzymatic and metabolic processes.
  */
 
 /**

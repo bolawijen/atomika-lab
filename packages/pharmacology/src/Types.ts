@@ -1,8 +1,8 @@
 /**
- * Pharmacological quantity types for @atomika-lab/pharmacology.
+ * Pharmacological quantities in drug-target interactions.
  *
- * Branded types prevent accidental unit mismatches in calculations.
- * Each type carries its unit as a phantom type at compile time.
+ * Binding affinity, metabolic clearance, and lipophilicity —
+ * the measurable properties that determine drug efficacy and distribution.
  */
 
 /**
