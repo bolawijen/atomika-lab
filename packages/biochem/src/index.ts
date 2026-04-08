@@ -31,3 +31,5 @@ export { Amylose } from "./saccharide/Amylose";
 export { Amylopectin } from "./saccharide/Amylopectin";
 
 export type { BiochemicalEnergy, MolarConcentration, Acidity, RateConstant, Conversion } from "./Types";
+
+export { Lipid, FattyAcid, Cholesterol, SaturationLevel } from "./lipid";

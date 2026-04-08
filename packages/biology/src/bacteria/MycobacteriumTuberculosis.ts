@@ -4,6 +4,7 @@ import { Rifampicin } from "@atomika-lab/pharmacology";
 import { Environment, type Duration } from "@atomika-lab/core";
 import { MycolicAcidLayer } from "./BacterialStructures";
 import type { NutrientUptake } from "./BacterialStructures";
+import { FattyAcid, Cholesterol } from "@atomika-lab/biochem";
 
 /**
  * Mycobacterium tuberculosis — the causative agent of tuberculosis.
@@ -137,17 +138,47 @@ export class MycobacteriumTuberculosis extends BacterialCell {
   }
 
   /**
-   * Catabolic metabolism — slower ATP production due to low metabolic rate.
+   * Uptakes lipid nutrients from the environment.
    *
-   * M. tuberculosis has a reduced metabolic rate compared to typical bacteria,
-   * reflecting its adaptation to slow growth and persistence.
+   * M. tuberculosis is a lipid-dependent pathogen — it does not consume
+   * glucose but instead metabolizes fatty acids and cholesterol from
+   * host cell membranes during infection.
+   *
+   * @param lipid The lipid nutrient to uptake.
+   * @param environment The environmental context.
+   * @returns Record of the lipid uptake event.
+   */
+  uptakeLipid(lipid: FattyAcid | Cholesterol, environment: Environment): NutrientUptake {
+    if (!this.cellMembrane.isIntact) return { nutrientType: lipid.toString(), amount: 0 };
+    if (environment.thermalEnergy <= 0) return { nutrientType: lipid.toString(), amount: 0 };
+
+    // Lipid uptake enhanced due to mycolic acid affinity
+    // Fatty acids are preferred over cholesterol for energy production
+    const lipidBonus = lipid instanceof FattyAcid ? 2.5 : 1.5;
+    const uptakeRate = environment.thermalEnergy * 0.001 * lipidBonus;
+    const amount = Math.min(uptakeRate, 1.0);
+
+    this.energyReserves.replenish(amount);
+
+    const uptake: NutrientUptake = { nutrientType: lipid.toString(), amount };
+    this.uptakeHistory.push(uptake);
+
+    return uptake;
+  }
+
+  /**
+   * Metabolizes lipids to produce thermal energy and mycolic acid precursors.
+   *
+   * Beta-oxidation of fatty acids produces acetyl-CoA, which enters
+   * the TCA cycle for ATP production. Cholesterol catabolism provides
+   * carbon skeletons for mycolic acid synthesis.
    *
    * @returns Metabolic energy produced in attomoles.
    */
-  override metabolize(): number {
+  metabolizeLipids(): number {
     if (!this.isAlive) return 0;
 
-    // Slower metabolism — 10x lower ATP production
+    // Slower lipid metabolism — adapted for persistence
     const atp = this.energyReserves.produceATP() * 0.1;
 
     // Starvation response — slower viability decline
@@ -156,5 +187,17 @@ export class MycobacteriumTuberculosis extends BacterialCell {
     }
 
     return atp;
+  }
+
+  /**
+   * Catabolic metabolism — slower ATP production due to low metabolic rate.
+   *
+   * M. tuberculosis has a reduced metabolic rate compared to typical bacteria,
+   * reflecting its adaptation to slow growth and persistence.
+   *
+   * @returns Metabolic energy produced in attomoles.
+   */
+  override metabolize(): number {
+    return this.metabolizeLipids();
   }
 }

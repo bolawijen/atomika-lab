@@ -18,5 +18,8 @@
     "@atomika-lab/biology": "workspace:*",
     "@atomika-lab/pharmacology": "workspace:*",
     "@rdkit/rdkit": "^2025.3.4-1.0.0"
+  },
+  "scripts": {
+    "check": "bunx tsc --noEmit"
   }
 }
