@@ -160,7 +160,7 @@ export class MycobacteriumTuberculosis extends BacterialCell {
 
     // Long-term penalty: non-lipid nutrition causes gradual viability decline
     if (!this.mycolicAcidLayer.canPermeate(nutrient.molecule)) {
-      this.viability = Math.max(0, this.viability - 0.001);
+      this.viabilityValue = Math.max(0, this.viabilityValue - 0.001);
     }
 
     const uptake: NutrientUptake = { nutrientType: nutrient.category, amount };
@@ -186,7 +186,7 @@ export class MycobacteriumTuberculosis extends BacterialCell {
 
     // Starvation response — slower viability decline
     if (atp === 0 && !this.energyReserves.isSufficient) {
-      this.viability = Math.max(0, this.viability - 0.01);
+      this.viabilityValue = Math.max(0, this.viabilityValue - 0.01);
     }
 
     return atp;
@@ -202,23 +202,5 @@ export class MycobacteriumTuberculosis extends BacterialCell {
    */
   override metabolize(): number {
     return this.metabolizeLipids();
-  }
-
-  /**
-   * Responds to drug exposure with mycolic acid barrier consideration.
-   *
-   * @param drug The medicinal substance present in the environment.
-   * @param environment The thermal and chemical context of exposure.
-   */
-  override exposedTo(drug: Rifampicin, environment: Environment): void {
-    // Drug must overcome mycolic acid barrier
-    const canPenetrate = drug.logP >= this.minLogPForPenetration
-      && environment.thermalEnergy > 0;
-    if (!canPenetrate) return;
-
-    // Direct targeting of owned RNA Polymerase
-    this.rnaPolymerase.bindLigand(drug, drug.dissociationConstant);
-
-    this.updateViability();
   }
 }
