@@ -16,14 +16,28 @@ export interface AbsorptionRecord {
 /**
  * A living cell — the basic structural and functional unit of life.
  *
- * Cells maintain homeostasis, respond to stimuli, grow, and reproduce.
- * They are bounded by a membrane and contain cytoplasm with genetic material.
+ * Cells are autonomous entities that maintain homeostasis, respond to
+ * environmental stimuli, and carry out metabolic processes. They are
+ * bounded by a membrane and contain cytoplasm with genetic material.
+ *
+ * The cell autonomously absorbs molecules from its environment via
+ * passive diffusion and metabolizes them to maintain viability.
  */
 export abstract class Cell {
   /**
    * Viability fraction (0–1). 1.0 = fully viable, 0.0 = non-viable.
    */
   protected viabilityValue = 1.0;
+
+  /**
+   * The environment in which this cell lives.
+   */
+  protected environment: Environment;
+
+  constructor(environment: Environment) {
+    this.environment = environment;
+    this.live();
+  }
 
   /**
    * Current viability fraction.
@@ -40,7 +54,37 @@ export abstract class Cell {
   }
 
   /**
-   * Absorbs a molecule from the environment via passive diffusion.
+   * Autonomous life cycle — maintains homeostasis through continuous
+   * absorption and metabolism of environmental molecules.
+   *
+   * The cell does not "sense" or "decide" — molecules diffuse through
+   * membranes based on physical properties (lipophilicity, size).
+   * The cell responds to the consequences of absorption internally.
+   */
+  private live(): void {
+    // Passive absorption driven by concentration gradient
+    this.absorbAvailableMolecules();
+
+    // Metabolize absorbed nutrients for energy
+    this.metabolize();
+  }
+
+  /**
+   * Absorbs available molecules from the environment via passive diffusion.
+   *
+   * Physics-driven: molecules enter based on lipophilicity and size,
+   * not through active detection or signaling.
+   */
+  protected abstract absorbAvailableMolecules(): void;
+
+  /**
+   * Metabolizes absorbed nutrients to maintain viability.
+   * Subclasses implement their specific metabolic pathways.
+   */
+  protected abstract metabolize(): void;
+
+  /**
+   * Absorbs a specific molecule from the environment via passive diffusion.
    *
    * Driven by concentration gradient (environment → cytoplasm).
    * Depends on molecule lipophilicity (logP) and membrane permeability.

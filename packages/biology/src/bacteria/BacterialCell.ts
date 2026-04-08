@@ -90,8 +90,8 @@ export class BacterialCell extends Cell {
    */
   protected elapsedDuration = 0;
 
-  constructor(params: { generationTime?: Duration } = {}) {
-    super();
+  constructor(environment: Environment, params: { generationTime?: Duration } = {}) {
+    super(environment);
     this.cellWall = new CellWall();
     this.cellMembrane = new CellMembrane();
     this.cytoplasm = new Cytoplasm();
@@ -100,6 +100,22 @@ export class BacterialCell extends Cell {
     this.plasmids = [];
     this.energyReserves = new EnergyReserves();
     this.generationTime = params.generationTime ?? (1200 as Duration);
+  }
+
+  /**
+   * Absorbs available molecules from the environment via passive diffusion.
+   *
+   * Driven by concentration gradient — no active sensing or detection.
+   */
+  protected override absorbAvailableMolecules(): void {
+    // Passive absorption handled by individual absorb() calls
+  }
+
+  /**
+   * Metabolizes absorbed nutrients to maintain viability.
+   */
+  protected override metabolize(): void {
+    // Metabolism handled by individual metabolize() calls
   }
 
   /**
@@ -303,7 +319,7 @@ export class BacterialCell extends Cell {
     this.elapsedDuration = 0;
 
     // Produce daughter cell with inherited properties
-    const daughter = new BacterialCell({
+    const daughter = new BacterialCell(this.environment, {
       generationTime: this.generationTime,
     });
 
@@ -324,7 +340,7 @@ export class BacterialCell extends Cell {
    *
    * @returns Metabolic energy produced in attomoles.
    */
-  metabolize(): number {
+  performMetabolism(): number {
     if (!this.isAlive) return 0;
 
     // Produce ATP from energy reserves

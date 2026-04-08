@@ -56,8 +56,8 @@ export class MycobacteriumTuberculosis extends BacterialCell {
     return !this.energyReserves.isSufficient && this.isAlive;
   }
 
-  constructor(params: { mycolicAcidThickness?: number; cordFactorDensity?: number }) {
-    super({
+  constructor(environment: Environment, params: { mycolicAcidThickness?: number; cordFactorDensity?: number }) {
+    super(environment, {
       generationTime: 86400 as Duration, // ~24 hours (much slower than typical bacteria)
     });
     this.mycolicAcidLayer = new MycolicAcidLayer({
@@ -101,7 +101,7 @@ export class MycobacteriumTuberculosis extends BacterialCell {
 
     // Produce daughter cell with inherited properties
     // Asymmetric division — daughter may differ in size
-    const daughter = new MycobacteriumTuberculosis({
+    const daughter = new MycobacteriumTuberculosis(this.environment, {
       mycolicAcidThickness: this.mycolicAcidLayer.thickness * (0.9 + Math.random() * 0.2), // ±10% variation
       cordFactorDensity: this.mycolicAcidLayer.cordFactorDensity,
     });

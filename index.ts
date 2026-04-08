@@ -112,10 +112,10 @@ console.log(`Lactose: ${lactose.molecularFormula} (${lactose.molecularMass.toFix
 // --- Pharmacology Demonstration ---
 console.log("\n--- Pharmacology Demonstration ---");
 
-const bacteria = new BacterialCell();
+const bacteria = new BacterialCell(PHYSIOLOGICAL_CONDITIONS);
 bacteria.addEnzyme(new Polymerase(enzymeProtein));
 
-const tb = new MycobacteriumTuberculosis({});
+const tb = new MycobacteriumTuberculosis(PHYSIOLOGICAL_CONDITIONS, {});
 tb.addEnzyme(new Polymerase(enzymeProtein));
 
 const rifampicin = new Rifampicin();
