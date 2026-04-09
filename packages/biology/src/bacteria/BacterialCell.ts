@@ -44,7 +44,7 @@ export class BacterialCell extends Cell {
   /**
    * Lipid bilayer membrane with selective permeability.
    */
-  readonly cellMembrane: CellMembrane;
+  readonly membrane: CellMembrane;
 
   /**
    * Aqueous cytoplasm containing metabolites and enzymes.
@@ -99,7 +99,7 @@ export class BacterialCell extends Cell {
   constructor(environment: Environment, params: { generationTime?: Duration } = {}) {
     super(environment);
     this.cellWall = new CellWall();
-    this.cellMembrane = new CellMembrane();
+    this.membrane = new CellMembrane();
     this.cytoplasm = new Cytoplasm();
     this.nucleoid = new Nucleoid();
     this.ribosomes = [];
@@ -148,10 +148,10 @@ export class BacterialCell extends Cell {
    * @returns Records for each molecule type that was absorbed.
    */
   absorb(): AbsorptionRecord[] {
-    if (!this.cellMembrane.isIntact) return this.noAbsorptionRecords();
+    if (!this.membrane.isIntact) return this.noAbsorptionRecords();
 
     const gradient = this.concentrationGradient();
-    const membraneIntegrity = this.cellMembrane.functionalIntegrity;
+    const membraneIntegrity = this.membrane.functionalIntegrity;
 
     const lipophilicAmount = this.diffusionRate(gradient, lipophilicPermeability(), membraneIntegrity);
     const hydrophilicAmount = this.diffusionRate(gradient, hydrophilicPermeability(), membraneIntegrity);
@@ -251,8 +251,8 @@ export class BacterialCell extends Cell {
    * @param event Membrane damage event.
    */
   onMembraneDamage(event: MembraneDamageEvent): void {
-    this.cellMembrane.damage(event.severity);
-    if (event.isIrreversible || !this.cellMembrane.isIntact) {
+    this.membrane.damage(event.severity);
+    if (event.isIrreversible || !this.membrane.isIntact) {
       this.die();
     }
   }

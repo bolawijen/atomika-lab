@@ -133,10 +133,10 @@ export class MycobacteriumTuberculosis extends BacterialCell {
    * @returns Records for each molecule type that was absorbed.
    */
   override absorb(): AbsorptionRecord[] {
-    if (!this.cellMembrane.isIntact) return this.tbNoAbsorptionRecords();
+    if (!this.membrane.isIntact) return this.tbNoAbsorptionRecords();
 
     const gradient = this.tbConcentrationGradient();
-    const membraneIntegrity = this.cellMembrane.functionalIntegrity;
+    const membraneIntegrity = this.membrane.functionalIntegrity;
 
     const lipidAmount = this.tbDiffusionRate(gradient, this.tbLipidPermeability(), membraneIntegrity);
     const nonLipidAmount = this.tbDiffusionRate(gradient, this.tbNonLipidPermeability(), membraneIntegrity);
@@ -180,7 +180,7 @@ export class MycobacteriumTuberculosis extends BacterialCell {
    * pass through protein pores by size exclusion.
    */
   private tbNonLipidPermeability(): number {
-    const porin = this.cellMembrane.porins.find(p => p.poreSize >= 12);
+    const porin = this.membrane.porins.find((p: { poreSize: number }) => p.poreSize >= 12);
     return porin ? porinPermeability(porin.poreSize) : 0;
   }
 
