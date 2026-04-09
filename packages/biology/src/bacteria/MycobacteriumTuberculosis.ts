@@ -133,7 +133,7 @@ export class MycobacteriumTuberculosis extends BacterialCell {
    * @returns Records for each molecule type that was absorbed.
    */
   override absorb(): AbsorptionRecord[] {
-    if (!this.canTBDiffuse()) return this.tbNoAbsorptionRecords();
+    if (!this.cellMembrane.isIntact) return this.tbNoAbsorptionRecords();
 
     const gradient = this.tbConcentrationGradient();
     const membraneIntegrity = this.cellMembrane.functionalIntegrity;
@@ -152,13 +152,6 @@ export class MycobacteriumTuberculosis extends BacterialCell {
       this.tbAbsorptionRecord("lipids", lipidAmount),
       this.tbAbsorptionRecord("non-lipids", nonLipidAmount),
     ];
-  }
-
-  /**
-   * Whether the cell envelope allows passive diffusion.
-   */
-  private canTBDiffuse(): boolean {
-    return this.cellMembrane.isIntact;
   }
 
   /**

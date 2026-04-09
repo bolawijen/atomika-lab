@@ -148,7 +148,7 @@ export class BacterialCell extends Cell {
    * @returns Records for each molecule type that was absorbed.
    */
   absorb(): AbsorptionRecord[] {
-    if (!this.canDiffuse()) return this.noAbsorptionRecords();
+    if (!this.cellMembrane.isIntact) return this.noAbsorptionRecords();
 
     const gradient = this.concentrationGradient();
     const membraneIntegrity = this.cellMembrane.functionalIntegrity;
@@ -162,13 +162,6 @@ export class BacterialCell extends Cell {
       this.absorptionRecord("lipophilic", lipophilicAmount),
       this.absorptionRecord("hydrophilic", hydrophilicAmount),
     ];
-  }
-
-  /**
-   * Whether the cell membrane allows passive diffusion.
-   */
-  private canDiffuse(): boolean {
-    return this.cellMembrane.isIntact;
   }
 
   /**
