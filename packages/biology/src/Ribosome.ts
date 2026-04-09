@@ -240,9 +240,9 @@ export class Ribosome {
     );
   }
 
-  #getAminoAcidComposition(name: string): Map<any, number> {
+  #getAminoAcidComposition(name: string): Map<Atom, number> {
     // Simplified compositions for common amino acids
-    const compositions: Record<string, [any, number][]> = {
+    const compositions: Record<string, [Atom, number][]> = {
       "Alanine": [[ELEMENTS.C, 3], [ELEMENTS.H, 7], [ELEMENTS.N, 1], [ELEMENTS.O, 2]],
       "Lysine": [[ELEMENTS.C, 6], [ELEMENTS.H, 14], [ELEMENTS.N, 2], [ELEMENTS.O, 2]],
       "Aspartic Acid": [[ELEMENTS.C, 4], [ELEMENTS.H, 7], [ELEMENTS.N, 1], [ELEMENTS.O, 4]],

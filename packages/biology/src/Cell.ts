@@ -82,16 +82,4 @@ export abstract class Cell {
    * Subclasses implement their specific metabolic pathways.
    */
   protected abstract metabolize(): void;
-
-  /**
-   * Absorbs a specific molecule from the environment via passive diffusion.
-   *
-   * Driven by concentration gradient (environment → cytoplasm).
-   * Depends on molecule lipophilicity (logP) and membrane permeability.
-   *
-   * @param molecule The molecule to absorb.
-   * @param environment The environmental context.
-   * @returns Record of the absorption event.
-   */
-  abstract absorb(molecule: Molecule, environment: Environment): AbsorptionRecord;
 }
