@@ -272,7 +272,7 @@ export class Ribosome {
   /**
    * Introduces a random amino acid substitution (mimicking translation errors).
    */
-  #randomMisincorporation(correctInfo: { name: string; threeLetter: string; oneLetter: string; composition: Map<any, number> }): { name: string; threeLetter: string; oneLetter: string; composition: Map<any, number> } {
+  #randomMisincorporation(correctInfo: { name: string; threeLetter: string; oneLetter: string; composition: Map<Atom, number> }): { name: string; threeLetter: string; oneLetter: string; composition: Map<Atom, number> } {
     const allAminoAcids = Array.from(GENETIC_CODE.values()).filter(aa => aa.oneLetter !== "*");
     const wrongAAs = allAminoAcids.filter(aa => aa.oneLetter !== correctInfo.oneLetter);
     return wrongAAs[Math.floor(Math.random() * wrongAAs.length)]!;
