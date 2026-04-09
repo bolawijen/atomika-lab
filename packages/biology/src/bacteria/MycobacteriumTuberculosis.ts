@@ -2,9 +2,15 @@ import { BacterialCell } from "./BacterialCell";
 import { Polymerase } from "../Polymerase";
 import { ProteinChain } from "@atomika-lab/biochem";
 import { Rifampicin } from "@atomika-lab/pharmacology";
-import { Environment, type Duration, Molecule } from "@atomika-lab/core";
+import { Environment, type Duration } from "@atomika-lab/core";
 import { MycolicAcidLayer } from "./BacterialStructures";
 import { Cell, type AbsorptionRecord } from "../Cell";
+import {
+  concentrationGradient,
+  diffusionRate,
+  mycolicAcidLipidPermeability,
+  porinPermeability,
+} from "./DiffusionPhysics";
 
 /**
  * Mycobacterium tuberculosis — the causative agent of tuberculosis.
@@ -127,41 +133,96 @@ export class MycobacteriumTuberculosis extends BacterialCell {
    * @returns Records for each molecule type that was absorbed.
    */
   override absorb(): AbsorptionRecord[] {
-    const records: AbsorptionRecord[] = [];
+    if (!this.canTBDiffuse()) return this.tbNoAbsorptionRecords();
 
-    // Passive diffusion — requires concentration gradient
-    const gradient = this.environment.nutrientConcentration - this.cytoplasm.nutrientConcentration;
-    if (gradient <= 0) return [{ moleculeType: "nutrients", amount: 0, absorbed: false }];
+    const gradient = this.tbConcentrationGradient();
+    const membraneIntegrity = this.cellMembrane.functionalIntegrity;
 
-    // Membrane must be intact
-    if (!this.cellMembrane.isIntact) return [{ moleculeType: "nutrients", amount: 0, absorbed: false }];
+    const lipidAmount = this.tbDiffusionRate(gradient, this.tbLipidPermeability(), membraneIntegrity);
+    const nonLipidAmount = this.tbDiffusionRate(gradient, this.tbNonLipidPermeability(), membraneIntegrity);
 
-    // Mycolic acid layer acts as lipophilicity filter
-    // Lipids perme easily (high logP molecules dissolve in waxy layer)
-    const lipidPermeability = this.mycolicAcidLayer.hydrophobicity;
-    const membranePermeability = this.cellMembrane.functionalIntegrity;
-    const lipidAmount = Math.min(gradient * lipidPermeability * membranePermeability * 0.1, 1.0);
-
-    // Non-lipids must pass through porin channels (size exclusion)
-    const porin = this.cellMembrane.porins.find(p => p.poreSize >= 12);
-    const nonLipidPermeability = porin ? porin.poreSize / 20 : 0;
-    const nonLipidAmount = Math.min(gradient * nonLipidPermeability * membranePermeability * 0.1, 1.0);
-
-    // Add to cytoplasm
     this.cytoplasm.addNutrient(lipidAmount + nonLipidAmount);
-
-    // Replenish energy reserves from absorbed nutrients
     this.energyReserves.replenish(lipidAmount);
 
-    records.push({ moleculeType: "lipids", amount: lipidAmount, absorbed: lipidAmount > 0 });
-    records.push({ moleculeType: "non-lipids", amount: nonLipidAmount, absorbed: nonLipidAmount > 0 });
-
-    // Long-term penalty: non-lipid nutrition causes gradual viability decline
-    if (nonLipidAmount > lipidAmount) {
+    if (this.tbNonLipidDominant(lipidAmount, nonLipidAmount)) {
       this.viabilityValue = Math.max(0, this.viabilityValue - 0.001);
     }
 
-    return records;
+    return [
+      this.tbAbsorptionRecord("lipids", lipidAmount),
+      this.tbAbsorptionRecord("non-lipids", nonLipidAmount),
+    ];
+  }
+
+  /**
+   * Whether the cell envelope allows passive diffusion.
+   */
+  private canTBDiffuse(): boolean {
+    return this.cellMembrane.isIntact;
+  }
+
+  /**
+   * Concentration gradient driving diffusion from environment into cytoplasm.
+   */
+  private tbConcentrationGradient(): number {
+    return concentrationGradient(
+      this.environment.nutrientConcentration,
+      this.cytoplasm.nutrientConcentration,
+    );
+  }
+
+  /**
+   * Permeability of lipids through the mycolic acid layer.
+   *
+   * Lipids dissolve readily in the waxy mycolic acid barrier.
+   */
+  private tbLipidPermeability(): number {
+    return mycolicAcidLipidPermeability(this.mycolicAcidLayer.hydrophobicity);
+  }
+
+  /**
+   * Permeability of non-lipid molecules through porin channels.
+   *
+   * Non-lipids cannot dissolve in the mycolic acid layer and must
+   * pass through protein pores by size exclusion.
+   */
+  private tbNonLipidPermeability(): number {
+    const porin = this.cellMembrane.porins.find(p => p.poreSize >= 12);
+    return porin ? porinPermeability(porin.poreSize) : 0;
+  }
+
+  /**
+   * Calculates diffusion rate for a given permeability and membrane integrity.
+   */
+  private tbDiffusionRate(gradient: number, permeability: number, membraneIntegrity: number): number {
+    return diffusionRate(gradient, permeability * membraneIntegrity);
+  }
+
+  /**
+   * Whether non-lipid absorption exceeds lipid absorption.
+   *
+   * M. tuberculosis is adapted to lipid nutrition — relying on non-lipids
+   * indicates suboptimal conditions and causes gradual viability decline.
+   */
+  private tbNonLipidDominant(lipidAmount: number, nonLipidAmount: number): boolean {
+    return nonLipidAmount > lipidAmount;
+  }
+
+  /**
+   * Creates an absorption record for a molecule type.
+   */
+  private tbAbsorptionRecord(moleculeType: string, amount: number): AbsorptionRecord {
+    return { moleculeType, amount, absorbed: amount > 0 };
+  }
+
+  /**
+   * Returns absorption records when no diffusion can occur.
+   */
+  private tbNoAbsorptionRecords(): AbsorptionRecord[] {
+    return [
+      { moleculeType: "lipids", amount: 0, absorbed: false },
+      { moleculeType: "non-lipids", amount: 0, absorbed: false },
+    ];
   }
 
   /**

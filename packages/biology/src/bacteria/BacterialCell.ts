@@ -22,6 +22,12 @@ import type {
 } from "./BacterialStimuli";
 import { Ribosome } from "../Ribosome";
 import { Cell, type AbsorptionRecord } from "../Cell";
+import {
+  concentrationGradient,
+  diffusionRate,
+  lipophilicPermeability,
+  hydrophilicPermeability,
+} from "./DiffusionPhysics";
 
 /**
  * A prokaryotic cell containing enzymatic machinery.
@@ -142,31 +148,61 @@ export class BacterialCell extends Cell {
    * @returns Records for each molecule type that was absorbed.
    */
   absorb(): AbsorptionRecord[] {
-    const records: AbsorptionRecord[] = [];
+    if (!this.canDiffuse()) return this.noAbsorptionRecords();
 
-    // Passive diffusion — requires concentration gradient
-    const gradient = this.environment.nutrientConcentration - this.cytoplasm.nutrientConcentration;
-    if (gradient <= 0) return [{ moleculeType: "nutrients", amount: 0, absorbed: false }];
+    const gradient = this.concentrationGradient();
+    const membraneIntegrity = this.cellMembrane.functionalIntegrity;
 
-    // Membrane must be intact
-    if (!this.cellMembrane.isIntact) return [{ moleculeType: "nutrients", amount: 0, absorbed: false }];
+    const lipophilicAmount = this.diffusionRate(gradient, lipophilicPermeability(), membraneIntegrity);
+    const hydrophilicAmount = this.diffusionRate(gradient, hydrophilicPermeability(), membraneIntegrity);
 
-    // Lipophilic molecules diffuse more readily
-    const lipophilicPermeability = 1.0; // lipids pass easily
-    const hydrophilicPermeability = 0.3; // polar molecules face resistance
-    const membranePermeability = this.cellMembrane.functionalIntegrity;
-
-    // Record absorption for both lipophilic and hydrophilic pools
-    const lipophilicAmount = Math.min(gradient * lipophilicPermeability * membranePermeability * 0.1, 1.0);
-    const hydrophilicAmount = Math.min(gradient * hydrophilicPermeability * membranePermeability * 0.1, 1.0);
-
-    // Add to cytoplasm
     this.cytoplasm.addNutrient(lipophilicAmount + hydrophilicAmount);
 
-    records.push({ moleculeType: "lipophilic", amount: lipophilicAmount, absorbed: lipophilicAmount > 0 });
-    records.push({ moleculeType: "hydrophilic", amount: hydrophilicAmount, absorbed: hydrophilicAmount > 0 });
+    return [
+      this.absorptionRecord("lipophilic", lipophilicAmount),
+      this.absorptionRecord("hydrophilic", hydrophilicAmount),
+    ];
+  }
 
-    return records;
+  /**
+   * Whether the cell membrane allows passive diffusion.
+   */
+  private canDiffuse(): boolean {
+    return this.cellMembrane.isIntact;
+  }
+
+  /**
+   * Concentration gradient driving diffusion from environment into cytoplasm.
+   */
+  private concentrationGradient(): number {
+    return concentrationGradient(
+      this.environment.nutrientConcentration,
+      this.cytoplasm.nutrientConcentration,
+    );
+  }
+
+  /**
+   * Calculates diffusion rate for a given permeability and membrane integrity.
+   */
+  private diffusionRate(gradient: number, permeability: number, membraneIntegrity: number): number {
+    return diffusionRate(gradient, permeability * membraneIntegrity);
+  }
+
+  /**
+   * Creates an absorption record for a molecule type.
+   */
+  private absorptionRecord(moleculeType: string, amount: number): AbsorptionRecord {
+    return { moleculeType, amount, absorbed: amount > 0 };
+  }
+
+  /**
+   * Returns absorption records when no diffusion can occur.
+   */
+  private noAbsorptionRecords(): AbsorptionRecord[] {
+    return [
+      { moleculeType: "lipophilic", amount: 0, absorbed: false },
+      { moleculeType: "hydrophilic", amount: 0, absorbed: false },
+    ];
   }
 
   /**
