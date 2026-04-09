@@ -1,5 +1,4 @@
 import { Environment } from "@atomika-lab/core";
-import { Molecule } from "@atomika-lab/core";
 
 /**
  * Record of a molecular absorption event.
@@ -63,7 +62,7 @@ export abstract class Cell {
    */
   private live(): void {
     // Passive absorption driven by concentration gradient
-    this.absorbAvailableMolecules();
+    this.absorb();
 
     // Metabolize absorbed nutrients for energy
     this.metabolize();
@@ -72,10 +71,13 @@ export abstract class Cell {
   /**
    * Absorbs available molecules from the environment via passive diffusion.
    *
-   * Physics-driven: molecules enter based on lipophilicity and size,
-   * not through active detection or signaling.
+   * Uses the stored environment internally — no parameters needed.
+   * All molecules that can physically pass through the membrane enter
+   * based on their lipophilicity and the concentration gradient.
+   *
+   * @returns Records for each molecule type that was absorbed.
    */
-  protected abstract absorbAvailableMolecules(): void;
+  abstract absorb(): AbsorptionRecord[];
 
   /**
    * Metabolizes absorbed nutrients to maintain viability.

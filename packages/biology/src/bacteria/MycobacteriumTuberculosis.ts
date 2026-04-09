@@ -118,51 +118,50 @@ export class MycobacteriumTuberculosis extends BacterialCell {
    * Absorbs molecules from the environment via passive diffusion through
    * the mycolic acid layer and cell membrane.
    *
+   * Uses the stored environment internally — no parameters needed.
    * Lipids dissolve through the mycolic acid wall naturally (like dissolves like).
    * Non-lipid nutrients must pass through porin channels by size exclusion.
    *
    * Uptake is driven by concentration gradient — no energy cost.
    *
-   * @param molecule The molecule to absorb.
-   * @param environment The environmental context.
-   * @returns Record of the absorption event.
+   * @returns Records for each molecule type that was absorbed.
    */
-  override absorb(molecule: Molecule, environment: Environment): AbsorptionRecord {
+  override absorb(): AbsorptionRecord[] {
+    const records: AbsorptionRecord[] = [];
+
     // Passive diffusion — requires concentration gradient
-    const gradient = environment.nutrientConcentration - this.cytoplasm.nutrientConcentration;
-    if (gradient <= 0) return { moleculeType: molecule.constructor.name, amount: 0, absorbed: false };
+    const gradient = this.environment.nutrientConcentration - this.cytoplasm.nutrientConcentration;
+    if (gradient <= 0) return [{ moleculeType: "nutrients", amount: 0, absorbed: false }];
 
-    let permeability: number;
+    // Membrane must be intact
+    if (!this.cellMembrane.isIntact) return [{ moleculeType: "nutrients", amount: 0, absorbed: false }];
 
-    // Lipids: dissolve through mycolic acid layer
-    if (this.mycolicAcidLayer.canPermeate(molecule)) {
-      permeability = this.mycolicAcidLayer.hydrophobicity;
-    } else {
-      // Non-lipids: must fit through porin channels
-      const porin = this.cellMembrane.porins.find(p => p.canPass(molecule));
-      if (!porin) {
-        // Too large or incompatible — rejected
-        return { moleculeType: molecule.constructor.name, amount: 0, absorbed: false };
-      }
-      permeability = porin.poreSize / 20; // normalized permeability
-    }
-
+    // Mycolic acid layer acts as lipophilicity filter
+    // Lipids perme easily (high logP molecules dissolve in waxy layer)
+    const lipidPermeability = this.mycolicAcidLayer.hydrophobicity;
     const membranePermeability = this.cellMembrane.functionalIntegrity;
-    const totalPermeability = permeability * membranePermeability;
-    const amount = Math.min(gradient * totalPermeability * 0.1, 1.0);
+    const lipidAmount = Math.min(gradient * lipidPermeability * membranePermeability * 0.1, 1.0);
+
+    // Non-lipids must pass through porin channels (size exclusion)
+    const porin = this.cellMembrane.porins.find(p => p.poreSize >= 12);
+    const nonLipidPermeability = porin ? porin.poreSize / 20 : 0;
+    const nonLipidAmount = Math.min(gradient * nonLipidPermeability * membranePermeability * 0.1, 1.0);
 
     // Add to cytoplasm
-    this.cytoplasm.addNutrient(amount);
+    this.cytoplasm.addNutrient(lipidAmount + nonLipidAmount);
 
     // Replenish energy reserves from absorbed nutrients
-    this.energyReserves.replenish(amount);
+    this.energyReserves.replenish(lipidAmount);
+
+    records.push({ moleculeType: "lipids", amount: lipidAmount, absorbed: lipidAmount > 0 });
+    records.push({ moleculeType: "non-lipids", amount: nonLipidAmount, absorbed: nonLipidAmount > 0 });
 
     // Long-term penalty: non-lipid nutrition causes gradual viability decline
-    if (!this.mycolicAcidLayer.canPermeate(molecule)) {
+    if (nonLipidAmount > lipidAmount) {
       this.viabilityValue = Math.max(0, this.viabilityValue - 0.001);
     }
 
-    return { moleculeType: molecule.constructor.name, amount, absorbed: amount > 0 };
+    return records;
   }
 
   /**

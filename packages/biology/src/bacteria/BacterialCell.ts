@@ -1,7 +1,7 @@
 import { Enzyme } from "@atomika-lab/biochem";
 import { Polymerase } from "../Polymerase";
 import { Rifampicin } from "@atomika-lab/pharmacology";
-import { Environment, type Duration, Molecule } from "@atomika-lab/core";
+import { Environment, type Duration } from "@atomika-lab/core";
 import {
   CellWall,
   CellMembrane,
@@ -103,19 +103,10 @@ export class BacterialCell extends Cell {
   }
 
   /**
-   * Absorbs available molecules from the environment via passive diffusion.
-   *
-   * Driven by concentration gradient — no active sensing or detection.
-   */
-  protected override absorbAvailableMolecules(): void {
-    // Passive absorption handled by individual absorb() calls
-  }
-
-  /**
    * Metabolizes absorbed nutrients to maintain viability.
    */
   protected override metabolize(): void {
-    // Metabolism handled by individual metabolize() calls
+    // Metabolism handled by individual performMetabolism() calls
   }
 
   /**
@@ -142,32 +133,40 @@ export class BacterialCell extends Cell {
   }
 
   /**
-   * Absorbs a molecule from the environment via passive diffusion.
+   * Absorbs available molecules from the environment via passive diffusion.
    *
+   * Uses the stored environment internally — no parameters needed.
    * Driven by concentration gradient (environment → cytoplasm).
-   * Depends on molecule lipophilicity (logP) and membrane permeability.
+   * Lipophilic molecules diffuse more readily through the membrane.
    *
-   * @param molecule The molecule to absorb.
-   * @param environment The environmental context.
-   * @returns Record of the absorption event.
+   * @returns Records for each molecule type that was absorbed.
    */
-  absorb(molecule: Molecule, environment: Environment): AbsorptionRecord {
+  absorb(): AbsorptionRecord[] {
+    const records: AbsorptionRecord[] = [];
+
     // Passive diffusion — requires concentration gradient
-    const gradient = environment.nutrientConcentration - this.cytoplasm.nutrientConcentration;
-    if (gradient <= 0) return { moleculeType: molecule.constructor.name, amount: 0, absorbed: false };
+    const gradient = this.environment.nutrientConcentration - this.cytoplasm.nutrientConcentration;
+    if (gradient <= 0) return [{ moleculeType: "nutrients", amount: 0, absorbed: false }];
 
     // Membrane must be intact
-    if (!this.cellMembrane.isIntact) return { moleculeType: molecule.constructor.name, amount: 0, absorbed: false };
+    if (!this.cellMembrane.isIntact) return [{ moleculeType: "nutrients", amount: 0, absorbed: false }];
 
     // Lipophilic molecules diffuse more readily
-    const permeability = molecule.logP > 0 ? 1.0 : 0.3;
+    const lipophilicPermeability = 1.0; // lipids pass easily
+    const hydrophilicPermeability = 0.3; // polar molecules face resistance
     const membranePermeability = this.cellMembrane.functionalIntegrity;
-    const amount = Math.min(gradient * permeability * membranePermeability * 0.1, 1.0);
+
+    // Record absorption for both lipophilic and hydrophilic pools
+    const lipophilicAmount = Math.min(gradient * lipophilicPermeability * membranePermeability * 0.1, 1.0);
+    const hydrophilicAmount = Math.min(gradient * hydrophilicPermeability * membranePermeability * 0.1, 1.0);
 
     // Add to cytoplasm
-    this.cytoplasm.addNutrient(amount);
+    this.cytoplasm.addNutrient(lipophilicAmount + hydrophilicAmount);
 
-    return { moleculeType: molecule.constructor.name, amount, absorbed: amount > 0 };
+    records.push({ moleculeType: "lipophilic", amount: lipophilicAmount, absorbed: lipophilicAmount > 0 });
+    records.push({ moleculeType: "hydrophilic", amount: hydrophilicAmount, absorbed: hydrophilicAmount > 0 });
+
+    return records;
   }
 
   /**
